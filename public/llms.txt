@@ -1,0 +1,28 @@
+# CURIÓ
+
+CURIÓ é um serviço brasileiro de acompanhamento escolar personalizado para estudantes do 1º ao 8º ano.
+
+Site oficial: usar o domínio público configurado no ambiente de produção
+Contato: curio.educacao@gmail.com
+
+## O que o CURIÓ oferece
+- acompanhamento escolar personalizado;
+- Missões Cuca interativas;
+- atividades no Caderno Curió para escrita e raciocínio fora da tela;
+- preparação para avaliações no Modo Prova;
+- Mapa Pedagógico 360º baseado em evidências;
+- cursos livres no Modo Pensar, com certificado quando a trilha for certificável;
+- acompanhamento para famílias e professores.
+
+## Princípio
+Tecnologia ajuda. Seu cérebro resolve.
+
+## Público
+Estudantes do 1º ao 8º ano e suas famílias.
+
+## Conteúdo público principal
+- Página inicial: /
+- Termos de Uso: /legal/termos-de-uso
+- Privacidade da Criança: /legal/privacidade-da-crianca
+
+Áreas de aluno, família, professor e administração são privadas e não devem ser indexadas.

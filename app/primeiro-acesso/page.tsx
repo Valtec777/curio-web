@@ -1,0 +1,8 @@
+import Link from "next/link";
+import { Logo } from "@/components/logo";
+import { requestFirstAccess } from "@/app/login/actions";
+
+export default async function PrimeiroAcessoPage({ searchParams }: { searchParams: Promise<{ erro?: string; sucesso?: string }> }) {
+  const params = await searchParams;
+  return <main className="auth-page auth-curio-access"><section className="auth-brand"><Logo/><div><div className="eyebrow" style={{color:"#a8ee25"}}>Primeiro acesso</div><h1>Seu acesso já foi preparado pelo Curió.</h1><p>Informe o mesmo e-mail usado pela administração na matrícula ou no cadastro da equipe.</p></div><small>Você cria a senha. O Curió cria o acesso.</small></section><section className="auth-form-side"><div className="auth-card auth-card-playful"><div className="eyebrow">Primeiro acesso</div><h2>Definir minha senha</h2><p>Enviaremos um link para o e-mail que já está autorizado no sistema.</p>{params.erro&&<div className="form-message form-error">{params.erro}</div>}{params.sucesso&&<div className="form-message form-success">Se este e-mail estiver liberado no Curió, você receberá as instruções em instantes.</div>}<form className="form-stack" action={requestFirstAccess}><div className="field"><label htmlFor="email">E-mail autorizado</label><input className="input" id="email" name="email" type="email" autoComplete="email" required/></div><button className="button button-primary button-block" type="submit">Enviar link de primeiro acesso</button></form><Link className="button button-ghost button-block" href="/login">Voltar para entrar</Link></div></section></main>;
+}
