@@ -295,7 +295,8 @@ export async function inviteAdminAccess(formData: FormData) {
     phone: String(formData.get("phone") || ""),
   });
   if (!parsed.success) redirect(`/admin/usuarios?erro=${encodeURIComponent(parsed.error.issues[0].message)}`);
-  const safeReturn = parsed.data.returnTo?.startsWith("/admin/") ? parsed.data.returnTo : "/admin/usuarios";
+const returnTo = String(formData.get("returnTo") || "");
+const safeReturn = returnTo.startsWith("/admin") ? returnTo : "/admin/usuarios";
   const result = await invokeAccessAdmin({
     action: "invite",
     role: "admin",
