@@ -1,6 +1,5 @@
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
-import { requireRole } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { getFamilyPortal } from "@/lib/family";
 
 function dt(value?: string | null) {
   if (!value) return "—";
@@ -12,41 +11,37 @@ function dt(value?: string | null) {
 }
 
 function tone(status?: string | null): "green" | "yellow" | "pink" | "blue" | "neutral" {
-  if (status === "completed") return "green";
+  if (status === "completed" || status === "confirmed") return "green";
   if (status === "cancelled") return "pink";
   return "yellow";
 }
 
-export default async function FamilyAgendaPage() {
-  const viewer = await requireRole("guardian");
-  const supabase = await createClient();
-  const { data: guardian } = await supabase
-    .from("guardians")
-    .select("id")
-    .eq("profile_id", viewer.user.id)
-    .maybeSingle();
+function statusLabel(status?: string | null) {
+  if (status === "confirmed") return "Confirmado";
+  if (status === "completed") return "Realizado";
+  if (status === "cancelled") return "Cancelado";
+  return "Agendado";
+}
 
-  if (!guardian) {
-    return <EmptyState title="Perfil da família incompleto" description="A administração precisa concluir o vínculo do responsável." />;
-  }
+function eventLabel(type?: string | null) {
+  if (type === "class") return "Aula";
+  if (type === "review") return "Revisão";
+  if (type === "family_meeting" || type === "meeting") return "Reunião com a família";
+  if (type === "assessment") return "Avaliação";
+  return "Outro";
+}
 
-  const { data: links } = await supabase
-    .from("guardian_students")
-    .select("student_id,students(preferred_name,full_name,deleted_at)")
-    .eq("guardian_id", guardian.id);
+export default async function FamilyAgendaPage({ searchParams }: { searchParams: Promise<{ aluno?: string }> }) {
+  const query = await searchParams;
+  const { selectedChild, supabase, viewer } = await getFamilyPortal(query.aluno || null);
+  if (!selectedChild) return <EmptyState title="Nenhuma criança vinculada" description="A agenda aparecerá quando houver uma criança vinculada." />;
 
-  const activeLinks = (links ?? []).filter((link: any) => link.students && !link.students.deleted_at);
-  const studentIds = activeLinks.map((link: any) => link.student_id);
-  const studentName = new Map(activeLinks.map((link: any) => [link.student_id, link.students?.preferred_name || link.students?.full_name || "Criança"]));
   const guardianName = viewer.profile?.preferred_name || viewer.profile?.full_name || "Responsável";
-
-  const { data: eventLinks } = studentIds.length
-    ? await supabase
-        .from("agenda_event_students")
-        .select("student_id,event_id,agenda_events(id,title,description,event_type,starts_at,ends_at,status,location,meeting_url,visible_to_guardian)")
-        .in("student_id", studentIds)
-        .limit(100)
-    : { data: [] as any[] };
+  const { data: eventLinks } = await supabase
+    .from("agenda_event_students")
+    .select("student_id,event_id,agenda_events(id,title,description,event_type,starts_at,ends_at,status,location,meeting_url,visible_to_guardian)")
+    .eq("student_id", selectedChild.student_id)
+    .limit(100);
 
   const events = (eventLinks ?? [])
     .filter((item: any) => item.agenda_events?.visible_to_guardian)
@@ -57,8 +52,8 @@ export default async function FamilyAgendaPage() {
     <>
       <PageHeader
         eyebrow="Ninho da Família"
-        title="Agenda"
-        description="Aulas, reuniões e compromissos dos alunos vinculados à sua família."
+        title={`Agenda de ${selectedChild.student_name}`}
+        description="Aulas, revisões, reuniões com a família e outros compromissos marcados pelo professor."
       />
 
       <section className="panel">
@@ -66,32 +61,30 @@ export default async function FamilyAgendaPage() {
           <div className="form-stack">
             {events.map((item: any) => {
               const event = item.agenda_events;
-              const isMeeting = event.event_type === "meeting";
+              const isFamilyMeeting = event.event_type === "meeting" || event.event_type === "family_meeting";
               return (
-                <article className="mission-card" key={`${item.student_id}-${item.event_id}`}>
+                <article className="family-upload-card" key={`${item.student_id}-${item.event_id}`}>
                   <div className="flex space-between gap-8 wrap">
                     <div>
-                      <strong>{event.title}</strong>
-                      <p>{studentName.get(item.student_id)} • {event.description || (isMeeting ? "Reunião com a família" : event.event_type)}</p>
-                      {isMeeting && <small className="muted">Responsável: {guardianName}</small>}
+                      <div className="flex gap-8 wrap"><Badge tone="blue">{eventLabel(event.event_type)}</Badge><Badge tone={tone(event.status)}>{statusLabel(event.status)}</Badge></div>
+                      <h3>{event.title}</h3>
+                      <p>{event.description || eventLabel(event.event_type)}</p>
+                      {isFamilyMeeting ? <small className="muted">Responsável: {guardianName}</small> : null}
                     </div>
-                    <Badge tone={tone(event.status)}>{event.status}</Badge>
                   </div>
-                  <small className="muted">{dt(event.starts_at)}{event.ends_at ? ` → ${dt(event.ends_at)}` : ""}{event.location ? ` • ${event.location}` : ""}</small>
-                  {event.meeting_url && event.status !== "cancelled" && (
+                  <div className="teacher-resource-meta"><span>{dt(event.starts_at)}{event.ends_at ? ` → ${dt(event.ends_at)}` : ""}</span>{event.location ? <span>• {event.location}</span> : null}</div>
+                  {event.meeting_url && event.status !== "cancelled" ? (
                     <div className="mt-12">
                       <a className="button button-primary button-small" href={event.meeting_url} target="_blank" rel="noreferrer">
-                        {isMeeting ? "Entrar na reunião ↗" : "Entrar na aula ↗"}
+                        {isFamilyMeeting ? "Entrar na reunião ↗" : "Entrar na aula ↗"}
                       </a>
                     </div>
-                  )}
+                  ) : null}
                 </article>
               );
             })}
           </div>
-        ) : (
-          <EmptyState title="Nenhum compromisso visível" description="Quando o professor marcar uma aula ou reunião para sua família, ela aparecerá aqui." />
-        )}
+        ) : <EmptyState title="Nenhum compromisso agendado" description={`Quando o professor marcar uma aula ou reunião para ${selectedChild.student_name}, ela aparecerá aqui.`} />}
       </section>
     </>
   );
