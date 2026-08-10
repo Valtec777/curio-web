@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/app-shell";
 import { AdminContextActions } from "@/components/admin-context-actions";
+import { EnrollmentReviewEnhancer } from "@/components/enrollment-review-enhancer";
 import { requireRole } from "@/lib/auth";
 import "./dark-mode-fixes.css";
 import "./admin-polish.css";
@@ -17,6 +18,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <AppShell role="admin" roles={viewer.roles} name={viewer.profile?.preferred_name || viewer.profile?.full_name}>
       <AdminContextActions />
+      <EnrollmentReviewEnhancer />
       {children}
     </AppShell>
   );
