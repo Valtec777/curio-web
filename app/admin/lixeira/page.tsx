@@ -17,12 +17,28 @@ function typeLabel(entityType: string) {
     teachers: "Professor",
     guardians: "Família / responsável",
     messages: "Mensagem",
+    missions: "Missão Cuca",
+    materials: "Material",
+    notebook_activities: "Caderno Curió",
+    assessments: "Avaliação",
   };
   return labels[entityType] || entityType;
 }
 
 function canRestore(entityType: string) {
-  return ["plans", "access_invitations", "enrollment_requests", "students", "teachers", "guardians", "messages"].includes(entityType);
+  return [
+    "plans",
+    "access_invitations",
+    "enrollment_requests",
+    "students",
+    "teachers",
+    "guardians",
+    "messages",
+    "missions",
+    "materials",
+    "notebook_activities",
+    "assessments",
+  ].includes(entityType);
 }
 
 function canPermanentlyDelete(item: any) {
@@ -72,6 +88,8 @@ export default async function AdminTrashPage({ searchParams }: { searchParams: P
                     <small className="muted">Restaurável até {dt(item.restore_until)}</small>
                     {snapshot.reason && <p><strong>Motivo:</strong> {snapshot.reason}</p>}
                     {snapshot.dependencies && <small className="muted">Dependências preservadas no histórico.</small>}
+                    {typeof snapshot.dependency_count === "number" && <small className="muted">Vínculos preservados: {snapshot.dependency_count}</small>}
+                    {snapshot.previous_status && <small className="muted">Status anterior: {snapshot.previous_status}</small>}
                     {item.entity_id && <small className="muted">ID preservado: {item.entity_id}</small>}
                   </div>
                   <div className="plan-admin-actions mt-12">
