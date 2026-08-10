@@ -16,12 +16,13 @@ function typeLabel(entityType: string) {
     students: "Aluno",
     teachers: "Professor",
     guardians: "Família / responsável",
+    messages: "Mensagem",
   };
   return labels[entityType] || entityType;
 }
 
 function canRestore(entityType: string) {
-  return ["plans", "access_invitations", "enrollment_requests", "students", "teachers", "guardians"].includes(entityType);
+  return ["plans", "access_invitations", "enrollment_requests", "students", "teachers", "guardians", "messages"].includes(entityType);
 }
 
 function canPermanentlyDelete(item: any) {
@@ -66,6 +67,7 @@ export default async function AdminTrashPage({ searchParams }: { searchParams: P
                   <div className="flex space-between gap-8 wrap"><div><strong>{snapshot.label || typeLabel(item.entity_type)}</strong><p>{typeLabel(item.entity_type)}</p></div><Badge tone={expired ? "pink" : "neutral"}>{expired ? "Prazo encerrado" : "Na Lixeira"}</Badge></div>
                   <div className="form-stack compact-form">
                     {snapshot.email && <small className="muted">{snapshot.email}</small>}
+                    {snapshot.body_preview && <p className="muted">“{snapshot.body_preview}”</p>}
                     <small className="muted">Removido em {dt(item.deleted_at)} por {actorName.get(item.deleted_by_user_id) || "Sistema / Admin"}</small>
                     <small className="muted">Restaurável até {dt(item.restore_until)}</small>
                     {snapshot.reason && <p><strong>Motivo:</strong> {snapshot.reason}</p>}
