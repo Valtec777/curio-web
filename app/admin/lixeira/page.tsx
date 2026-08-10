@@ -18,12 +18,13 @@ function typeLabel(entityType: string) {
     access_invitations: "Convite / matrícula",
     enrollment_requests: "Solicitação de matrícula",
     students: "Aluno",
+    teachers: "Professor",
   };
   return labels[entityType] || entityType;
 }
 
 function canRestore(entityType: string) {
-  return ["plans", "access_invitations", "enrollment_requests", "students"].includes(entityType);
+  return ["plans", "access_invitations", "enrollment_requests", "students", "teachers"].includes(entityType);
 }
 
 function canPermanentlyDelete(item: any) {
@@ -100,6 +101,9 @@ export default async function AdminTrashPage({
                     </small>
                     <small className="muted">Restaurável até {dt(item.restore_until)}</small>
                     {snapshot.reason && <p><strong>Motivo:</strong> {snapshot.reason}</p>}
+                    {snapshot.dependencies && (
+                      <small className="muted">Dependências preservadas no histórico.</small>
+                    )}
                     {item.entity_id && <small className="muted">ID preservado: {item.entity_id}</small>}
                   </div>
 
