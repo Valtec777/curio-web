@@ -5,6 +5,7 @@ import "./dark-mode-fixes.css";
 import "./admin-polish.css";
 import "./admin-lists.css";
 import "./admin-generator.css";
+import "./admin-refinements.css";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
