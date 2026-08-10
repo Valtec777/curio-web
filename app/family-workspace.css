@@ -194,7 +194,7 @@
 
 .monthly-interest-prompt {
   position: fixed;
-  inset: auto 22px 22px auto;
+  inset: auto 22px 142px auto;
   z-index: 95;
   width: min(390px,calc(100vw - 28px));
   padding: 18px;
@@ -238,5 +238,5 @@ html[data-theme="dark"] .family-chat-list { background: #181e2a; border-color: #
   .family-metric-grid { grid-template-columns: 1fr; }
   .family-chat-compose { grid-template-columns: 1fr; }
   .family-chat-bubble { max-width: 90%; }
-  .monthly-interest-prompt { right: 12px; bottom: 70px; }
+  .monthly-interest-prompt { right: 12px; bottom: 132px; max-height: calc(100dvh - 160px); overflow: auto; }
 }
