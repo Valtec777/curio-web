@@ -6,6 +6,16 @@ import { z } from "zod";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
+function refreshEnrollmentPaths() {
+  revalidatePath("/admin/matriculas");
+  revalidatePath("/admin/alunos");
+  revalidatePath("/admin/familias");
+  revalidatePath("/admin/professores");
+  revalidatePath("/professor/alunos");
+  revalidatePath("/familia");
+  revalidatePath("/aluno");
+}
+
 export async function updateEnrollmentAssignments(formData: FormData) {
   await requireRole("admin");
   const parsed = z.object({
@@ -23,84 +33,69 @@ export async function updateEnrollmentAssignments(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const { data: invitation } = await supabase
-    .from("access_invitations")
-    .select("id,student_id,auth_user_id,teacher_id,plan_id,enrollment_finalized_at,deleted_at")
-    .eq("id", parsed.data.invitationId)
-    .eq("role", "guardian")
-    .maybeSingle();
+  const { error } = await supabase.rpc("finalize_guardian_enrollment", {
+    p_invitation_id: parsed.data.invitationId,
+    p_teacher_id: parsed.data.teacherId,
+    p_plan_id: parsed.data.planId,
+  });
 
-  if (!invitation || invitation.deleted_at || !invitation.student_id) {
-    redirect(`/admin/matriculas?erro=${encodeURIComponent("Matrícula não encontrada ou sem aluno vinculado.")}`);
+  if (error) {
+    console.error("Falha ao atualizar professor/plano da matrícula", error.code);
+    redirect(`/admin/matriculas?erro=${encodeURIComponent("Não foi possível atualizar professor e plano. Nenhuma alteração parcial deve ser mantida; revise os vínculos e tente novamente.")}`);
   }
 
-  const [{ data: teacher }, { data: plan }] = await Promise.all([
-    supabase.from("teachers").select("id,active").eq("id", parsed.data.teacherId).eq("active", true).maybeSingle(),
-    supabase
-      .from("plans")
-      .select("id,monthly_price")
-      .eq("id", parsed.data.planId)
-      .eq("active", true)
-      .eq("available_for_enrollment", true)
-      .is("archived_at", null)
-      .is("deleted_at", null)
-      .maybeSingle(),
-  ]);
+  refreshEnrollmentPaths();
+  redirect(`/admin/matriculas?sucesso=${encodeURIComponent("Professor e plano atualizados em uma única operação, sem recriar a matrícula.")}`);
+}
 
-  if (!teacher) redirect(`/admin/matriculas?erro=${encodeURIComponent("O professor selecionado não está ativo.")}`);
-  if (!plan) redirect(`/admin/matriculas?erro=${encodeURIComponent("O plano selecionado não está disponível para matrícula.")}`);
+const enrollmentDetailsSchema = z.object({
+  invitationId: z.string().uuid(),
+  studentFullName: z.string().trim().min(2).max(160),
+  studentPreferredName: z.string().trim().max(120).optional(),
+  gradeId: z.string().uuid().optional().or(z.literal("")),
+  schoolName: z.string().trim().max(200).optional(),
+  guardianFullName: z.string().trim().min(2).max(160),
+  guardianPreferredName: z.string().trim().max(120).optional(),
+  phone: z.string().trim().max(40).optional(),
+  relationship: z.string().trim().min(2).max(100),
+});
 
-  if (invitation.teacher_id && invitation.teacher_id !== teacher.id) {
-    const { error: oldTeacherError } = await supabase
-      .from("teacher_students")
-      .update({ active: false })
-      .eq("teacher_id", invitation.teacher_id)
-      .eq("student_id", invitation.student_id);
-    if (oldTeacherError) {
-      redirect(`/admin/matriculas?erro=${encodeURIComponent("Não foi possível encerrar o vínculo do professor anterior.")}`);
-    }
+export async function updateEnrollmentDetails(formData: FormData) {
+  await requireRole("admin");
+  const parsed = enrollmentDetailsSchema.safeParse({
+    invitationId: formData.get("invitationId"),
+    studentFullName: formData.get("studentFullName"),
+    studentPreferredName: String(formData.get("studentPreferredName") || ""),
+    gradeId: String(formData.get("gradeId") || ""),
+    schoolName: String(formData.get("schoolName") || ""),
+    guardianFullName: formData.get("guardianFullName"),
+    guardianPreferredName: String(formData.get("guardianPreferredName") || ""),
+    phone: String(formData.get("phone") || ""),
+    relationship: formData.get("relationship"),
+  });
+
+  if (!parsed.success) {
+    redirect(`/admin/matriculas?erro=${encodeURIComponent(parsed.error.issues[0]?.message || "Revise os dados da matrícula.")}`);
   }
 
-  const { error: teacherError } = await supabase.from("teacher_students").upsert({
-    teacher_id: teacher.id,
-    student_id: invitation.student_id,
-    active: true,
-  }, { onConflict: "teacher_id,student_id" });
-  if (teacherError) redirect(`/admin/matriculas?erro=${encodeURIComponent("Não foi possível vincular o novo professor.")}`);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("update_admin_enrollment_details", {
+    p_invitation_id: parsed.data.invitationId,
+    p_student_full_name: parsed.data.studentFullName,
+    p_student_preferred_name: parsed.data.studentPreferredName || "",
+    p_grade_id: parsed.data.gradeId || null,
+    p_school_name: parsed.data.schoolName || "",
+    p_guardian_full_name: parsed.data.guardianFullName,
+    p_guardian_preferred_name: parsed.data.guardianPreferredName || "",
+    p_phone_whatsapp: parsed.data.phone || "",
+    p_relationship: parsed.data.relationship,
+  });
 
-  const { data: subscription } = await supabase
-    .from("subscriptions")
-    .select("id")
-    .eq("student_id", invitation.student_id)
-    .in("status", ["pending", "active"])
-    .order("created_at")
-    .limit(1)
-    .maybeSingle();
-
-  if (subscription) {
-    const { error: planError } = await supabase.from("subscriptions").update({
-      plan_id: plan.id,
-      agreed_monthly_price: plan.monthly_price,
-      updated_at: new Date().toISOString(),
-    }).eq("id", subscription.id);
-    if (planError) redirect(`/admin/matriculas?erro=${encodeURIComponent("O professor foi atualizado, mas não foi possível alterar o plano.")}`);
+  if (error) {
+    console.error("Falha ao editar dados da matrícula", error.code);
+    redirect(`/admin/matriculas?erro=${encodeURIComponent("Não foi possível salvar os dados da matrícula. A operação foi rejeitada sem recriar os registros.")}`);
   }
 
-  const { error: invitationError } = await supabase.from("access_invitations").update({
-    teacher_id: teacher.id,
-    plan_id: plan.id,
-    enrollment_finalized_at: invitation.enrollment_finalized_at || new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    last_error: null,
-  }).eq("id", invitation.id);
-  if (invitationError) {
-    redirect(`/admin/matriculas?erro=${encodeURIComponent("Os vínculos foram alterados, mas não foi possível atualizar o registro da matrícula.")}`);
-  }
-
-  revalidatePath("/admin/matriculas");
-  revalidatePath("/admin/alunos");
-  revalidatePath("/admin/professores");
-  revalidatePath("/professor/alunos");
-  revalidatePath("/familia");
-  redirect(`/admin/matriculas?sucesso=${encodeURIComponent("Matrícula atualizada sem recriar aluno, responsável ou acesso.")}`);
+  refreshEnrollmentPaths();
+  redirect(`/admin/matriculas?sucesso=${encodeURIComponent("Dados do aluno, responsável e vínculo atualizados com os mesmos IDs.")}`);
 }
