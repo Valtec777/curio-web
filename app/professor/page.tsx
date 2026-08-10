@@ -180,9 +180,9 @@ export default async function TeacherHome() {
         </div>
 
         <div className="teacher-quick-actions">
-          <Link className="teacher-quick-action" href="/professor/criar?modo=missao"><span>Nova missão</span><b>＋</b></Link>
-          <Link className="teacher-quick-action" href="/professor/criar?modo=material"><span>Novo material</span><b>＋</b></Link>
-          <Link className="teacher-quick-action" href="/professor/criar?modo=avaliacao"><span>Nova avaliação</span><b>＋</b></Link>
+          <Link className="teacher-quick-action" href="/professor/missoes/nova"><span>Nova missão</span><b>＋</b></Link>
+          <Link className="teacher-quick-action" href="/professor/materiais/novo"><span>Novo material</span><b>＋</b></Link>
+          <Link className="teacher-quick-action" href="/professor/avaliacoes/nova"><span>Nova avaliação</span><b>＋</b></Link>
           <Link className="teacher-quick-action" href="/professor/agenda#novo"><span>Agendar encontro</span><b>＋</b></Link>
         </div>
       </section>
@@ -248,7 +248,7 @@ export default async function TeacherHome() {
           <div className="panel-head"><div><h2>Precisa de você</h2><p>O que ainda depende de uma ação humana.</p></div></div>
           <div className="teacher-recent-list">
             <Link className="teacher-recent-item" href="/professor/correcoes"><div><strong>{correctionCount} correção(ões)</strong><small>Missões discursivas e atividades do Caderno enviadas</small></div><span>→</span></Link>
-            <Link className="teacher-recent-item" href="/professor/mensagens"><div><strong>{unreadMessages} mensagem(ns) não lida(s)</strong><small>Conversas com responsáveis dos seus alunos</small></div><span>→</span></Link>
+            <Link className="teacher-recent-item" href="/professor/mensagens"><div><strong>{unreadMessages} mensagem(ns) não lida(s)</strong><small>Conversas com famílias, alunos e recados da equipe</small></div><span>→</span></Link>
             <Link className="teacher-recent-item" href="/professor/missoes"><div><strong>{waitingMission ?? 0} atividade(s) aguardando aluno</strong><small>Publicadas e ainda não finalizadas</small></div><span>→</span></Link>
           </div>
         </section>
