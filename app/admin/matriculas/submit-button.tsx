@@ -7,13 +7,13 @@ export function EnrollmentSubmitButton() {
 
   return (
     <button
-      className="button button-primary button-block"
+      className="button button-primary button-block enrollment-submit"
       type="submit"
       disabled={pending}
       aria-disabled={pending}
       aria-busy={pending}
     >
-      {pending ? "Criando matrícula…" : "Criar matrícula e enviar primeiro acesso"}
+      {pending ? "Concluindo matrícula…" : "Concluir matrícula e enviar acesso"}
     </button>
   );
 }
