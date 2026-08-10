@@ -1,0 +1,339 @@
+/* CURIÓ — correções urgentes de contraste e responsividade.
+   Camada final: deve ser importada depois de globals/responsive/accessibility. */
+
+/* Base visual mais confortável: fundo quente e superfícies brancas bem separadas. */
+html:not([data-theme="dark"]) body,
+html:not([data-theme="dark"]) .app-main {
+  background: #f7f3ea;
+}
+
+html:not([data-theme="dark"]) .panel,
+html:not([data-theme="dark"]) .stat-card,
+html:not([data-theme="dark"]) .mission-card,
+html:not([data-theme="dark"]) .resource-card,
+html:not([data-theme="dark"]) .admin-module-card,
+html:not([data-theme="dark"]) .course-admin-card,
+html:not([data-theme="dark"]) .person-admin-card {
+  background: #fffdf9;
+  border-color: #e7e0d5;
+}
+
+.panel,
+.stat-card,
+.mission-card,
+.resource-card,
+.admin-module-card,
+.course-admin-card,
+.person-admin-card,
+.course-module-admin,
+.input,
+.select,
+.textarea,
+.button {
+  border-radius: 18px;
+}
+
+.panel,
+.admin-module-card,
+.course-admin-card,
+.person-admin-card {
+  border-radius: 24px;
+}
+
+/* ---------- MODO ESCURO: nunca deixar superfície branca com texto claro ---------- */
+html[data-theme="dark"] .admin-module-card,
+html[data-theme="dark"] .course-module-admin,
+html[data-theme="dark"] .course-add-module,
+html[data-theme="dark"] .course-admin-create,
+html[data-theme="dark"] .legal-admin-panel,
+html[data-theme="dark"] .mascot-admin-card,
+html[data-theme="dark"] .media-asset-card,
+html[data-theme="dark"] .class-admin-card,
+html[data-theme="dark"] .grading-card,
+html[data-theme="dark"] .ticket-card,
+html[data-theme="dark"] .occurrence-card,
+html[data-theme="dark"] .audit-row,
+html[data-theme="dark"] .access-row,
+html[data-theme="dark"] .calendar-admin-item {
+  background: #202633 !important;
+  color: #edf1f8 !important;
+  border-color: #3c465b !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] .admin-module-card h3,
+html[data-theme="dark"] .admin-module-card strong,
+html[data-theme="dark"] .course-module-admin h3,
+html[data-theme="dark"] .course-module-admin h4,
+html[data-theme="dark"] .course-module-admin summary,
+html[data-theme="dark"] .course-admin-card h3,
+html[data-theme="dark"] .course-admin-card h4,
+html[data-theme="dark"] .course-add-module summary {
+  color: #f5f7fb !important;
+}
+
+html[data-theme="dark"] .admin-module-card p,
+html[data-theme="dark"] .admin-module-card small,
+html[data-theme="dark"] .course-module-admin p,
+html[data-theme="dark"] .course-module-admin small,
+html[data-theme="dark"] .course-admin-card p,
+html[data-theme="dark"] .course-admin-card small,
+html[data-theme="dark"] .stat-card span,
+html[data-theme="dark"] .stat-card small,
+html[data-theme="dark"] .consent-line,
+html[data-theme="dark"] .plan-check-row label {
+  color: #c5cede !important;
+}
+
+html[data-theme="dark"] .stat-card strong {
+  color: #f5f7fb !important;
+}
+
+html[data-theme="dark"] .admin-module-icon,
+html[data-theme="dark"] .resource-card-icon {
+  background: #2a3344 !important;
+  color: #c8d6ff !important;
+  border-color: #46536b !important;
+}
+
+html[data-theme="dark"] .admin-module-arrow,
+html[data-theme="dark"] .plan-editor > summary,
+html[data-theme="dark"] a:not(.button) {
+  color: #8eacff;
+}
+
+html[data-theme="dark"] .course-admin-modules,
+html[data-theme="dark"] .plan-editor,
+html[data-theme="dark"] .experience-panel-head,
+html[data-theme="dark"] .preference-toggle {
+  border-color: #374155 !important;
+}
+
+html[data-theme="dark"] .app-main .data-table th {
+  background: #1b212c !important;
+  color: #cbd3e2 !important;
+}
+
+html[data-theme="dark"] .app-main .data-table tbody tr:hover {
+  background: #242b39 !important;
+}
+
+/* Cards de status/atalho devem continuar distinguíveis sem branco puro. */
+html[data-theme="dark"] .admin-module-card:hover,
+html[data-theme="dark"] .mission-card:hover,
+html[data-theme="dark"] .resource-card:hover {
+  background: #252c3a !important;
+  border-color: #53617a !important;
+}
+
+/* ---------- TABLET ---------- */
+@media (max-width: 1100px) {
+  .app-main { padding: 28px 24px; }
+  .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-module-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .course-admin-summary { grid-template-columns: 1fr; }
+  .course-admin-actions { justify-content: flex-start; }
+}
+
+@media (max-width: 900px) {
+  /* O menu lateral deixa de roubar espaço e vira barra superior rolável. */
+  .app-frame {
+    display: block;
+    min-width: 0;
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 80;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255,255,255,.12);
+  }
+
+  .sidebar .brand {
+    flex: 0 0 auto;
+    height: 48px;
+  }
+
+  .sidebar-role,
+  .sidebar-nav-title {
+    display: none;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 8px;
+    padding: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    scrollbar-width: thin;
+  }
+
+  .sidebar-nav-group {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 6px;
+  }
+
+  .sidebar-nav a,
+  .sidebar-nav-link {
+    min-height: 42px;
+    padding: 9px 11px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .sidebar form {
+    flex: 0 0 auto;
+  }
+
+  .sidebar-logout {
+    width: auto;
+    margin: 0;
+    min-height: 42px;
+    padding: 8px 12px;
+    white-space: nowrap;
+  }
+
+  .app-main {
+    width: 100%;
+    padding: 24px 20px 90px;
+  }
+
+  .grid-2,
+  .generator-input-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header {
+    gap: 14px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(30px, 6vw, 42px);
+  }
+}
+
+/* ---------- CELULAR ---------- */
+@media (max-width: 640px) {
+  .sidebar {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .sidebar .brand {
+    height: 42px;
+    max-width: 82px;
+  }
+
+  .sidebar-nav a,
+  .sidebar-nav-link {
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .sidebar-logout {
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 0;
+  }
+  .sidebar-logout::after {
+    content: "Sair";
+    font-size: 12px;
+  }
+
+  .app-main {
+    padding: 18px 12px 88px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    margin-bottom: 20px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 9vw, 38px);
+    line-height: 1.04;
+    overflow-wrap: anywhere;
+  }
+
+  .page-header .button,
+  .page-header > a,
+  .page-header > form {
+    width: 100%;
+  }
+
+  .stats-grid,
+  .admin-module-grid,
+  .grid-3,
+  .grid-2,
+  .form-row,
+  .course-admin-summary {
+    grid-template-columns: 1fr !important;
+  }
+
+  .stats-grid { gap: 10px; }
+  .stat-card { padding: 16px; }
+
+  .panel {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .admin-module-card {
+    min-height: 0;
+    grid-template-columns: 42px minmax(0, 1fr) 22px;
+    padding: 15px;
+    border-radius: 20px;
+  }
+
+  .admin-module-card h3 { font-size: 15px; }
+  .admin-module-card p { font-size: 12px; }
+
+  .form-row { gap: 12px; }
+  .input,
+  .select,
+  .textarea,
+  .button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .course-admin-actions,
+  .plan-admin-actions,
+  .legal-doc-actions,
+  .flex.wrap {
+    align-items: stretch;
+  }
+
+  .course-admin-actions form,
+  .plan-admin-actions form,
+  .legal-doc-actions form {
+    width: 100%;
+  }
+
+  .data-table {
+    border-radius: 16px;
+  }
+
+  .experience-trigger {
+    width: 48px;
+    height: 48px;
+    right: 10px;
+    bottom: 10px;
+  }
+}
