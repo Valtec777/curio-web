@@ -1,0 +1,159 @@
+/* Gerador Admin · fluxo visual simples: fonte → formato → modelo → revisão. */
+
+.generator-admin-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: end;
+  margin-bottom: 16px;
+  padding: clamp(20px, 2.5vw, 30px);
+  border: 1px solid rgba(45, 53, 91, .09);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 92% 16%, rgba(184, 242, 56, .24), transparent 25%),
+    #fff;
+}
+
+.generator-admin-hero h2 {
+  max-width: 760px;
+  margin: 10px 0 8px;
+  color: #17284e;
+  font-size: clamp(26px, 3vw, 38px);
+  line-height: 1.05;
+}
+
+.generator-admin-hero p {
+  max-width: 760px;
+  margin: 0;
+  color: #6d7689;
+}
+
+.generator-product-pills {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+  flex-wrap: wrap;
+  max-width: 330px;
+}
+
+.generator-product-pills span {
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: #f1efff;
+  color: #5947c5;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.generator-product-pills span:nth-child(2n) {
+  background: #efffd0;
+  color: #4f6c0a;
+}
+
+.generator-admin-form {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.generator-file-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.generator-admin-form .generator-upload-drop {
+  display: grid;
+  align-content: center;
+  gap: 7px;
+  min-height: 180px;
+  padding: 20px;
+  border: 1.5px dashed #cfd4e5;
+  border-radius: 22px;
+  background: #f8faff;
+  cursor: pointer;
+}
+
+.generator-admin-form .generator-upload-drop:hover {
+  border-color: #6551de;
+  background: #f5f2ff;
+}
+
+.generator-admin-form .generator-model-drop {
+  border-color: #d7d9b5;
+  background: #fbffe9;
+}
+
+.generator-admin-form .generator-model-drop:hover {
+  border-color: #91bc2a;
+  background: #f7ffda;
+}
+
+.generator-admin-form .generator-upload-drop strong {
+  color: #28375a;
+  font-size: 15px;
+}
+
+.generator-admin-form .generator-upload-drop p,
+.generator-admin-form .generator-upload-drop small {
+  margin: 0;
+  color: #717a8e;
+}
+
+.generator-admin-form .generator-upload-drop input[type="file"] {
+  width: 100%;
+  padding: 9px;
+  border: 1px solid #e1e4ec;
+  border-radius: 14px;
+  background: #fff;
+  color: #404a62;
+}
+
+html[data-theme="dark"] .generator-admin-hero {
+  background: #202636;
+  border-color: #3b455a;
+}
+
+html[data-theme="dark"] .generator-admin-hero h2,
+html[data-theme="dark"] .generator-admin-form .generator-upload-drop strong {
+  color: #f5f7fb;
+}
+
+html[data-theme="dark"] .generator-admin-hero p,
+html[data-theme="dark"] .generator-admin-form .generator-upload-drop p,
+html[data-theme="dark"] .generator-admin-form .generator-upload-drop small {
+  color: #bcc5d6;
+}
+
+html[data-theme="dark"] .generator-admin-form .generator-upload-drop,
+html[data-theme="dark"] .generator-admin-form .generator-model-drop {
+  background: #171c29;
+  border-color: #4a566f;
+}
+
+html[data-theme="dark"] .generator-admin-form .generator-upload-drop input[type="file"] {
+  background: #202636;
+  border-color: #465168;
+  color: #edf1f8;
+}
+
+@media (max-width: 900px) {
+  .generator-admin-hero {
+    grid-template-columns: 1fr;
+  }
+  .generator-product-pills {
+    justify-content: flex-start;
+    max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .generator-file-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+html[data-access-focus="true"] .generator-admin-hero,
+html[data-access-epilepsy="true"] .generator-admin-hero {
+  background-image: none !important;
+}
