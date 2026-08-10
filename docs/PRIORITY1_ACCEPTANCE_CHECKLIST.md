@@ -84,7 +84,15 @@ Use este checklist no preview/deploy antes do merge.
 ## Financeiro e mensagens
 
 - [x] Financeiro auditado: hoje é somente leitura em `payments`/`subscriptions`; não existe action de criar cobrança/pagamento para duplicar.
-- [x] Envio/criação de mensagem não foi encontrado no código atual; edição/remoção existente foi preservada, com Lixeira para exclusão administrativa.
+- [x] Envio/criação de mensagem não foi encontrado no código inicial; edição/remoção existente foi preservada, com Lixeira para exclusão administrativa.
+- [x] Envio Professor → Família implementado sobre `message_threads`, `message_thread_participants` e `messages` existentes, sem sistema paralelo.
+- [x] Envio protegido por `request_key` e operação atômica/idempotente no banco.
+- [x] Templates reutilizáveis de comunicação usam `content_templates` existentes.
+- [x] Variáveis suportadas: `{{responsavel_nome}}`, `{{aluno_nome}}`, `{{professor_nome}}`, `{{escola}}`, `{{ano_escolar}}`.
+- [x] Preview resolve variáveis antes do envio e o servidor resolve/valida novamente.
+- [x] Botão opcional de ação (`action_label` + `action_url`) aparece para a Família e aceita rota interna ou HTTPS.
+- [x] RLS de mensagens endurecido para impedir autoentrada em thread alheia e manter conversa familiar condicionada ao vínculo atual com o aluno.
+- [ ] Envio, preview, template, botão de ação e leitura pela Família validados visualmente no preview autenticado.
 
 ## Qualidade
 
@@ -101,4 +109,5 @@ Use este checklist no preview/deploy antes do merge.
 - [x] Família vinculada consegue definir o avatar do filho sem ganhar permissão geral de UPDATE em estrelas/nível/streak. *(RPC testada com rollback)*
 - [x] `/aluno/perfil` usa a rota existente e passou typecheck/build.
 - [ ] Avatar validado visualmente em desktop/tablet/celular no preview.
-- [ ] Templates/variáveis de mensagens: auditoria iniciada; implementar somente sobre `content_templates` e mensagens existentes, sem criar sistema paralelo.
+- [x] Templates/variáveis de mensagens implementados sobre `content_templates` e mensagens existentes, com preview, botão de ação e idempotência.
+- [ ] Mensagens reutilizáveis validadas visualmente em desktop/tablet/celular no preview.
