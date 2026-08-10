@@ -51,6 +51,14 @@ function isDuplicateStorageError(message?: string) {
   return value.includes("already exists") || value.includes("duplicate") || value.includes("resource exists");
 }
 
+function generationJobType(outputType: z.infer<typeof generationSchema>["outputType"]) {
+  if (outputType === "mission_cuca") return "mission";
+  if (outputType === "caderno_curio") return "notebook";
+  if (outputType === "modo_prova") return "assessment";
+  if (outputType === "diagnostico_inicial" || outputType === "plano_30_dias") return "analysis";
+  return "report";
+}
+
 export async function queueCurioGeneration(formData: FormData) {
   const { teacher, supabase, viewer } = await getCurrentTeacher();
   if (!teacher) redirect("/professor/gerador?erro=Professor+não+vinculado");
@@ -131,10 +139,11 @@ export async function queueCurioGeneration(formData: FormData) {
   const { error } = await supabase.from("generation_jobs").insert({
     requested_by_user_id: viewer.user.id,
     teacher_id: teacher.id,
-    job_type: parsed.data.outputType,
+    job_type: generationJobType(parsed.data.outputType),
     status: "queued",
     idempotency_key: idempotencyKey,
     input: {
+      requested_output_type: parsed.data.outputType,
       prompt: rawPrompt.trim() || null,
       title_hint: parsed.data.titleHint?.trim() || null,
       student_id: parsed.data.studentId || null,
