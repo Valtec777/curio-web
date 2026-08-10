@@ -4,6 +4,7 @@ import { MonthlyInterestPrompt } from "@/components/monthly-interest-prompt";
 import { getCurrentStudent } from "@/lib/student";
 import { shouldShowMonthlyInterest } from "@/lib/monthly-interest";
 import "./student-workspace.css";
+import "./student-profile-extra.css";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
