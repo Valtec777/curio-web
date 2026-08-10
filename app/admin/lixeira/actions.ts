@@ -22,8 +22,11 @@ function refreshOperationalPaths() {
   revalidatePath("/admin/familias");
   revalidatePath("/admin/professores");
   revalidatePath("/admin/usuarios");
+  revalidatePath("/admin/mensagens");
   revalidatePath("/professor");
+  revalidatePath("/professor/mensagens");
   revalidatePath("/familia");
+  revalidatePath("/familia/mensagens");
   revalidatePath("/aluno");
 }
 
@@ -113,6 +116,14 @@ export async function restoreTrashItem(formData: FormData) {
       restoreError = roleError;
     }
     successMessage = shouldReactivate ? "Responsável restaurado com o mesmo perfil, filhos vinculados e acesso." : "Responsável restaurado com o mesmo perfil e histórico, permanecendo desativado.";
+  } else if (item.entity_type === "messages") {
+    const previousEditedAt = typeof snapshot.previous_edited_at === "string" ? snapshot.previous_edited_at : null;
+    const { error } = await supabase.from("messages").update({
+      deleted_at: null,
+      edited_at: previousEditedAt,
+    }).eq("id", item.entity_id).not("deleted_at", "is", null);
+    restoreError = error;
+    successMessage = "Mensagem restaurada na conversa com o mesmo ID.";
   } else {
     redirect(`/admin/lixeira?erro=${encodeURIComponent("Este tipo de registro ainda não possui restauração segura implementada.")}`);
   }
