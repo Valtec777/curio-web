@@ -9,7 +9,7 @@ import {
   moveGuardianInvitationToTrash,
   resendGuardianInvitation,
 } from "./actions";
-import { updateEnrollmentAssignments } from "./edit-actions";
+import { updateEnrollmentAssignments, updateEnrollmentDetails } from "./edit-actions";
 import { EnrollmentSubmitButton } from "./submit-button";
 
 function dt(value?: string | null) {
@@ -65,14 +65,10 @@ export default async function AdminEnrollmentsPage({
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
       .limit(80),
-    supabase
-      .from("grades")
-      .select("id,name,sort_order,active")
-      .eq("active", true)
-      .order("sort_order"),
+    supabase.from("grades").select("id,name,sort_order,active").eq("active", true).order("sort_order"),
     supabase
       .from("access_invitations")
-      .select("id,email,full_name,status,sent_at,accepted_at,last_error,student_id,teacher_id,plan_id,enrollment_finalized_at,created_at,teachers(profiles(full_name,preferred_name)),plans(name)")
+      .select("id,email,full_name,preferred_name,phone_whatsapp,relationship,status,sent_at,accepted_at,last_error,student_id,auth_user_id,teacher_id,plan_id,enrollment_finalized_at,created_at,teachers(profiles(full_name,preferred_name)),plans(name)")
       .eq("role", "guardian")
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
@@ -92,19 +88,32 @@ export default async function AdminEnrollmentsPage({
       .order("sort_order"),
   ]);
 
+  const studentIds = [...new Set((invitations ?? []).map((item: any) => item.student_id).filter(Boolean))];
+  const profileIds = [...new Set((invitations ?? []).map((item: any) => item.auth_user_id).filter(Boolean))];
+  const [{ data: enrollmentStudents }, { data: enrollmentProfiles }] = await Promise.all([
+    studentIds.length
+      ? supabase.from("students").select("id,full_name,preferred_name,grade_id,school_name,deleted_at").in("id", studentIds).is("deleted_at", null)
+      : Promise.resolve({ data: [] as any[] }),
+    profileIds.length
+      ? supabase.from("profiles").select("id,full_name,preferred_name,phone_whatsapp").in("id", profileIds)
+      : Promise.resolve({ data: [] as any[] }),
+  ]);
+  const studentById = new Map((enrollmentStudents ?? []).map((item: any) => [item.id, item]));
+  const profileById = new Map((enrollmentProfiles ?? []).map((item: any) => [item.id, item]));
+
   return (
     <>
       <PageHeader
         eyebrow="Operação CURIÓ"
         title="Matrículas"
-        description="Conclua aluno, família, professor, plano e acesso no mesmo fluxo, sem recriar registros quando houver erro."
+        description="Crie e edite aluno, família, professor, plano e acesso sem recriar registros existentes."
       />
 
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
       {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
 
       <div className="notice">
-        Proteção contra duplicidade ativa: o botão é bloqueado durante o envio, o backend reserva a operação antes de criar o aluno e uma tentativa após erro reutiliza a mesma chave de matrícula.
+        Proteção contra duplicidade ativa: o botão é bloqueado durante o envio, o backend reserva a operação antes de criar o aluno e uma tentativa após erro reutiliza a mesma chave de matrícula. Edições posteriores preservam os mesmos IDs.
       </div>
 
       <div className="access-setup-grid">
@@ -120,74 +129,44 @@ export default async function AdminEnrollmentsPage({
           <form action={createGuardianEnrollment} className="form-stack">
             <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
             <div className="form-row">
-              <div className="field">
-                <label>Nome do responsável *</label>
-                <input className="input" name="fullName" required />
-              </div>
-              <div className="field">
-                <label>Como prefere ser chamado</label>
-                <input className="input" name="preferredName" />
-              </div>
+              <div className="field"><label>Nome do responsável *</label><input className="input" name="fullName" required /></div>
+              <div className="field"><label>Como prefere ser chamado</label><input className="input" name="preferredName" /></div>
             </div>
             <div className="form-row">
-              <div className="field">
-                <label>E-mail do responsável *</label>
-                <input className="input" type="email" name="email" required />
-              </div>
-              <div className="field">
-                <label>WhatsApp</label>
-                <input className="input" name="phone" />
-              </div>
+              <div className="field"><label>E-mail do responsável *</label><input className="input" type="email" name="email" required /></div>
+              <div className="field"><label>WhatsApp</label><input className="input" name="phone" /></div>
             </div>
             <div className="form-row">
-              <div className="field">
-                <label>Nome do aluno *</label>
-                <input className="input" name="childName" required />
-              </div>
-              <div className="field">
-                <label>Nome usado no portal</label>
-                <input className="input" name="childPreferredName" />
-              </div>
+              <div className="field"><label>Nome do aluno *</label><input className="input" name="childName" required /></div>
+              <div className="field"><label>Nome usado no portal</label><input className="input" name="childPreferredName" /></div>
             </div>
             <div className="form-row">
               <div className="field">
                 <label>Ano escolar</label>
                 <select className="select" name="gradeId" defaultValue="">
                   <option value="">Selecionar</option>
-                  {(grades ?? []).map((grade: any) => (
-                    <option key={grade.id} value={grade.id}>{grade.name}</option>
-                  ))}
+                  {(grades ?? []).map((grade: any) => <option key={grade.id} value={grade.id}>{grade.name}</option>)}
                 </select>
               </div>
-              <div className="field">
-                <label>Escola</label>
-                <input className="input" name="schoolName" />
-              </div>
+              <div className="field"><label>Escola</label><input className="input" name="schoolName" /></div>
             </div>
             <div className="form-row">
               <div className="field">
                 <label>Professor *</label>
                 <select className="select" name="teacherId" required defaultValue="">
                   <option value="" disabled>Selecionar professor</option>
-                  {(teachers ?? []).map((teacher: any) => (
-                    <option key={teacher.id} value={teacher.id}>{teacher.profiles?.preferred_name || teacher.profiles?.full_name || "Professor"}</option>
-                  ))}
+                  {(teachers ?? []).map((teacher: any) => <option key={teacher.id} value={teacher.id}>{teacher.profiles?.preferred_name || teacher.profiles?.full_name || "Professor"}</option>)}
                 </select>
               </div>
               <div className="field">
                 <label>Plano *</label>
                 <select className="select" name="planId" required defaultValue="">
                   <option value="" disabled>Selecionar plano</option>
-                  {(plans ?? []).map((plan: any) => (
-                    <option key={plan.id} value={plan.id}>{plan.name} • {money(plan.monthly_price)}</option>
-                  ))}
+                  {(plans ?? []).map((plan: any) => <option key={plan.id} value={plan.id}>{plan.name} • {money(plan.monthly_price)}</option>)}
                 </select>
               </div>
             </div>
-            <div className="field">
-              <label>Vínculo com a criança</label>
-              <input className="input" name="relationship" defaultValue="Responsável" />
-            </div>
+            <div className="field"><label>Vínculo com a criança</label><input className="input" name="relationship" defaultValue="Responsável" /></div>
             <EnrollmentSubmitButton />
           </form>
         </section>
@@ -197,145 +176,128 @@ export default async function AdminEnrollmentsPage({
             <div>
               <span className="access-step access-step-pink">2</span>
               <h2>Acessos e matrículas</h2>
-              <p>Uma matrícula só aparece como finalizada quando professor e plano também foram vinculados.</p>
+              <p>Uma matrícula só aparece como finalizada quando os vínculos obrigatórios foram concluídos.</p>
             </div>
           </div>
 
           {invitations?.length ? (
             <div className="form-stack">
-              {invitations.map((invite: any) => (
-                <article className="access-invite-card" key={invite.id}>
-                  <div className="flex space-between gap-8 wrap">
-                    <div>
-                      <strong>{invite.full_name}</strong>
-                      <p>{invite.email}</p>
+              {invitations.map((invite: any) => {
+                const student: any = invite.student_id ? studentById.get(invite.student_id) : null;
+                const guardianProfile: any = invite.auth_user_id ? profileById.get(invite.auth_user_id) : null;
+                return (
+                  <article className="access-invite-card" key={invite.id}>
+                    <div className="flex space-between gap-8 wrap">
+                      <div><strong>{invite.full_name}</strong><p>{invite.email}</p></div>
+                      <div className="flex gap-8 wrap">
+                        <Badge tone={statusTone(invite.status)}>{statusLabel(invite.status)}</Badge>
+                        <Badge tone={invite.enrollment_finalized_at ? "green" : "yellow"}>{invite.enrollment_finalized_at ? "Matrícula finalizada" : "Vínculos pendentes"}</Badge>
+                      </div>
                     </div>
-                    <div className="flex gap-8 wrap">
-                      <Badge tone={statusTone(invite.status)}>{statusLabel(invite.status)}</Badge>
-                      <Badge tone={invite.enrollment_finalized_at ? "green" : "yellow"}>{invite.enrollment_finalized_at ? "Matrícula finalizada" : "Vínculos pendentes"}</Badge>
-                    </div>
-                  </div>
-                  <small className="muted">
-                    {invite.accepted_at
-                      ? `Senha definida em ${dt(invite.accepted_at)}`
-                      : invite.sent_at
-                        ? `Enviado em ${dt(invite.sent_at)}`
-                        : `Criado em ${dt(invite.created_at)}`}
-                  </small>
-                  {invite.enrollment_finalized_at && (
-                    <p className="muted">
-                      Professor: {invite.teachers?.profiles?.preferred_name || invite.teachers?.profiles?.full_name || "Vinculado"} • Plano: {invite.plans?.name || "Vinculado"}
-                    </p>
-                  )}
-                  {invite.last_error && <p className="form-message form-error">{invite.last_error}</p>}
+                    <small className="muted">
+                      {invite.accepted_at ? `Senha definida em ${dt(invite.accepted_at)}` : invite.sent_at ? `Enviado em ${dt(invite.sent_at)}` : `Criado em ${dt(invite.created_at)}`}
+                    </small>
+                    {student && <p className="muted">Aluno: {student.preferred_name || student.full_name} • Escola: {student.school_name || "não informada"}</p>}
+                    {invite.enrollment_finalized_at && <p className="muted">Professor: {invite.teachers?.profiles?.preferred_name || invite.teachers?.profiles?.full_name || "Vinculado"} • Plano: {invite.plans?.name || "Vinculado"}</p>}
+                    {invite.last_error && <p className="form-message form-error">{invite.last_error}</p>}
 
-                  <div className="plan-admin-actions">
-                    {invite.student_id && (
+                    <div className="plan-admin-actions">
+                      {invite.student_id && invite.auth_user_id && student && (
+                        <details className="plan-editor">
+                          <summary className="button button-secondary button-small">Editar dados da matrícula</summary>
+                          <form action={updateEnrollmentDetails} className="form-stack compact-form">
+                            <input type="hidden" name="invitationId" value={invite.id} />
+                            <div className="form-row">
+                              <div className="field"><label>Nome do aluno</label><input className="input" name="studentFullName" defaultValue={student.full_name || ""} required /></div>
+                              <div className="field"><label>Nome no portal</label><input className="input" name="studentPreferredName" defaultValue={student.preferred_name || ""} /></div>
+                            </div>
+                            <div className="form-row">
+                              <div className="field">
+                                <label>Ano escolar</label>
+                                <select className="select" name="gradeId" defaultValue={student.grade_id || ""}>
+                                  <option value="">Não informado</option>
+                                  {(grades ?? []).map((grade: any) => <option key={grade.id} value={grade.id}>{grade.name}</option>)}
+                                </select>
+                              </div>
+                              <div className="field"><label>Escola</label><input className="input" name="schoolName" defaultValue={student.school_name || ""} /></div>
+                            </div>
+                            <div className="form-row">
+                              <div className="field"><label>Nome do responsável</label><input className="input" name="guardianFullName" defaultValue={guardianProfile?.full_name || invite.full_name || ""} required /></div>
+                              <div className="field"><label>Nome preferido</label><input className="input" name="guardianPreferredName" defaultValue={guardianProfile?.preferred_name || invite.preferred_name || ""} /></div>
+                            </div>
+                            <div className="form-row">
+                              <div className="field"><label>WhatsApp</label><input className="input" name="phone" defaultValue={guardianProfile?.phone_whatsapp || invite.phone_whatsapp || ""} /></div>
+                              <div className="field"><label>Vínculo</label><input className="input" name="relationship" defaultValue={invite.relationship || "Responsável"} required /></div>
+                            </div>
+                            <small className="muted">O e-mail de login não é alterado aqui porque faz parte da identidade de autenticação. Os demais dados são atualizados nos registros existentes.</small>
+                            <button className="button button-secondary button-small" type="submit">Salvar dados mantendo os IDs</button>
+                          </form>
+                        </details>
+                      )}
+
+                      {invite.student_id && (
+                        <details className="plan-editor">
+                          <summary className="button button-secondary button-small">Editar professor / plano</summary>
+                          <form action={updateEnrollmentAssignments} className="form-stack compact-form">
+                            <input type="hidden" name="invitationId" value={invite.id} />
+                            <div className="field">
+                              <label>Professor</label>
+                              <select className="select" name="teacherId" defaultValue={invite.teacher_id || ""} required>
+                                <option value="" disabled>Selecionar professor</option>
+                                {(teachers ?? []).map((teacher: any) => <option key={teacher.id} value={teacher.id}>{teacher.profiles?.preferred_name || teacher.profiles?.full_name || "Professor"}</option>)}
+                              </select>
+                            </div>
+                            <div className="field">
+                              <label>Plano</label>
+                              <select className="select" name="planId" defaultValue={invite.plan_id || ""} required>
+                                <option value="" disabled>Selecionar plano</option>
+                                {(plans ?? []).map((plan: any) => <option key={plan.id} value={plan.id}>{plan.name} • {money(plan.monthly_price)}</option>)}
+                              </select>
+                            </div>
+                            <button className="button button-secondary button-small" type="submit">Salvar professor e plano</button>
+                          </form>
+                        </details>
+                      )}
+
+                      {!['accepted', 'cancelled'].includes(invite.status) && <form action={resendGuardianInvitation}><input type="hidden" name="invitationId" value={invite.id} /><button className="button button-secondary button-small" type="submit">Reenviar link</button></form>}
+                      {!['accepted', 'cancelled'].includes(invite.status) && <form action={cancelGuardianInvitation}><input type="hidden" name="invitationId" value={invite.id} /><button className="button button-ghost button-small" type="submit">Cancelar</button></form>}
                       <details className="plan-editor">
-                        <summary className="button button-secondary button-small">Editar professor / plano</summary>
-                        <form action={updateEnrollmentAssignments} className="form-stack compact-form">
+                        <summary className="button button-danger button-small">Excluir</summary>
+                        <form action={moveGuardianInvitationToTrash} className="form-stack compact-form">
                           <input type="hidden" name="invitationId" value={invite.id} />
-                          <div className="field">
-                            <label>Professor</label>
-                            <select className="select" name="teacherId" defaultValue={invite.teacher_id || ""} required>
-                              <option value="" disabled>Selecionar professor</option>
-                              {(teachers ?? []).map((teacher: any) => (
-                                <option key={teacher.id} value={teacher.id}>{teacher.profiles?.preferred_name || teacher.profiles?.full_name || "Professor"}</option>
-                              ))}
-                            </select>
-                          </div>
-                          <div className="field">
-                            <label>Plano</label>
-                            <select className="select" name="planId" defaultValue={invite.plan_id || ""} required>
-                              <option value="" disabled>Selecionar plano</option>
-                              {(plans ?? []).map((plan: any) => (
-                                <option key={plan.id} value={plan.id}>{plan.name} • {money(plan.monthly_price)}</option>
-                              ))}
-                            </select>
-                          </div>
-                          <button className="button button-secondary button-small" type="submit">Salvar sem recriar matrícula</button>
+                          <div className="field"><label>Motivo opcional</label><input className="input" name="reason" placeholder="Ex.: duplicação por clique" /></div>
+                          <button className="button button-danger button-small" type="submit">Enviar para a Lixeira</button>
                         </form>
                       </details>
-                    )}
-                    {!['accepted', 'cancelled'].includes(invite.status) && (
-                      <form action={resendGuardianInvitation}>
-                        <input type="hidden" name="invitationId" value={invite.id} />
-                        <button className="button button-secondary button-small" type="submit">Reenviar link</button>
-                      </form>
-                    )}
-                    {!['accepted', 'cancelled'].includes(invite.status) && (
-                      <form action={cancelGuardianInvitation}>
-                        <input type="hidden" name="invitationId" value={invite.id} />
-                        <button className="button button-ghost button-small" type="submit">Cancelar</button>
-                      </form>
-                    )}
-                    <details className="plan-editor">
-                      <summary className="button button-danger button-small">Excluir</summary>
-                      <form action={moveGuardianInvitationToTrash} className="form-stack compact-form">
-                        <input type="hidden" name="invitationId" value={invite.id} />
-                        <div className="field">
-                          <label>Motivo opcional</label>
-                          <input className="input" name="reason" placeholder="Ex.: duplicação por clique" />
-                        </div>
-                        <button className="button button-danger button-small" type="submit">Enviar para a Lixeira</button>
-                      </form>
-                    </details>
-                  </div>
-                </article>
-              ))}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
-          ) : (
-            <EmptyState title="Nenhum acesso de família enviado" description="As matrículas criadas pelo Admin aparecerão aqui." />
-          )}
+          ) : <EmptyState title="Nenhum acesso de família enviado" description="As matrículas criadas pelo Admin aparecerão aqui." />}
         </section>
       </div>
 
       <section className="panel">
-        <div className="panel-head">
-          <div>
-            <h2>Interesses recebidos pelo site</h2>
-            <p>São solicitações de contato e não criam conta automaticamente.</p>
-          </div>
-        </div>
+        <div className="panel-head"><div><h2>Interesses recebidos pelo site</h2><p>São solicitações de contato e não criam conta automaticamente.</p></div></div>
         {requests?.length ? (
           <div className="form-stack">
             {requests.map((item: any) => (
               <article className="mission-card" key={item.id}>
-                <div className="flex space-between gap-8 wrap">
-                  <div>
-                    <strong>{item.guardian_name}</strong>
-                    <p>{item.child_name || "Criança não informada"} • {item.grades?.name || "Ano não informado"}</p>
-                  </div>
-                  <Badge tone={item.status === "new" ? "yellow" : "blue"}>{item.status}</Badge>
-                </div>
+                <div className="flex space-between gap-8 wrap"><div><strong>{item.guardian_name}</strong><p>{item.child_name || "Criança não informada"} • {item.grades?.name || "Ano não informado"}</p></div><Badge tone={item.status === "new" ? "yellow" : "blue"}>{item.status}</Badge></div>
                 <small className="muted">{item.email} • {item.phone_whatsapp} • {dt(item.created_at)}</small>
                 <details className="plan-editor mt-12">
                   <summary className="button button-danger button-small">Excluir solicitação</summary>
                   <form action={moveEnrollmentRequestToTrash} className="form-stack compact-form">
                     <input type="hidden" name="requestId" value={item.id} />
-                    <div className="field">
-                      <label>Motivo opcional</label>
-                      <input className="input" name="reason" placeholder="Ex.: solicitação duplicada" />
-                    </div>
+                    <div className="field"><label>Motivo opcional</label><input className="input" name="reason" placeholder="Ex.: solicitação duplicada" /></div>
                     <button className="button button-danger button-small" type="submit">Enviar para a Lixeira</button>
                   </form>
                 </details>
               </article>
             ))}
           </div>
-        ) : (
-          <EmptyState title="Nenhuma solicitação" description="Novos interesses enviados pelo site aparecerão aqui." />
-        )}
-      </section>
-
-      <section className="panel">
-        <div className="panel-head">
-          <div>
-            <h2>Editar dados do aluno</h2>
-            <p>A matrícula criada não precisa ser refeita para corrigir nome, escola ou ano escolar.</p>
-          </div>
-        </div>
-        <a className="button button-secondary" href="/admin/alunos">Abrir dados acadêmicos do aluno</a>
+        ) : <EmptyState title="Nenhuma solicitação" description="Novos interesses enviados pelo site aparecerão aqui." />}
       </section>
     </>
   );
