@@ -3,6 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { MonthlyInterestPrompt } from "@/components/monthly-interest-prompt";
 import { getCurrentStudent } from "@/lib/student";
 import { shouldShowMonthlyInterest } from "@/lib/monthly-interest";
+import "./student-workspace.css";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
@@ -10,7 +11,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
   const { viewer, student, supabase } = await getCurrentStudent();
   const [{ data: game }, showInterest] = await Promise.all([
     student
-      ? supabase.from("student_game_profiles").select("stars,level_name").eq("student_id", student.id).maybeSingle()
+      ? supabase.from("student_game_profiles").select("stars,level_name,avatar_character_id,characters(name,assets)").eq("student_id", student.id).maybeSingle()
       : Promise.resolve({ data: null } as any),
     shouldShowMonthlyInterest(supabase, viewer.user.id, "student"),
   ]);
@@ -18,6 +19,8 @@ export default async function StudentLayout({ children }: { children: React.Reac
   const name = student?.preferred_name || student?.full_name || viewer.profile?.preferred_name || viewer.profile?.full_name;
   const gradeName = (student as any)?.grades?.name;
   const subtitle = `${game?.level_name || "Explorador Curió"}${gradeName ? ` · ${gradeName}` : ""}`;
+  const character: any = Array.isArray((game as any)?.characters) ? (game as any).characters[0] : (game as any)?.characters;
+  const avatarUrl = character?.assets?.avatar || character?.assets?.principal || null;
 
   return (
     <div className="kid-dashboard">
@@ -28,6 +31,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
         subtitle={subtitle}
         metricLabel="Estrelas"
         metricValue={game?.stars ?? 0}
+        avatarUrl={avatarUrl}
       >
         {children}
         {showInterest ? <MonthlyInterestPrompt role="student" /> : null}
