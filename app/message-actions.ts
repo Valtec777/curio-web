@@ -19,7 +19,7 @@ const messageEditSchema = z.object({
 const sendFamilyMessageSchema = z.object({
   studentId: z.string().uuid(),
   guardianId: z.string().uuid(),
-  subject: z.string().trim().min(2).max(300),
+  subject: z.string().trim().min(2).max(160),
   body: z.string().trim().min(1).max(5000),
   actionLabel: z.string().trim().max(80).optional(),
   actionUrl: z.string().trim().max(500).optional(),
