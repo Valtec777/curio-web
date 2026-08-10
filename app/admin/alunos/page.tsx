@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader, EmptyState, Badge } from "@/components/ui";
-import { createStudent, linkGuardian, linkTeacher, setStudentStatus, updateStudent } from "./actions";
+import { createStudent, linkGuardian, linkTeacher, moveStudentToTrash, setStudentStatus, updateStudent } from "./actions";
 
 export default async function AdminStudentsPage({
   searchParams,
@@ -18,7 +18,7 @@ export default async function AdminStudentsPage({
     { data: teacherLinks },
     { data: guardianLinks },
   ] = await Promise.all([
-    supabase.from("students").select("id, full_name, preferred_name, school_name, grade_id, status").order("preferred_name"),
+    supabase.from("students").select("id, full_name, preferred_name, school_name, grade_id, status").is("deleted_at", null).order("preferred_name"),
     supabase.from("grades").select("id, name").eq("active", true).order("sort_order"),
     supabase.from("teachers").select("id, profile_id, profiles(full_name, preferred_name)").eq("active", true),
     supabase.from("guardians").select("id, profile_id, profiles(full_name, preferred_name)"),
@@ -40,7 +40,7 @@ export default async function AdminStudentsPage({
       <PageHeader
         eyebrow="Admin • Pessoas"
         title="Alunos e vínculos"
-        description="Cadastre a criança uma única vez e reutilize os vínculos em toda a plataforma."
+        description="Cadastre a criança uma única vez, edite sem recriar e preserve vínculos ao excluir."
       />
 
       {params.erro && <div className="form-message form-error">{params.erro}</div>}
@@ -91,13 +91,12 @@ export default async function AdminStudentsPage({
         <section className="panel">
           <div className="panel-head">
             <div>
-              <h2>Regra de vínculo</h2>
+              <h2>Regra de vínculo e exclusão</h2>
               <p>Quem não está vinculado não deve enxergar o aluno.</p>
             </div>
           </div>
           <div className="notice">
-            Professores e responsáveis precisam possuir conta e perfil correspondente.
-            O README mostra como promover as primeiras contas durante a implantação.
+            Excluir envia o aluno para a Lixeira por soft delete. O ID, vínculos, missões, avaliações e histórico não são apagados automaticamente.
           </div>
         </section>
       </div>
@@ -106,7 +105,7 @@ export default async function AdminStudentsPage({
         <div className="panel-head">
           <div>
             <h2>Alunos cadastrados</h2>
-            <p>{students?.length ?? 0} registro(s).</p>
+            <p>{students?.length ?? 0} registro(s) operacional(is).</p>
           </div>
         </div>
 
@@ -197,8 +196,20 @@ export default async function AdminStudentsPage({
                           <form action={setStudentStatus}>
                             <input type="hidden" name="studentId" value={student.id} />
                             <input type="hidden" name="status" value={student.status === "active" ? "inactive" : "active"} />
-                            <button className={`button button-small ${student.status === "active" ? "button-danger" : "button-primary"}`} type="submit">{student.status === "active" ? "Retirar acesso" : "Reativar"}</button>
+                            <button className={`button button-small ${student.status === "active" ? "button-ghost" : "button-primary"}`} type="submit">{student.status === "active" ? "Desativar" : "Reativar"}</button>
                           </form>
+                          <details className="plan-editor">
+                            <summary className="button button-danger button-small">Excluir</summary>
+                            <form action={moveStudentToTrash} className="form-stack compact-form">
+                              <input type="hidden" name="studentId" value={student.id} />
+                              <div className="field">
+                                <label>Motivo opcional</label>
+                                <input className="input" name="reason" placeholder="Ex.: cadastro duplicado" />
+                              </div>
+                              <p className="muted">O aluno sairá da operação normal, mas seu histórico será preservado e poderá ser restaurado pela Lixeira.</p>
+                              <button className="button button-danger button-small" type="submit">Enviar para a Lixeira</button>
+                            </form>
+                          </details>
                         </div>
                       </td>
                     </tr>
