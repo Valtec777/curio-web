@@ -20,7 +20,9 @@ function refreshOperationalPaths() {
   revalidatePath("/admin/matriculas");
   revalidatePath("/admin/alunos");
   revalidatePath("/admin/familias");
+  revalidatePath("/admin/professores");
   revalidatePath("/admin/usuarios");
+  revalidatePath("/professor");
   revalidatePath("/familia");
   revalidatePath("/aluno");
 }
@@ -89,6 +91,29 @@ export async function restoreTrashItem(formData: FormData) {
     }).eq("id", item.entity_id);
     restoreError = error;
     successMessage = "Aluno restaurado com o mesmo ID e histórico.";
+  } else if (item.entity_type === "teachers") {
+    const profileId = z.string().uuid().safeParse(snapshot.profile_id);
+    if (!profileId.success) {
+      redirect(`/admin/lixeira?erro=${encodeURIComponent("O registro do professor não possui um perfil válido para restauração.")}`);
+    }
+
+    const shouldReactivate = snapshot.previous_active !== false;
+    const { error: teacherError } = await supabase
+      .from("teachers")
+      .update({ active: shouldReactivate })
+      .eq("id", item.entity_id)
+      .eq("profile_id", profileId.data);
+    if (teacherError) {
+      restoreError = teacherError;
+    } else if (snapshot.had_teacher_role === true) {
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .upsert({ user_id: profileId.data, role: "teacher" }, { onConflict: "user_id,role" });
+      restoreError = roleError;
+    }
+    successMessage = shouldReactivate
+      ? "Professor restaurado com o mesmo perfil, vínculos e acesso."
+      : "Professor restaurado com o mesmo perfil e histórico, permanecendo desativado.";
   } else {
     redirect(`/admin/lixeira?erro=${encodeURIComponent("Este tipo de registro ainda não possui restauração segura implementada.")}`);
   }
