@@ -1,5 +1,6 @@
 "use server";
 
+import { createHash } from "node:crypto";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -15,6 +16,10 @@ const leadSchema = z.object({
   message: z.string().trim().optional(),
   consent_contact: z.literal("on"),
 });
+
+function requestFingerprint(payload: Record<string, unknown>) {
+  return `public-lead-v1:${createHash("sha256").update(JSON.stringify(payload)).digest("hex")}`;
+}
 
 export async function createEnrollmentRequest(formData: FormData) {
   const parsed = leadSchema.safeParse({
@@ -42,13 +47,27 @@ export async function createEnrollmentRequest(formData: FormData) {
 
   const subjects = formData
     .getAll("subjects")
-    .map((value) => String(value))
-    .filter(Boolean);
+    .map((value) => String(value).trim())
+    .filter(Boolean)
+    .sort();
+
+  const requestDay = new Date().toISOString().slice(0, 10);
+  const idempotencyKey = requestFingerprint({
+    guardian_name: parsed.data.guardian_name.toLowerCase(),
+    phone_whatsapp: parsed.data.phone_whatsapp.replace(/\D/g, ""),
+    email: parsed.data.email.toLowerCase(),
+    child_name: parsed.data.child_name?.toLowerCase() || null,
+    child_age: parsed.data.child_age ?? null,
+    grade_id: grade?.id ?? null,
+    subjects,
+    main_difficulties: parsed.data.main_difficulties || null,
+    message: parsed.data.message || null,
+  });
 
   const { error } = await supabase.from("enrollment_requests").insert({
     guardian_name: parsed.data.guardian_name,
     phone_whatsapp: parsed.data.phone_whatsapp,
-    email: parsed.data.email,
+    email: parsed.data.email.toLowerCase(),
     child_name: parsed.data.child_name || null,
     child_age: parsed.data.child_age ?? null,
     grade_id: grade?.id ?? null,
@@ -57,9 +76,12 @@ export async function createEnrollmentRequest(formData: FormData) {
     message: parsed.data.message || null,
     consent_contact: true,
     status: "new",
+    idempotency_key: idempotencyKey,
+    request_day: requestDay,
+    deleted_at: null,
   });
 
-  if (error) {
+  if (error && error.code !== "23505") {
     console.error("Falha ao registrar interesse no CURIÓ", error.code);
     redirect("/?lead=erro#quero-conhecer");
   }
