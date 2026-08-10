@@ -62,8 +62,8 @@ Use este checklist no preview/deploy antes do merge.
 
 ## Qualidade
 
-- [ ] `npm run typecheck` passa.
-- [ ] `npm run build` passa.
+- [x] `npm run typecheck` passa no GitHub Actions.
+- [x] `npm run build` passa no GitHub Actions.
 - [ ] Preview desktop validado.
 - [ ] Preview tablet validado.
 - [ ] Preview celular validado.
