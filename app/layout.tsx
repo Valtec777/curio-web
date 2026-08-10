@@ -9,6 +9,7 @@ import "./urgent-fixes.css";
 import "./shell-refinements.css";
 import "./shell-role-fixes.css";
 import "./family-workspace.css";
+import "./sidebar-final.css";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
@@ -24,7 +25,7 @@ const nunito = Nunito_Sans({
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_BRANCH_URL ? `https://${process.env.VERCEL_BRANCH_URL}` : "http://localhost:3000");
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -32,7 +33,7 @@ export const metadata: Metadata = {
     default: "CURIÓ | Acompanhamento escolar personalizado",
     template: "%s | CURIÓ",
   },
-  description: "Acompanhamento escolar personalizado para estudantes do 1º ao 8º ano, com Missões Cuca, Caderno Curió, cursos livres, preparação para provas e acompanhamento humano.",
+  description: "Acompanhamento escolar personalizado para estudantes do 1º ao 9º ano, com Missões Cuca, Caderno Curió, cursos livres, preparação para provas e acompanhamento humano.",
   applicationName: "CURIÓ",
   authors: [{ name: "CURIÓ", url: siteUrl }],
   creator: "CURIÓ",
@@ -57,7 +58,7 @@ export const metadata: Metadata = {
     url: "/",
     siteName: "CURIÓ",
     title: "CURIÓ | Acompanhamento escolar que descobre como seu filho aprende",
-    description: "Missões personalizadas, atividades no caderno, cursos livres e acompanhamento humano do 1º ao 8º ano.",
+    description: "Missões personalizadas, atividades no caderno, cursos livres e acompanhamento humano do 1º ao 9º ano.",
     images: [
       {
         url: "/mascotes/curio_capivara_principal_acolhendo.png",
@@ -70,7 +71,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "CURIÓ | Acompanhamento escolar personalizado",
-    description: "Missões personalizadas, Caderno Curió, cursos livres e acompanhamento humano do 1º ao 8º ano.",
+    description: "Missões personalizadas, Caderno Curió, cursos livres e acompanhamento humano do 1º ao 9º ano.",
     images: ["/mascotes/curio_capivara_principal_acolhendo.png"],
   },
   robots: {
