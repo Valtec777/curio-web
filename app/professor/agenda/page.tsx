@@ -6,42 +6,42 @@ import { AgendaSubmitButton } from "./submit-button";
 
 function dt(value?: string | null) {
   if (!value) return "—";
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-    timeZone: "America/Bahia",
-  }).format(new Date(value));
+  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Bahia" }).format(new Date(value));
 }
 
 function tone(status?: string | null): "green" | "yellow" | "pink" | "blue" | "neutral" {
   if (status === "completed") return "green";
+  if (status === "confirmed") return "blue";
   if (status === "cancelled") return "pink";
   return "yellow";
 }
 
-export default async function ProfessorAgendaPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ erro?: string; sucesso?: string }>;
-}) {
+function statusLabel(status?: string | null) {
+  if (status === "scheduled") return "Agendado";
+  if (status === "confirmed") return "Confirmado";
+  if (status === "completed") return "Realizado";
+  if (status === "cancelled") return "Cancelado";
+  return status || "—";
+}
+
+function typeLabel(type?: string | null) {
+  if (type === "class") return "Aula";
+  if (type === "review") return "Revisão";
+  if (type === "family_meeting" || type === "meeting") return "Reunião com a família";
+  if (type === "assessment") return "Avaliação";
+  if (type === "deadline") return "Prazo";
+  if (type === "reminder") return "Lembrete";
+  return "Outro";
+}
+
+export default async function ProfessorAgendaPage({ searchParams }: { searchParams: Promise<{ erro?: string; sucesso?: string }> }) {
   const query = await searchParams;
   const { teacher, supabase } = await getCurrentTeacher();
-  if (!teacher) {
-    return <EmptyState title="Perfil de professor ainda não vinculado" description="A administração precisa concluir seu perfil antes de criar encontros." />;
-  }
+  if (!teacher) return <EmptyState title="Perfil de professor ainda não vinculado" description="A administração precisa concluir seu perfil antes de criar encontros." />;
 
   const [{ data: links }, { data: events }, { data: guardianRows }] = await Promise.all([
-    supabase
-      .from("teacher_students")
-      .select("student_id,students(id,preferred_name,full_name,deleted_at)")
-      .eq("teacher_id", teacher.id)
-      .eq("active", true),
-    supabase
-      .from("agenda_events")
-      .select("id,title,description,event_type,starts_at,ends_at,status,meeting_url,location,visible_to_student,visible_to_guardian,agenda_event_students(student_id,students(preferred_name,full_name))")
-      .eq("created_by_teacher_id", teacher.id)
-      .order("starts_at", { ascending: false })
-      .limit(80),
+    supabase.from("teacher_students").select("student_id,students(id,preferred_name,full_name,deleted_at)").eq("teacher_id", teacher.id).eq("active", true),
+    supabase.from("agenda_events").select("id,title,description,event_type,starts_at,ends_at,status,meeting_url,location,visible_to_student,visible_to_guardian,agenda_event_students(student_id,students(preferred_name,full_name))").eq("created_by_teacher_id", teacher.id).order("starts_at", { ascending: false }).limit(100),
     supabase.rpc("teacher_linked_guardian_names"),
   ]);
 
@@ -52,127 +52,69 @@ export default async function ProfessorAgendaPage({
     current.push(`${row.guardian_name} (${row.relationship})`);
     guardiansByStudent.set(row.student_id, current);
   }
-  const idempotencyKey = randomUUID();
+
+  const upcoming = (events ?? []).filter((event: any) => new Date(event.starts_at) >= new Date() && event.status !== "cancelled");
 
   return (
     <>
       <PageHeader
-        eyebrow="Professor • Agenda"
-        title="Agenda e reuniões"
-        description="Agende aula ou reunião, informe o motivo e escolha se o encontro também aparece para o aluno e para a família. A equipe Admin acompanha pelo calendário administrativo."
+        eyebrow="Professor • Visão geral"
+        title="Agenda"
+        description="Aulas, revisões, reuniões com a família e outros compromissos, com link e situação no mesmo lugar."
       />
-
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
       {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
 
+      <div className="teacher-library-filter">
+        <span>{upcoming.length} próximos</span><span>Aulas</span><span>Revisões</span><span>Reuniões com família</span><span>Outros</span>
+      </div>
+
       <div className="grid-2">
-        <section className="panel">
-          <div className="panel-head">
-            <div>
-              <h2>Novo encontro</h2>
-              <p>Preencha só o necessário. O título identifica o motivo; a descrição é opcional.</p>
-            </div>
-          </div>
-
+        <section className="panel" id="novo">
+          <div className="panel-head"><div><h2>Novo compromisso</h2><p>Escolha o aluno, o tipo, a situação e o horário. O link já fica pronto no cartão do encontro.</p></div></div>
           <form action={createAgendaEvent} className="form-stack">
-            <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
-            <div className="field">
-              <label>Aluno *</label>
-              <select className="select" name="studentId" required defaultValue="">
-                <option value="" disabled>Selecione</option>
-                {students.map((link: any) => (
-                  <option key={link.student_id} value={link.student_id}>
-                    {link.students?.preferred_name || link.students?.full_name || "Aluno"}
-                  </option>
-                ))}
-              </select>
-            </div>
-
+            <input type="hidden" name="idempotencyKey" value={randomUUID()} />
+            <div className="field"><label>Aluno *</label><select className="select" name="studentId" required defaultValue=""><option value="" disabled>Selecione</option>{students.map((link: any) => <option key={link.student_id} value={link.student_id}>{link.students?.preferred_name || link.students?.full_name || "Aluno"}</option>)}</select></div>
+            <div className="field"><label>Título *</label><input className="input" name="title" placeholder="Ex.: Aula de revisão de frações" required /></div>
             <div className="form-row">
-              <div className="field">
-                <label>Tipo *</label>
-                <select className="select" name="eventType" defaultValue="meeting">
-                  <option value="meeting">Reunião</option>
-                  <option value="class">Aula regular</option>
-                  <option value="assessment">Avaliação</option>
-                  <option value="deadline">Prazo</option>
-                  <option value="reminder">Lembrete</option>
-                  <option value="other">Outro</option>
-                </select>
-              </div>
-              <div className="field">
-                <label>Título / motivo *</label>
-                <input className="input" name="title" placeholder="Ex.: Reunião de acompanhamento" required />
-              </div>
+              <div className="field"><label>Tipo *</label><select className="select" name="eventType" defaultValue="class"><option value="class">Aula</option><option value="review">Revisão</option><option value="family_meeting">Reunião com a família</option><option value="assessment">Avaliação</option><option value="other">Outro</option></select></div>
+              <div className="field"><label>Status *</label><select className="select" name="status" defaultValue="scheduled"><option value="scheduled">Agendado</option><option value="confirmed">Confirmado</option><option value="completed">Realizado</option><option value="cancelled">Cancelado</option></select></div>
             </div>
-
-            <div className="field">
-              <label>Descrição opcional</label>
-              <textarea className="textarea" name="description" placeholder="Se precisar, explique brevemente o que será conversado" />
-            </div>
-
-            <div className="form-row">
-              <div className="field"><label>Início *</label><input className="input" type="datetime-local" name="startsAt" required /></div>
-              <div className="field"><label>Término</label><input className="input" type="datetime-local" name="endsAt" /></div>
-            </div>
-
-            <div className="field"><label>Link do Google Meet / encontro</label><input className="input" type="url" name="meetingUrl" placeholder="https://meet.google.com/..." /></div>
-            <div className="field"><label>Local ou observação de acesso</label><input className="input" name="location" placeholder="Online, Sala 2..." /></div>
-
-            <div className="plan-check-row meeting-audience-row">
-              <label><input type="checkbox" name="visibleToStudent" defaultChecked /> Aluno</label>
-              <label><input type="checkbox" name="visibleToGuardian" defaultChecked /> Família</label>
-              <label title="O Admin acompanha os encontros pelo calendário administrativo"><input type="checkbox" checked readOnly /> Admin / equipe CURIÓ</label>
-            </div>
-
+            <div className="form-row"><div className="field"><label>Data e início *</label><input className="input" type="datetime-local" name="startsAt" required /></div><div className="field"><label>Fim</label><input className="input" type="datetime-local" name="endsAt" /></div></div>
+            <div className="field"><label>Link da reunião / aula</label><input className="input" type="url" name="meetingUrl" placeholder="https://meet.google.com/..." /></div>
+            <div className="field"><label>Observações</label><textarea className="textarea textarea-compact" name="description" placeholder="Ex.: revisar páginas 18 a 22 antes do encontro" /></div>
+            <div className="field"><label>Local <span className="field-optional">opcional</span></label><input className="input" name="location" placeholder="Online, Sala 2..." /></div>
+            <div className="plan-check-row meeting-audience-row"><label><input type="checkbox" name="visibleToStudent" defaultChecked /> Mostrar ao aluno</label><label><input type="checkbox" name="visibleToGuardian" defaultChecked /> Mostrar à família</label></div>
             <AgendaSubmitButton />
           </form>
         </section>
 
         <section className="panel">
-          <div className="notice">
-            O Admin acompanha os encontros automaticamente. Para uma reunião só com a família, desmarque “Aluno”. Se houver link do Google Meet, ele fica associado ao mesmo compromisso.
-          </div>
-          {!students.length && <EmptyState title="Nenhum aluno vinculado" description="Vincule um aluno antes de criar um encontro." />}
+          <div className="panel-head"><div><h2>Próximos encontros</h2><p>O link aparece aqui e também no painel Hoje.</p></div></div>
+          {upcoming.length ? <div className="teacher-agenda-list">{upcoming.slice(0, 8).map((event: any) => {
+            const student = event.agenda_event_students?.[0]?.students;
+            return <article className="teacher-agenda-item" key={event.id}><div><strong>{event.title}</strong><small>{typeLabel(event.event_type)} · {student?.preferred_name || student?.full_name || "Aluno"} · {dt(event.starts_at)}</small></div>{event.meeting_url ? <a className="button button-primary button-small" href={event.meeting_url} target="_blank" rel="noreferrer">Entrar ↗</a> : <Badge tone={tone(event.status)}>{statusLabel(event.status)}</Badge>}</article>;
+          })}</div> : <EmptyState title="Agenda livre" description="Nenhum encontro futuro cadastrado." />}
         </section>
       </div>
 
       <section className="panel">
-        <div className="panel-head"><div><h2>Encontros cadastrados</h2><p>Título, participantes, horário e acesso ficam juntos para evitar informação espalhada.</p></div></div>
-
-        {events?.length ? (
-          <div className="form-stack">
-            {events.map((event: any) => {
-              const participantLink = event.agenda_event_students?.[0];
-              const participant = participantLink?.students;
-              const guardianNames = participantLink?.student_id ? guardiansByStudent.get(participantLink.student_id) ?? [] : [];
-              const joinLabel = event.event_type === "meeting" ? "Entrar na reunião ↗" : "Entrar na aula ↗";
-              return (
-                <article className="mission-card" key={event.id}>
-                  <div className="flex space-between gap-8 wrap">
-                    <div>
-                      <strong>{event.title}</strong>
-                      <p>{participant?.preferred_name || participant?.full_name || "Aluno"}{event.description ? ` • ${event.description}` : ""}</p>
-                      {event.event_type === "meeting" && guardianNames.length > 0 && <small className="muted">Responsável(is): {guardianNames.join(", ")}</small>}
-                    </div>
-                    <Badge tone={tone(event.status)}>{event.status}</Badge>
-                  </div>
-                  <small className="muted">{dt(event.starts_at)}{event.ends_at ? ` → ${dt(event.ends_at)}` : ""}</small>
-                  <div className="flex gap-8 wrap mt-12">
-                    <Badge tone="purple">Admin</Badge>
-                    {event.visible_to_student && <Badge tone="blue">Aluno</Badge>}
-                    {event.visible_to_guardian && <Badge tone="green">Família</Badge>}
-                    {event.meeting_url && <a className="button button-secondary button-small" href={event.meeting_url} target="_blank" rel="noreferrer">{joinLabel}</a>}
-                  </div>
-                  <div className="plan-admin-actions mt-12">
-                    {event.status === "scheduled" && <form action={setAgendaEventStatus}><input type="hidden" name="eventId" value={event.id} /><input type="hidden" name="status" value="completed" /><button className="button button-secondary button-small" type="submit">Marcar concluído</button></form>}
-                    {event.status !== "cancelled" && <form action={setAgendaEventStatus}><input type="hidden" name="eventId" value={event.id} /><input type="hidden" name="status" value="cancelled" /><button className="button button-ghost button-small" type="submit">Cancelar encontro</button></form>}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        ) : <EmptyState title="Agenda livre" description="Crie o primeiro encontro usando o formulário acima." />}
+        <div className="panel-head"><div><h2>Compromissos cadastrados</h2><p>Histórico e próximos eventos sem perder participantes, horário ou link.</p></div></div>
+        {events?.length ? <div className="teacher-resource-list">{events.map((event: any) => {
+          const participantLink = event.agenda_event_students?.[0];
+          const participant = participantLink?.students;
+          const guardianNames = participantLink?.student_id ? guardiansByStudent.get(participantLink.student_id) ?? [] : [];
+          return <article className="teacher-resource-card" key={event.id}>
+            <div className="teacher-resource-top"><div><div className="flex gap-8 wrap"><Badge tone={tone(event.status)}>{statusLabel(event.status)}</Badge><Badge tone="purple">{typeLabel(event.event_type)}</Badge></div><h3>{event.title}</h3><p>{participant?.preferred_name || participant?.full_name || "Aluno"}{event.description ? ` · ${event.description}` : ""}</p></div>{event.meeting_url && <a className="button button-secondary button-small" href={event.meeting_url} target="_blank" rel="noreferrer">Abrir link ↗</a>}</div>
+            <div className="teacher-resource-meta"><span>{dt(event.starts_at)}{event.ends_at ? ` → ${dt(event.ends_at)}` : ""}</span>{event.location && <span>• {event.location}</span>}</div>
+            {(event.event_type === "family_meeting" || event.event_type === "meeting") && guardianNames.length > 0 && <small className="muted">Responsável(is): {guardianNames.join(", ")}</small>}
+            <div className="teacher-resource-actions">
+              {event.status === "scheduled" && <form action={setAgendaEventStatus}><input type="hidden" name="eventId" value={event.id}/><input type="hidden" name="status" value="confirmed"/><button className="button button-secondary button-small" type="submit">Confirmar</button></form>}
+              !{event.status === "completed" ? null : <form action={setAgendaEventStatus}><input type="hidden" name="eventId" value={event.id}/><input type="hidden" name="status" value="completed"/><button className="button button-secondary button-small" type="submit">Marcar realizado</button></form>}
+              {event.status !== "cancelled" && <form action={setAgendaEventStatus}><input type="hidden" name="eventId" value={event.id}/><input type="hidden" name="status" value="cancelled"/><button className="button button-ghost button-small" type="submit">Cancelar</button></form>}
+            </div>
+          </article>;
+        })}</div> : <EmptyState title="Nenhum compromisso" description="Crie o primeiro usando o formulário acima." />}
       </section>
     </>
   );
