@@ -1,0 +1,347 @@
+/* CURIÓ — correções urgentes de contraste e responsividade do Preview.
+   Camada isolada para facilitar revisão/remoção depois da aula. */
+
+/* ===== MODO ESCURO: componentes que ainda conservavam fundo claro ===== */
+html[data-theme="dark"] .admin-module-card,
+html[data-theme="dark"] .admin-welcome-card,
+html[data-theme="dark"] .course-module-admin,
+html[data-theme="dark"] .course-add-module,
+html[data-theme="dark"] .plan-editor,
+html[data-theme="dark"] .course-admin-create {
+  background: #202633 !important;
+  color: #edf1f8 !important;
+  border-color: #3c465b !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] .admin-module-card h3,
+html[data-theme="dark"] .admin-module-card strong,
+html[data-theme="dark"] .admin-welcome-card h2,
+html[data-theme="dark"] .course-module-admin h3,
+html[data-theme="dark"] .course-module-admin h4,
+html[data-theme="dark"] .course-add-module summary,
+html[data-theme="dark"] .plan-editor summary {
+  color: #f5f7fb !important;
+}
+
+html[data-theme="dark"] .admin-module-card p,
+html[data-theme="dark"] .admin-welcome-card p,
+html[data-theme="dark"] .course-module-admin p,
+html[data-theme="dark"] .course-module-admin small {
+  color: #c4ccda !important;
+}
+
+html[data-theme="dark"] .admin-module-arrow {
+  color: #8facff !important;
+}
+
+html[data-theme="dark"] .admin-module-icon {
+  background: #293246 !important;
+  color: #f5f7fb !important;
+  border-color: #46536b !important;
+}
+
+/* Números e legendas dos cards de resumo não podem sumir no fundo escuro. */
+html[data-theme="dark"] .stat-card strong {
+  color: #f7f9fd !important;
+}
+html[data-theme="dark"] .stat-card span,
+html[data-theme="dark"] .stat-card small {
+  color: #c8d0de !important;
+}
+
+/* Linhas internas que ficavam claras demais ou invisíveis. */
+html[data-theme="dark"] .course-admin-modules,
+html[data-theme="dark"] .plan-editor,
+html[data-theme="dark"] .course-module-admin,
+html[data-theme="dark"] details {
+  border-color: #3d475a !important;
+}
+
+/* Checkbox/textos auxiliares em formulários. */
+html[data-theme="dark"] .consent-line,
+html[data-theme="dark"] .subject-checks label,
+html[data-theme="dark"] .plan-check-row label {
+  color: #d3d9e5 !important;
+}
+
+/* ===== TABLET ===== */
+@media (max-width: 1100px) {
+  .app-frame {
+    grid-template-columns: 220px minmax(0, 1fr) !important;
+  }
+
+  .app-main {
+    padding: 24px !important;
+  }
+
+  .stats-grid,
+  .admin-module-grid,
+  .grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .panel,
+  .stat-card,
+  .admin-module-card,
+  .mission-card,
+  .resource-card {
+    min-width: 0 !important;
+  }
+}
+
+/* Tablet estreito: sidebar vira cabeçalho rolável e devolve largura ao conteúdo. */
+@media (max-width: 820px) {
+  .app-frame {
+    display: block !important;
+    min-width: 0 !important;
+  }
+
+  .sidebar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 70 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 10px 14px !important;
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    grid-template-rows: auto auto !important;
+    align-items: center !important;
+    gap: 8px 12px !important;
+    border-bottom: 1px solid #354056 !important;
+  }
+
+  .sidebar .brand {
+    height: 46px !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+  }
+
+  .sidebar-role {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    padding: 6px 10px !important;
+    border: 0 !important;
+    min-width: 0 !important;
+  }
+
+  .sidebar-role span,
+  .sidebar-role strong,
+  .sidebar-subtitle {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .sidebar-metric {
+    display: none !important;
+  }
+
+  .sidebar > form {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    margin: 0 !important;
+  }
+
+  .sidebar-logout {
+    width: auto !important;
+    min-height: 40px !important;
+    margin: 0 !important;
+    padding: 8px 12px !important;
+    white-space: nowrap !important;
+  }
+
+  .sidebar-nav {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+    display: flex !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 4px 0 2px !important;
+    max-height: none !important;
+    scrollbar-width: thin !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .sidebar-nav-group {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    gap: 6px !important;
+    align-items: center !important;
+  }
+
+  .sidebar-nav-title {
+    display: none !important;
+  }
+
+  .sidebar-nav a,
+  .sidebar-nav-link {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-height: 42px !important;
+    padding: 9px 11px !important;
+    white-space: nowrap !important;
+  }
+
+  .app-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 20px !important;
+    overflow-x: hidden !important;
+  }
+
+  .page-header {
+    gap: 14px !important;
+  }
+
+  .hero-grid,
+  .lead-grid,
+  .course-public-grid,
+  .map-promise-grid,
+  .about-grid,
+  .plan-panel,
+  .auth-page {
+    grid-template-columns: 1fr !important;
+  }
+
+  .public-nav {
+    display: none !important;
+  }
+
+  .course-admin-summary,
+  .generator-input-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ===== CELULAR ===== */
+@media (max-width: 640px) {
+  .sidebar {
+    padding: 8px 10px !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+  }
+
+  .sidebar-role {
+    padding-inline: 6px !important;
+  }
+
+  .sidebar-role span,
+  .sidebar-subtitle {
+    display: none !important;
+  }
+
+  .sidebar > form {
+    display: none !important;
+  }
+
+  .sidebar-nav {
+    grid-column: 1 / -1 !important;
+  }
+
+  .app-main {
+    padding: 14px 10px 84px !important;
+  }
+
+  .page-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    margin-bottom: 18px !important;
+  }
+
+  .page-header h1 {
+    font-size: clamp(28px, 9vw, 38px) !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .page-header .button,
+  .page-header > a,
+  .page-header > div:last-child .button {
+    width: 100% !important;
+  }
+
+  .stats-grid,
+  .admin-module-grid,
+  .grid-2,
+  .grid-3,
+  .form-row,
+  .course-admin-summary,
+  .generator-input-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .panel {
+    padding: 16px 13px !important;
+    border-radius: 16px !important;
+  }
+
+  .stat-card,
+  .admin-module-card,
+  .mission-card,
+  .resource-card {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .admin-module-card {
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    padding: 14px !important;
+  }
+
+  .panel-head {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .panel-head .button,
+  .course-admin-actions,
+  .course-admin-actions form,
+  .course-admin-actions .button {
+    width: 100% !important;
+  }
+
+  .button {
+    min-height: 44px !important;
+  }
+
+  .input,
+  .select,
+  .textarea {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .data-table {
+    display: block !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .experience-preferences {
+    right: 10px !important;
+    bottom: 10px !important;
+  }
+
+  .experience-panel {
+    width: calc(100vw - 20px) !important;
+    max-height: calc(100dvh - 82px) !important;
+  }
+
+  .public-header-inner {
+    min-height: 64px !important;
+    height: auto !important;
+  }
+
+  .public-actions {
+    margin-left: auto !important;
+  }
+
+  .hero,
+  .section {
+    padding-top: 42px !important;
+    padding-bottom: 42px !important;
+  }
+}
