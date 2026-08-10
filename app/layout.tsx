@@ -7,6 +7,7 @@ import "./accessibility.css";
 import "./urgent-preview-fixes.css";
 import "./urgent-fixes.css";
 import "./shell-refinements.css";
+import "./shell-role-fixes.css";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
