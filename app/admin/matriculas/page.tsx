@@ -20,6 +20,10 @@ function dt(value?: string | null) {
   }).format(new Date(value));
 }
 
+function money(value: number | string | null | undefined) {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value || 0));
+}
+
 function statusLabel(status?: string | null) {
   if (status === "accepted") return "Acesso ativo";
   if (status === "sent") return "Convite enviado";
@@ -39,14 +43,21 @@ function statusTone(status?: string | null): "green" | "yellow" | "pink" | "blue
 export default async function AdminEnrollmentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ erro?: string; sucesso?: string }>;
+  searchParams: Promise<{ erro?: string; sucesso?: string; op?: string }>;
 }) {
   const query = await searchParams;
   await requireRole("admin");
   const supabase = await createClient();
-  const idempotencyKey = randomUUID();
+  const operationFromRetry = String(query.op || "").trim();
+  const idempotencyKey = operationFromRetry.length >= 8 && operationFromRetry.length <= 160 ? operationFromRetry : randomUUID();
 
-  const [{ data: requests }, { data: grades }, { data: invitations }] = await Promise.all([
+  const [
+    { data: requests },
+    { data: grades },
+    { data: invitations },
+    { data: teachers },
+    { data: plans },
+  ] = await Promise.all([
     supabase
       .from("enrollment_requests")
       .select("id,guardian_name,email,phone_whatsapp,child_name,child_age,subjects,status,created_at,grades(name)")
@@ -60,11 +71,24 @@ export default async function AdminEnrollmentsPage({
       .order("sort_order"),
     supabase
       .from("access_invitations")
-      .select("id,email,full_name,status,sent_at,accepted_at,last_error,student_id,created_at")
+      .select("id,email,full_name,status,sent_at,accepted_at,last_error,student_id,teacher_id,plan_id,enrollment_finalized_at,created_at,teachers(profiles(full_name,preferred_name)),plans(name)")
       .eq("role", "guardian")
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
       .limit(80),
+    supabase
+      .from("teachers")
+      .select("id,profile_id,profiles(full_name,preferred_name)")
+      .eq("active", true)
+      .order("created_at"),
+    supabase
+      .from("plans")
+      .select("id,name,monthly_price,meetings_per_month")
+      .eq("active", true)
+      .eq("available_for_enrollment", true)
+      .is("archived_at", null)
+      .is("deleted_at", null)
+      .order("sort_order"),
   ]);
 
   return (
@@ -72,14 +96,14 @@ export default async function AdminEnrollmentsPage({
       <PageHeader
         eyebrow="Operação CURIÓ"
         title="Matrículas"
-        description="Crie a criança uma única vez, libere o acesso da família e trate erros sem duplicar registros."
+        description="Conclua aluno, família, professor, plano e acesso no mesmo fluxo, sem recriar registros quando houver erro."
       />
 
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
       {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
 
       <div className="notice">
-        Proteção contra duplicidade ativa: o botão é bloqueado durante o envio e o backend reutiliza a mesma operação quando recebe uma submissão repetida.
+        Proteção contra duplicidade ativa: o botão é bloqueado durante o envio, o backend reserva a operação antes de criar o aluno e uma tentativa após erro reutiliza a mesma chave de matrícula.
       </div>
 
       <div className="access-setup-grid">
@@ -88,7 +112,7 @@ export default async function AdminEnrollmentsPage({
             <div>
               <span className="access-step">1</span>
               <h2>Fazer matrícula e liberar a família</h2>
-              <p>O aluno é criado uma única vez e fica vinculado ao convite institucional do responsável.</p>
+              <p>Preencha os dados do aluno, responsável, professor e plano. O acesso é criado sem duplicar o cadastro.</p>
             </div>
           </div>
 
@@ -139,6 +163,26 @@ export default async function AdminEnrollmentsPage({
                 <input className="input" name="schoolName" />
               </div>
             </div>
+            <div className="form-row">
+              <div className="field">
+                <label>Professor *</label>
+                <select className="select" name="teacherId" required defaultValue="">
+                  <option value="" disabled>Selecionar professor</option>
+                  {(teachers ?? []).map((teacher: any) => (
+                    <option key={teacher.id} value={teacher.id}>{teacher.profiles?.preferred_name || teacher.profiles?.full_name || "Professor"}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label>Plano *</label>
+                <select className="select" name="planId" required defaultValue="">
+                  <option value="" disabled>Selecionar plano</option>
+                  {(plans ?? []).map((plan: any) => (
+                    <option key={plan.id} value={plan.id}>{plan.name} • {money(plan.monthly_price)}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
             <div className="field">
               <label>Vínculo com a criança</label>
               <input className="input" name="relationship" defaultValue="Responsável" />
@@ -151,8 +195,8 @@ export default async function AdminEnrollmentsPage({
           <div className="panel-head">
             <div>
               <span className="access-step access-step-pink">2</span>
-              <h2>Acessos enviados</h2>
-              <p>Cancelar mantém o histórico. Excluir remove da operação e envia o convite para a Lixeira.</p>
+              <h2>Acessos e matrículas</h2>
+              <p>Uma matrícula só aparece como finalizada quando professor e plano também foram vinculados.</p>
             </div>
           </div>
 
@@ -165,7 +209,10 @@ export default async function AdminEnrollmentsPage({
                       <strong>{invite.full_name}</strong>
                       <p>{invite.email}</p>
                     </div>
-                    <Badge tone={statusTone(invite.status)}>{statusLabel(invite.status)}</Badge>
+                    <div className="flex gap-8 wrap">
+                      <Badge tone={statusTone(invite.status)}>{statusLabel(invite.status)}</Badge>
+                      <Badge tone={invite.enrollment_finalized_at ? "green" : "yellow"}>{invite.enrollment_finalized_at ? "Matrícula finalizada" : "Vínculos pendentes"}</Badge>
+                    </div>
                   </div>
                   <small className="muted">
                     {invite.accepted_at
@@ -174,6 +221,11 @@ export default async function AdminEnrollmentsPage({
                         ? `Enviado em ${dt(invite.sent_at)}`
                         : `Criado em ${dt(invite.created_at)}`}
                   </small>
+                  {invite.enrollment_finalized_at && (
+                    <p className="muted">
+                      Professor: {invite.teachers?.profiles?.preferred_name || invite.teachers?.profiles?.full_name || "Vinculado"} • Plano: {invite.plans?.name || "Vinculado"}
+                    </p>
+                  )}
                   {invite.last_error && <p className="form-message form-error">{invite.last_error}</p>}
 
                   <div className="plan-admin-actions">
