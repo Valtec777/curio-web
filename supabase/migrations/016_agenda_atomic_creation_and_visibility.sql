@@ -9,6 +9,49 @@ create unique index if not exists agenda_events_teacher_idempotency_day_uidx
   on public.agenda_events(created_by_teacher_id, idempotency_key, request_day)
   where idempotency_key is not null;
 
+-- Helper privado para evitar policy circular entre agenda_events e agenda_event_students.
+create or replace function private.can_read_agenda_event(target_event uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select exists (
+    select 1
+    from public.agenda_events e
+    where e.id = target_event
+      and (
+        (
+          e.visible_to_student
+          and exists (
+            select 1
+            from public.agenda_event_students aes
+            join public.students s on s.id = aes.student_id
+            where aes.event_id = e.id
+              and s.auth_user_id = (select auth.uid())
+              and s.deleted_at is null
+          )
+        )
+        or (
+          e.visible_to_guardian
+          and exists (
+            select 1
+            from public.agenda_event_students aes
+            join public.guardian_students gs on gs.student_id = aes.student_id
+            join public.guardians g on g.id = gs.guardian_id
+            join public.students s on s.id = aes.student_id
+            where aes.event_id = e.id
+              and g.profile_id = (select auth.uid())
+              and s.deleted_at is null
+          )
+        )
+      )
+  );
+$$;
+revoke all on function private.can_read_agenda_event(uuid) from public;
+grant execute on function private.can_read_agenda_event(uuid) to authenticated;
+
 -- Aluno e família só podem ler o evento quando a flag de visibilidade correspondente estiver ativa.
 drop policy if exists agenda_select on public.agenda_events;
 create policy agenda_select on public.agenda_events
@@ -17,25 +60,7 @@ using (
   private.has_role('admin'::app_role)
   or created_by_teacher_id = private.teacher_id_for_user()
   or ((class_id is not null) and private.teacher_has_class(class_id))
-  or exists (
-    select 1
-    from public.agenda_event_students aes
-    where aes.event_id = agenda_events.id
-      and (
-        (
-          visible_to_student
-          and aes.student_id in (
-            select s.id from public.students s
-            where s.auth_user_id = (select auth.uid())
-              and s.deleted_at is null
-          )
-        )
-        or (
-          visible_to_guardian
-          and private.guardian_has_student(aes.student_id)
-        )
-      )
-  )
+  or private.can_read_agenda_event(id)
 );
 
 drop policy if exists agenda_students_select on public.agenda_event_students;
@@ -44,22 +69,7 @@ for select to authenticated
 using (
   private.has_role('admin'::app_role)
   or private.teacher_has_student(student_id)
-  or exists (
-    select 1
-    from public.agenda_events e
-    where e.id = event_id
-      and (
-        (
-          e.visible_to_student
-          and student_id in (
-            select s.id from public.students s
-            where s.auth_user_id = (select auth.uid())
-              and s.deleted_at is null
-          )
-        )
-        or (e.visible_to_guardian and private.guardian_has_student(student_id))
-      )
-  )
+  or private.can_read_agenda_event(event_id)
 );
 
 create or replace function public.create_teacher_agenda_event(
