@@ -6,6 +6,7 @@ import { z } from "zod";
 import { getCurrentTeacher } from "@/lib/teacher";
 
 const missionSchema = z.object({
+  idempotencyKey: z.string().min(8).max(160),
   title: z.string().min(3),
   objective: z.string().min(5),
   estimatedMinutes: z.coerce.number().min(5).max(180),
@@ -23,6 +24,7 @@ export async function createMission(formData: FormData) {
   if (!teacher) redirect("/professor/missoes/nova?erro=Perfil+de+professor+incompleto");
 
   const parsed = missionSchema.safeParse({
+    idempotencyKey: formData.get("idempotencyKey"),
     title: formData.get("title"),
     objective: formData.get("objective"),
     estimatedMinutes: formData.get("estimatedMinutes"),
@@ -39,23 +41,6 @@ export async function createMission(formData: FormData) {
     redirect("/professor/missoes/nova?erro=" + encodeURIComponent(parsed.error.issues[0].message));
   }
 
-  const { data: mission, error } = await supabase
-    .from("missions")
-    .insert({
-      created_by_teacher_id: teacher.id,
-      title: parsed.data.title,
-      objective: parsed.data.objective,
-      estimated_minutes: parsed.data.estimatedMinutes,
-      subject_id: parsed.data.subjectId || null,
-      status: "draft",
-    })
-    .select("id")
-    .single();
-
-  if (error || !mission) {
-    redirect("/professor/missoes/nova?erro=" + encodeURIComponent(error?.message || "Erro ao criar missão"));
-  }
-
   const choices = parsed.data.questionType === "true_false"
     ? ["Verdadeiro", "Falso"]
     : parsed.data.questionType === "multiple_choice"
@@ -63,43 +48,35 @@ export async function createMission(formData: FormData) {
       : [];
 
   if (parsed.data.questionType === "multiple_choice" && choices.length < 2) {
-    await supabase.from("missions").delete().eq("id", mission.id);
     redirect("/professor/missoes/nova?erro=" + encodeURIComponent("Informe pelo menos duas alternativas, uma por linha."));
   }
+
   const correctAnswer = (parsed.data.correctAnswer || "").trim();
   if (parsed.data.questionType !== "open_text" && (!correctAnswer || !choices.includes(correctAnswer))) {
-    await supabase.from("missions").delete().eq("id", mission.id);
     redirect("/professor/missoes/nova?erro=" + encodeURIComponent("A resposta correta precisa ser exatamente uma das alternativas."));
   }
 
-  const { data: question, error: questionError } = await supabase.from("mission_questions").insert({
-    mission_id: mission.id,
-    position: 1,
-    prompt: parsed.data.prompt,
-    hint: parsed.data.hint || null,
-    question_type: parsed.data.questionType,
-    options: choices,
-    primary_skill_id: parsed.data.skillId,
-  }).select("id").single();
+  const { error } = await supabase.rpc("create_teacher_mission", {
+    p_idempotency_key: parsed.data.idempotencyKey,
+    p_title: parsed.data.title,
+    p_objective: parsed.data.objective,
+    p_estimated_minutes: parsed.data.estimatedMinutes,
+    p_subject_id: parsed.data.subjectId || null,
+    p_skill_id: parsed.data.skillId,
+    p_prompt: parsed.data.prompt,
+    p_hint: parsed.data.hint || "",
+    p_question_type: parsed.data.questionType,
+    p_options: choices,
+    p_correct_answer: correctAnswer,
+  });
 
-  if (questionError || !question) {
-    await supabase.from("missions").delete().eq("id", mission.id);
-    redirect("/professor/missoes/nova?erro=" + encodeURIComponent(questionError?.message || "Não foi possível criar a questão."));
-  }
-
-  if (parsed.data.questionType !== "open_text") {
-    const { error: keyError } = await supabase.from("mission_question_answer_keys").insert({
-      question_id: question.id,
-      correct_value: correctAnswer,
-    });
-    if (keyError) {
-      await supabase.from("missions").delete().eq("id", mission.id);
-      redirect("/professor/missoes/nova?erro=" + encodeURIComponent(keyError.message));
-    }
+  if (error) {
+    console.error("Falha ao criar Missão Cuca", error.code);
+    redirect("/professor/missoes/nova?erro=" + encodeURIComponent("Não foi possível salvar a missão. Nenhum rascunho parcial deve ser mantido; revise os dados e tente novamente."));
   }
 
   revalidatePath("/professor/missoes");
-  redirect("/professor/missoes?sucesso=" + encodeURIComponent("Missão criada como rascunho."));
+  redirect("/professor/missoes?sucesso=" + encodeURIComponent("Missão criada como rascunho sem duplicação."));
 }
 
 export async function assignMission(formData: FormData) {
