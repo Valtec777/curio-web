@@ -2,6 +2,7 @@ import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { archiveLegalDocument, createLegalRevision, publishLegalDocument, updateLegalDraft } from "@/app/admin/actions";
+import { moveDocumentToTrash } from "./actions";
 
 function dt(value?: string | null) {
   if (!value) return "—";
@@ -14,7 +15,12 @@ export default async function AdminDocumentsPage({ searchParams }: { searchParam
   const supabase = await createClient();
   const [{ data: legal }, { data: operational }] = await Promise.all([
     supabase.from("legal_documents").select("id,title,public_slug,document_type,version,status,is_current,body,file_path,published_at,created_at").order("public_slug").order("version", { ascending: false }),
-    supabase.from("documents").select("id,title,document_type,file_path,student_id,guardian_id,visible_to_guardian,created_at").order("created_at", { ascending: false }).limit(80),
+    supabase
+      .from("documents")
+      .select("id,title,document_type,file_path,student_id,guardian_id,subscription_id,visible_to_guardian,created_at,students(preferred_name,full_name),guardians(profiles(full_name,preferred_name))")
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(120),
   ]);
 
   return (
@@ -39,7 +45,26 @@ export default async function AdminDocumentsPage({ searchParams }: { searchParam
 
       <section className="panel">
         <div className="panel-head"><div><h2>Documentos operacionais</h2><p>Contratos individuais, relatórios, anexos e outros arquivos vinculados a famílias ou alunos.</p></div></div>
-        {operational?.length ? <div className="form-stack">{operational.map((doc: any) => <article className="mission-card" key={doc.id}><div className="flex space-between gap-8 wrap"><div><strong>{doc.title}</strong><p>{doc.document_type}</p></div><Badge tone={doc.visible_to_guardian ? "green" : "neutral"}>{doc.visible_to_guardian ? "Visível à família" : "Interno"}</Badge></div><small className="muted">{dt(doc.created_at)}</small>{doc.file_path && <div className="asset-path">{doc.file_path}</div>}</article>)}</div> : <EmptyState title="Nenhum documento operacional" description="Contratos e arquivos vinculados aparecerão aqui." />}
+        <div className="notice">Excluir um documento operacional não apaga o arquivo nem rompe o vínculo com aluno, responsável ou assinatura. Ele vai para a Lixeira com o mesmo ID e pode ser restaurado.</div>
+        {operational?.length ? <div className="form-stack">{operational.map((doc: any) => <article className="mission-card" key={doc.id}>
+          <div className="flex space-between gap-8 wrap">
+            <div>
+              <strong>{doc.title}</strong>
+              <p>{doc.document_type} · {doc.students?.preferred_name || doc.students?.full_name || doc.guardians?.profiles?.preferred_name || doc.guardians?.profiles?.full_name || "Documento geral"}</p>
+            </div>
+            <Badge tone={doc.visible_to_guardian ? "green" : "neutral"}>{doc.visible_to_guardian ? "Visível à família" : "Interno"}</Badge>
+          </div>
+          <small className="muted">{dt(doc.created_at)}</small>
+          {doc.file_path && <div className="asset-path">{doc.file_path}</div>}
+          <details className="plan-editor mt-12">
+            <summary className="button button-danger button-small">Excluir</summary>
+            <form action={moveDocumentToTrash} className="form-stack compact-form">
+              <input type="hidden" name="documentId" value={doc.id} />
+              <div className="field"><label>Motivo opcional</label><input className="input" name="reason" placeholder="Ex.: documento duplicado" /></div>
+              <button className="button button-danger button-small" type="submit">Enviar para a Lixeira</button>
+            </form>
+          </details>
+        </article>)}</div> : <EmptyState title="Nenhum documento operacional" description="Contratos e arquivos vinculados aparecerão aqui." />}
       </section>
     </>
   );
