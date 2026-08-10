@@ -1,0 +1,60 @@
+/* Ajustes de contraste do Admin no modo escuro.
+   Mantidos isolados no Preview para validação visual antes da produção. */
+
+html[data-theme="dark"] .admin-module-card {
+  background: #202633;
+  color: #edf1f8;
+  border-color: #3c465b;
+  box-shadow: none;
+}
+
+html[data-theme="dark"] .admin-module-card h3 {
+  color: #f5f7fb;
+}
+
+html[data-theme="dark"] .admin-module-card p {
+  color: #bfc7d7;
+}
+
+html[data-theme="dark"] .admin-module-arrow {
+  color: #87a5ff;
+}
+
+html[data-theme="dark"] .admin-module-icon {
+  background: #273145;
+  color: #eef2ff;
+  border-color: #40506a;
+}
+
+html[data-theme="dark"] .stat-card span,
+html[data-theme="dark"] .stat-card small {
+  color: #c5cede;
+}
+
+html[data-theme="dark"] .course-admin-create {
+  background: #202633;
+  color: #edf1f8;
+  border-color: #3c465b;
+}
+
+html[data-theme="dark"] .course-module-admin,
+html[data-theme="dark"] .course-add-module {
+  background: #1b212d;
+  color: #edf1f8;
+  border-color: #3c465b;
+}
+
+html[data-theme="dark"] .course-admin-modules,
+html[data-theme="dark"] .plan-editor {
+  border-color: #3c465b;
+}
+
+html[data-theme="dark"] .course-module-admin > summary,
+html[data-theme="dark"] .course-add-module > summary,
+html[data-theme="dark"] .plan-editor > summary {
+  color: #dbe5ff;
+}
+
+html[data-theme="dark"] .consent-line {
+  color: #cbd3e2;
+}
