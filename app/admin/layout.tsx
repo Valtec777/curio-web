@@ -6,6 +6,7 @@ import "./admin-polish.css";
 import "./admin-lists.css";
 import "./admin-generator.css";
 import "./admin-refinements.css";
+import "./admin-charts.css";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
