@@ -52,3 +52,35 @@ using (
     )
   )
 );
+
+drop policy if exists teacher_students_select on public.teacher_students;
+create policy teacher_students_select on public.teacher_students
+for select to authenticated
+using (
+  private.has_role('admin'::app_role)
+  or exists (
+    select 1 from public.students s
+    where s.id = teacher_students.student_id
+      and s.deleted_at is null
+      and (
+        teacher_students.teacher_id = private.teacher_id_for_user()
+        or s.auth_user_id = (select auth.uid())
+      )
+  )
+);
+
+drop policy if exists guardian_students_select on public.guardian_students;
+create policy guardian_students_select on public.guardian_students
+for select to authenticated
+using (
+  private.has_role('admin'::app_role)
+  or exists (
+    select 1 from public.students s
+    where s.id = guardian_students.student_id
+      and s.deleted_at is null
+      and (
+        guardian_students.guardian_id = private.guardian_id_for_user()
+        or s.auth_user_id = (select auth.uid())
+      )
+  )
+);
