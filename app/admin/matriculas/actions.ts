@@ -7,25 +7,46 @@ import { z } from "zod";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
+const optionalUuid = z.string().uuid().optional().or(z.literal(""));
+const optionalDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Revise a data de nascimento.").optional().or(z.literal(""));
+
 const enrollmentSchema = z.object({
   idempotencyKey: z.string().min(8).max(160),
-  fullName: z.string().min(2, "Informe o nome completo."),
-  preferredName: z.string().optional(),
+  fullName: z.string().min(2, "Informe o nome completo do responsável.").max(160),
+  preferredName: z.string().max(100).optional(),
   email: z.string().email("Informe um e-mail válido."),
-  phone: z.string().optional(),
-  childName: z.string().min(2, "Informe o nome do aluno."),
-  childPreferredName: z.string().optional(),
-  gradeId: z.string().uuid().optional().or(z.literal("")),
-  schoolName: z.string().optional(),
-  relationship: z.string().min(2).default("Responsável"),
+  phone: z.string().max(50).optional(),
+  guardianCpf: z.string().max(30).optional(),
+  guardianAddress: z.string().max(500).optional(),
+  childName: z.string().min(2, "Informe o nome do aluno.").max(160),
+  childPreferredName: z.string().max(100).optional(),
+  birthDate: optionalDate,
+  childCpf: z.string().max(30).optional(),
+  gradeId: optionalUuid,
+  schoolName: z.string().max(180).optional(),
+  subjects: z.array(z.string().max(100)).max(20),
+  pedagogicalNotes: z.string().max(3000).optional(),
+  relationship: z.string().min(2).max(60).default("Responsável legal"),
+  secondGuardianName: z.string().max(160).optional(),
+  secondGuardianRelationship: z.string().max(60).optional(),
+  secondGuardianEmail: z.string().max(220).optional(),
+  secondGuardianPhone: z.string().max(50).optional(),
+  secondGuardianCpf: z.string().max(30).optional(),
+  secondGuardianAddress: z.string().max(500).optional(),
   teacherId: z.string().uuid("Selecione o professor."),
   planId: z.string().uuid("Selecione o plano."),
+  leadId: optionalUuid,
 });
 
 function enrollmentUrl(kind: "erro" | "sucesso", message: string, operationKey?: string) {
   const params = new URLSearchParams({ [kind]: message });
   if (operationKey) params.set("op", operationKey);
   return `/admin/matriculas?${params.toString()}`;
+}
+
+function clean(value?: string | null) {
+  const text = String(value || "").trim();
+  return text || null;
 }
 
 async function currentOrigin() {
@@ -38,9 +59,26 @@ async function invokeAccessAdmin(body: Record<string, unknown>) {
   const supabase = await createClient();
   const { data, error } = await supabase.functions.invoke("curio-access-admin", { body });
   if (error || data?.error) {
-    return { ok: false as const, message: data?.error || "Não foi possível enviar o acesso agora." };
+    return { ok: false as const, message: data?.error || error?.message || "Não foi possível enviar o acesso agora." };
   }
   return { ok: true as const, data };
+}
+
+async function guardianFromInvitation(invitationId: string) {
+  const supabase = await createClient();
+  const { data: invitation } = await supabase
+    .from("access_invitations")
+    .select("auth_user_id")
+    .eq("id", invitationId)
+    .maybeSingle();
+  if (!invitation?.auth_user_id) return null;
+
+  const { data: guardian } = await supabase
+    .from("guardians")
+    .select("id")
+    .eq("profile_id", invitation.auth_user_id)
+    .maybeSingle();
+  return guardian?.id || null;
 }
 
 async function finalizeEnrollmentLinks(invitationId: string, teacherId: string, planId: string) {
@@ -67,7 +105,7 @@ async function finalizeEnrollmentLinks(invitationId: string, teacherId: string, 
   const { error: guardianError } = await supabase.from("guardian_students").upsert({
     guardian_id: guardian.id,
     student_id: invitation.student_id,
-    relationship: invitation.relationship || "Responsável",
+    relationship: invitation.relationship || "Responsável legal",
     can_view_progress: true,
     can_manage_access: true,
   }, { onConflict: "guardian_id,student_id" });
@@ -120,7 +158,39 @@ async function finalizeEnrollmentLinks(invitationId: string, teacherId: string, 
   }).eq("id", invitation.id);
   if (finalizeError) return { ok: false as const, message: "Os vínculos foram criados, mas não foi possível marcar a matrícula como finalizada." };
 
-  return { ok: true as const, studentId: invitation.student_id };
+  return { ok: true as const, studentId: invitation.student_id, guardianId: guardian.id };
+}
+
+async function saveEnrollmentDetails(args: {
+  studentId: string;
+  guardianId: string;
+  birthDate?: string;
+  childCpf?: string;
+  subjects: string[];
+  pedagogicalNotes?: string;
+  guardianCpf?: string;
+  guardianAddress?: string;
+}) {
+  const supabase = await createClient();
+  const results = await Promise.all([
+    supabase.from("student_private_details").upsert({
+      student_id: args.studentId,
+      birth_date: clean(args.birthDate),
+      cpf: clean(args.childCpf),
+    }, { onConflict: "student_id" }),
+    supabase.from("student_learning_profiles").upsert({
+      student_id: args.studentId,
+      tracked_subjects: args.subjects,
+      pedagogical_notes: clean(args.pedagogicalNotes),
+    }, { onConflict: "student_id" }),
+    supabase.from("guardian_private_details").upsert({
+      guardian_id: args.guardianId,
+      cpf: clean(args.guardianCpf),
+      address: clean(args.guardianAddress),
+    }, { onConflict: "guardian_id" }),
+  ]);
+  const failed = results.find((item) => item.error);
+  return failed?.error ? { ok: false as const, message: failed.error.message } : { ok: true as const };
 }
 
 export async function createGuardianEnrollment(formData: FormData) {
@@ -131,34 +201,57 @@ export async function createGuardianEnrollment(formData: FormData) {
     preferredName: String(formData.get("preferredName") || ""),
     email: formData.get("email"),
     phone: String(formData.get("phone") || ""),
+    guardianCpf: String(formData.get("guardianCpf") || ""),
+    guardianAddress: String(formData.get("guardianAddress") || ""),
     childName: formData.get("childName"),
     childPreferredName: String(formData.get("childPreferredName") || ""),
+    birthDate: String(formData.get("birthDate") || ""),
+    childCpf: String(formData.get("childCpf") || ""),
     gradeId: String(formData.get("gradeId") || ""),
     schoolName: String(formData.get("schoolName") || ""),
-    relationship: String(formData.get("relationship") || "Responsável"),
+    subjects: formData.getAll("subjects").map(String).filter(Boolean),
+    pedagogicalNotes: String(formData.get("pedagogicalNotes") || ""),
+    relationship: String(formData.get("relationship") || "Responsável legal"),
+    secondGuardianName: String(formData.get("secondGuardianName") || ""),
+    secondGuardianRelationship: String(formData.get("secondGuardianRelationship") || ""),
+    secondGuardianEmail: String(formData.get("secondGuardianEmail") || ""),
+    secondGuardianPhone: String(formData.get("secondGuardianPhone") || ""),
+    secondGuardianCpf: String(formData.get("secondGuardianCpf") || ""),
+    secondGuardianAddress: String(formData.get("secondGuardianAddress") || ""),
     teacherId: formData.get("teacherId"),
     planId: formData.get("planId"),
+    leadId: String(formData.get("leadId") || ""),
   });
 
   if (!parsed.success) {
     redirect(enrollmentUrl("erro", parsed.error.issues[0]?.message || "Confira os dados da matrícula.", operationKey || undefined));
   }
 
+  const secondName = clean(parsed.data.secondGuardianName);
+  const secondEmail = clean(parsed.data.secondGuardianEmail);
+  if ((secondName && !secondEmail) || (!secondName && secondEmail)) {
+    redirect(enrollmentUrl("erro", "Para o segundo responsável, preencha nome e e-mail juntos.", parsed.data.idempotencyKey));
+  }
+  if (secondEmail && !z.string().email().safeParse(secondEmail).success) {
+    redirect(enrollmentUrl("erro", "Revise o e-mail do segundo responsável.", parsed.data.idempotencyKey));
+  }
+
+  const origin = await currentOrigin();
   const result = await invokeAccessAdmin({
     action: "invite",
     idempotency_key: parsed.data.idempotencyKey,
     role: "guardian",
     full_name: parsed.data.fullName,
-    preferred_name: parsed.data.preferredName || null,
+    preferred_name: clean(parsed.data.preferredName),
     email: parsed.data.email,
-    phone_whatsapp: parsed.data.phone || null,
+    phone_whatsapp: clean(parsed.data.phone),
     relationship: parsed.data.relationship,
-    origin: await currentOrigin(),
+    origin,
     student: {
       full_name: parsed.data.childName,
-      preferred_name: parsed.data.childPreferredName || parsed.data.childName,
+      preferred_name: clean(parsed.data.childPreferredName) || parsed.data.childName,
       grade_id: parsed.data.gradeId || null,
-      school_name: parsed.data.schoolName || null,
+      school_name: clean(parsed.data.schoolName),
       status: "active",
     },
   });
@@ -181,6 +274,79 @@ export async function createGuardianEnrollment(formData: FormData) {
     redirect(enrollmentUrl("erro", `${finalized.message} Tente concluir novamente; o aluno já criado será reutilizado.`, parsed.data.idempotencyKey));
   }
 
+  const savedDetails = await saveEnrollmentDetails({
+    studentId: finalized.studentId,
+    guardianId: finalized.guardianId,
+    birthDate: parsed.data.birthDate,
+    childCpf: parsed.data.childCpf,
+    subjects: parsed.data.subjects,
+    pedagogicalNotes: parsed.data.pedagogicalNotes,
+    guardianCpf: parsed.data.guardianCpf,
+    guardianAddress: parsed.data.guardianAddress,
+  });
+  if (!savedDetails.ok) {
+    redirect(enrollmentUrl("erro", "A matrícula foi criada, mas alguns dados complementares não foram salvos. Envie novamente para completar o mesmo cadastro, sem duplicar.", parsed.data.idempotencyKey));
+  }
+
+  if (secondName && secondEmail) {
+    const secondResult = await invokeAccessAdmin({
+      action: "invite",
+      idempotency_key: `${parsed.data.idempotencyKey}:segundo:${secondEmail.toLowerCase()}`,
+      role: "guardian",
+      full_name: secondName,
+      preferred_name: null,
+      email: secondEmail,
+      phone_whatsapp: clean(parsed.data.secondGuardianPhone),
+      relationship: clean(parsed.data.secondGuardianRelationship) || "Responsável legal",
+      origin,
+      student_id: finalized.studentId,
+    });
+
+    if (!secondResult.ok) {
+      redirect(enrollmentUrl("erro", `A matrícula principal foi concluída, mas o segundo responsável não recebeu acesso: ${secondResult.message}`, parsed.data.idempotencyKey));
+    }
+
+    const secondInvitationId = String(secondResult.data?.invitation_id || "");
+    if (!z.string().uuid().safeParse(secondInvitationId).success) {
+      redirect(enrollmentUrl("erro", "A matrícula principal foi concluída, mas o segundo responsável não pôde ser finalizado.", parsed.data.idempotencyKey));
+    }
+
+    const secondGuardianId = await guardianFromInvitation(secondInvitationId);
+    if (!secondGuardianId) {
+      redirect(enrollmentUrl("erro", "O segundo acesso foi enviado, mas o vínculo do responsável ainda não ficou disponível. Tente novamente para concluir.", parsed.data.idempotencyKey));
+    }
+
+    const supabase = await createClient();
+    const [{ error: relationshipError }, { error: privateError }] = await Promise.all([
+      supabase.from("guardian_students").upsert({
+        guardian_id: secondGuardianId,
+        student_id: finalized.studentId,
+        relationship: clean(parsed.data.secondGuardianRelationship) || "Responsável legal",
+        can_view_progress: true,
+        can_manage_access: true,
+      }, { onConflict: "guardian_id,student_id" }),
+      supabase.from("guardian_private_details").upsert({
+        guardian_id: secondGuardianId,
+        cpf: clean(parsed.data.secondGuardianCpf),
+        address: clean(parsed.data.secondGuardianAddress),
+      }, { onConflict: "guardian_id" }),
+    ]);
+
+    if (relationshipError || privateError) {
+      redirect(enrollmentUrl("erro", "O segundo responsável foi criado, mas os dados complementares não foram concluídos. Envie novamente para completar o mesmo cadastro.", parsed.data.idempotencyKey));
+    }
+  }
+
+  if (parsed.data.leadId) {
+    const supabase = await createClient();
+    await supabase.from("enrollment_requests").update({
+      status: "enrolled",
+      assigned_to_teacher_id: parsed.data.teacherId,
+      updated_at: new Date().toISOString(),
+    }).eq("id", parsed.data.leadId);
+  }
+
+  revalidatePath("/admin");
   revalidatePath("/admin/matriculas");
   revalidatePath("/admin/familias");
   revalidatePath("/admin/alunos");
@@ -190,7 +356,7 @@ export async function createGuardianEnrollment(formData: FormData) {
 
   redirect(enrollmentUrl("sucesso", result.data?.reused
     ? "Matrícula retomada e concluída sem duplicar aluno, responsável ou convite."
-    : "Matrícula concluída: aluno, família, professor, plano e acesso foram vinculados."));
+    : "Matrícula concluída: criança, família, professor, plano e acesso ficaram conectados."));
 }
 
 export async function resendGuardianInvitation(formData: FormData) {
