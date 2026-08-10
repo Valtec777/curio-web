@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -29,11 +29,19 @@ function queryError(message: string) {
   return `/login?erro=${encodeURIComponent(message)}`;
 }
 
-async function siteOrigin() {
-  const requestHeaders = await headers();
-  const origin = requestHeaders.get("origin");
-  if (origin) return origin.replace(/\/$/, "");
-  return (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+function siteOrigin() {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (configured) {
+    try {
+      return new URL(configured).origin;
+    } catch {
+      console.error("NEXT_PUBLIC_SITE_URL inválida; usando fallback seguro.");
+    }
+  }
+
+  const vercelUrl = process.env.VERCEL_URL?.trim();
+  if (vercelUrl) return `https://${vercelUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}`;
+  return "http://localhost:3000";
 }
 
 function portalFor(roles: string[]) {
@@ -73,13 +81,14 @@ export async function login(formData: FormData) {
 
 async function sendPasswordLink(email: string, successPath: string) {
   const supabase = await createClient();
-  const origin = await siteOrigin();
+  const origin = siteOrigin();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${origin}/definir-senha`,
   });
 
   // Não revelamos se o e-mail existe ou não.
   if (error) {
+    console.error("Falha no envio do link de acesso/recuperação", error.code);
     redirect(`${successPath}?erro=${encodeURIComponent("Não foi possível enviar o e-mail agora. Aguarde um pouco e tente novamente.")}`);
   }
   redirect(`${successPath}?sucesso=1`);
