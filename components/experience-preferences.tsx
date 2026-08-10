@@ -107,7 +107,7 @@ export function ExperiencePreferences() {
           <div className="experience-panel-head">
             <div>
               <strong>Aparência e acessibilidade</strong>
-              <small>Escolhas salvas neste dispositivo.</small>
+              <small>Preferências deste dispositivo. Você pode alterar quando quiser.</small>
             </div>
             <button className="experience-close" type="button" onClick={() => setOpen(false)} aria-label="Fechar">×</button>
           </div>
@@ -129,17 +129,17 @@ export function ExperiencePreferences() {
           </div>
 
           <label className="preference-toggle">
-            <span><strong>Apoio visual</strong><small>Aumenta a fonte, reforça contraste, foco e contornos.</small></span>
+            <span><strong>Leitura reforçada</strong><small>Aumenta a fonte e reforça contraste, foco e contornos.</small></span>
             <input type="checkbox" checked={preferences.visual} onChange={(event) => update({ visual: event.target.checked })} />
           </label>
 
           <label className="preference-toggle">
-            <span><strong>Segurança para epilepsia</strong><small>Remove animações e transições e reduz estímulos visuais. Não substitui orientações médicas.</small></span>
+            <span><strong>Reduzir estímulos</strong><small>Reduz animações, transições e elementos decorativos em movimento.</small></span>
             <input type="checkbox" checked={preferences.epilepsy} onChange={(event) => update({ epilepsy: event.target.checked })} />
           </label>
 
           <label className="preference-toggle">
-            <span><strong>Foco cognitivo e TDAH</strong><small>Reduz elementos decorativos e prioriza o conteúdo essencial.</small></span>
+            <span><strong>Foco e simplicidade</strong><small>Prioriza o conteúdo essencial e reduz distrações visuais.</small></span>
             <input type="checkbox" checked={preferences.focus} onChange={(event) => update({ focus: event.target.checked })} />
           </label>
 
