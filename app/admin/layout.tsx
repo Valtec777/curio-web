@@ -3,6 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { requireRole } from "@/lib/auth";
 import "./dark-mode-fixes.css";
 import "./admin-polish.css";
+import "./admin-lists.css";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
