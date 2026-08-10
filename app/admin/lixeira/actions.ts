@@ -9,6 +9,8 @@ import { createClient } from "@/lib/supabase/server";
 const accessStatuses = new Set(["pending", "sent", "accepted", "cancelled", "error"]);
 const requestStatuses = new Set(["new", "contacted", "qualified", "enrolled", "closed"]);
 const studentStatuses = new Set(["active", "paused", "inactive", "pilot"]);
+const contentStatuses = new Set(["draft", "published", "archived"]);
+const contentEntityTypes = new Set(["missions", "materials", "notebook_activities", "assessments"]);
 
 function previousStatus(snapshot: Record<string, unknown> | null | undefined, allowed: Set<string>, fallback: string) {
   const value = String(snapshot?.previous_status || "");
@@ -23,8 +25,12 @@ function refreshOperationalPaths() {
   revalidatePath("/admin/professores");
   revalidatePath("/admin/usuarios");
   revalidatePath("/admin/mensagens");
+  revalidatePath("/admin/atividades");
   revalidatePath("/professor");
   revalidatePath("/professor/mensagens");
+  revalidatePath("/professor/missoes");
+  revalidatePath("/professor/materiais");
+  revalidatePath("/professor/avaliacoes");
   revalidatePath("/familia");
   revalidatePath("/familia/mensagens");
   revalidatePath("/aluno");
@@ -124,6 +130,14 @@ export async function restoreTrashItem(formData: FormData) {
     }).eq("id", item.entity_id).not("deleted_at", "is", null);
     restoreError = error;
     successMessage = "Mensagem restaurada na conversa com o mesmo ID.";
+  } else if (contentEntityTypes.has(item.entity_type)) {
+    const status = previousStatus(snapshot, contentStatuses, "draft");
+    const { error } = await supabase.from(item.entity_type).update({
+      status,
+      updated_at: new Date().toISOString(),
+    }).eq("id", item.entity_id);
+    restoreError = error;
+    successMessage = "Conteúdo restaurado com o mesmo ID e status anterior.";
   } else {
     redirect(`/admin/lixeira?erro=${encodeURIComponent("Este tipo de registro ainda não possui restauração segura implementada.")}`);
   }
