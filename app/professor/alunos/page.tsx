@@ -14,18 +14,20 @@ export default async function TeacherStudentsPage() {
     .eq("teacher_id", teacher.id)
     .eq("active", true);
 
+  const visibleLinks = (links ?? []).filter((link: any) => Boolean(link.students));
+
   return (
     <>
       <PageHeader
         eyebrow="Professor"
         title="Meus alunos"
-        description="Somente alunos explicitamente vinculados a este professor aparecem aqui."
+        description="Somente alunos explicitamente vinculados e disponíveis na operação aparecem aqui."
       />
 
       <section className="panel">
-        {links?.length ? (
+        {visibleLinks.length ? (
           <div className="grid-3">
-            {links.map((link: any) => (
+            {visibleLinks.map((link: any) => (
               <Link className="mission-card" href={`/professor/alunos/${link.students.id}`} key={link.student_id}>
                 <Badge tone="green">{link.students.status === "active" ? "Ativo" : link.students.status}</Badge>
                 <h3>{link.students.preferred_name}</h3>
@@ -37,7 +39,7 @@ export default async function TeacherStudentsPage() {
         ) : (
           <EmptyState
             title="Nenhum aluno vinculado"
-            description="O Admin precisa vincular pelo menos um aluno a este professor."
+            description="O Admin precisa vincular pelo menos um aluno ativo a este professor."
           />
         )}
       </section>
