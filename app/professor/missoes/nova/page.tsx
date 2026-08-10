@@ -1,6 +1,8 @@
+import { randomUUID } from "node:crypto";
 import { getCurrentTeacher } from "@/lib/teacher";
 import { PageHeader, EmptyState } from "@/components/ui";
 import { createMission } from "../actions";
+import { MissionSubmitButton } from "./submit-button";
 
 export default async function NewMissionPage({
   searchParams,
@@ -15,6 +17,7 @@ export default async function NewMissionPage({
     supabase.from("subjects").select("id, name").eq("active", true).order("name"),
     supabase.from("skills").select("id, name").eq("active", true).order("name"),
   ]);
+  const idempotencyKey = randomUUID();
 
   return (
     <>
@@ -28,6 +31,7 @@ export default async function NewMissionPage({
 
       <section className="panel">
         <form action={createMission} className="form-stack">
+          <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
           <div className="form-row">
             <div className="field">
               <label>Título</label>
@@ -98,10 +102,10 @@ export default async function NewMissionPage({
           </div>
 
           <div className="notice">
-            <strong>Missão = quiz/interação dentro do Curió.</strong> Ela é salva como rascunho e só chega ao aluno quando você publicar. Para atividade de papel/PDF, use Caderno Curió no Gerador/Materiais.
+            <strong>Missão = quiz/interação dentro do Curió.</strong> Missão, questão e gabarito são salvos em uma única operação. Repetir a mesma submissão não cria outro rascunho.
           </div>
 
-          <button className="button button-primary" type="submit">Salvar Missão Cuca</button>
+          <MissionSubmitButton />
         </form>
       </section>
     </>
