@@ -91,12 +91,14 @@ export async function reviewNotebookAssignment(formData: FormData) {
     score: z.coerce.number().min(0).max(100),
     stars: z.coerce.number().int().min(0).max(5).default(0),
     note: z.string().trim().max(2500).optional(),
+    requestRedo: z.string().optional(),
   }).safeParse({
     assignmentId: formData.get("assignmentId"),
     studentId: formData.get("studentId"),
     score: formData.get("score"),
     stars: formData.get("stars") || 0,
     note: String(formData.get("note") || ""),
+    requestRedo: String(formData.get("requestRedo") || ""),
   });
   if (!parsed.success) redirect(`/professor/correcoes?erro=${encodeURIComponent("Revise a nota do Caderno Curió.")}`);
 
@@ -105,11 +107,16 @@ export async function reviewNotebookAssignment(formData: FormData) {
   const { data: linked } = await supabase.from("teacher_students").select("student_id").eq("teacher_id", teacher.id).eq("student_id", parsed.data.studentId).eq("active", true).maybeSingle();
   if (!linked) redirect(`/professor/correcoes?erro=${encodeURIComponent("Este aluno não está mais vinculado a você.")}`);
 
+  const wantsRedo = parsed.data.requestRedo === "on";
+  if (wantsRedo && !parsed.data.note) redirect(`/professor/correcoes?erro=${encodeURIComponent("Escreva a orientação para o aluno refazer a atividade.")}`);
+
   const { error } = await supabase.from("notebook_assignments").update({
     status: "reviewed",
     score: parsed.data.score,
     stars_awarded: parsed.data.stars,
     teacher_note: parsed.data.note || null,
+    needs_redo: wantsRedo,
+    redo_note: wantsRedo ? parsed.data.note || null : null,
     updated_at: new Date().toISOString(),
   }).eq("id", parsed.data.assignmentId).eq("student_id", parsed.data.studentId).eq("assigned_by_teacher_id", teacher.id);
   if (error) redirect(`/professor/correcoes?erro=${encodeURIComponent("Não foi possível salvar a correção do Caderno Curió.")}`);
@@ -117,6 +124,7 @@ export async function reviewNotebookAssignment(formData: FormData) {
   revalidatePath("/professor");
   revalidatePath("/professor/correcoes");
   revalidatePath(`/professor/alunos/${parsed.data.studentId}`);
+  revalidatePath("/familia/atividades");
   revalidatePath("/aluno/caderno");
-  redirect(`/professor/correcoes?sucesso=${encodeURIComponent("Caderno Curió corrigido.")}`);
+  redirect(`/professor/correcoes?sucesso=${encodeURIComponent(wantsRedo ? "Correção salva e atividade devolvida para refazer." : "Caderno Curió corrigido.")}`);
 }
