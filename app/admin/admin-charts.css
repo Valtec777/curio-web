@@ -1,0 +1,14 @@
+/* Relatórios Admin · barras de leitura rápida */
+.report-bar-chart { display: grid; gap: 13px; margin-top: 14px; }
+.report-bar-row { display: grid; grid-template-columns: minmax(150px,220px) minmax(0,1fr) 42px; gap: 12px; align-items: center; }
+.report-bar-row > span { color: #526078; font-size: 13px; font-weight: 800; }
+.report-bar-track { height: 18px; overflow: hidden; border-radius: 999px; background: #eeece9; }
+.report-bar-fill { min-width: 8px; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#315efb,#7354ef); }
+.report-bar-row:nth-child(2) .report-bar-fill { background: linear-gradient(90deg,#9bcf24,#b8f238); }
+.report-bar-row:nth-child(3) .report-bar-fill { background: linear-gradient(90deg,#f4b33d,#ffd45e); }
+.report-bar-row:nth-child(4) .report-bar-fill { background: linear-gradient(90deg,#f05a9e,#ff83bb); }
+.report-bar-row strong { color: #17284e; text-align: right; }
+html[data-theme="dark"] .report-bar-track { background: #30394b; }
+html[data-theme="dark"] .report-bar-row > span { color: #c3ccdb; }
+html[data-theme="dark"] .report-bar-row strong { color: #f5f7fb; }
+@media(max-width:640px){.report-bar-row{grid-template-columns:1fr 40px}.report-bar-track{grid-column:1 / -1;grid-row:2}.report-bar-row strong{grid-column:2;grid-row:1}}
