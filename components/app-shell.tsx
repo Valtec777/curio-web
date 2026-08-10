@@ -60,8 +60,8 @@ const menus: Record<AppRole, NavItem[]> = {
     { href: "/professor/criar", label: "Criar conteúdo", group: "Criar e publicar" },
     { href: "/professor/missoes", label: "Missões", group: "Criar e publicar" },
     { href: "/professor/materiais", label: "Materiais", group: "Criar e publicar" },
-    { href: "/professor/conteudos", label: "Conteúdos", group: "Criar e publicar" },
     { href: "/professor/avaliacoes", label: "Avaliações", group: "Criar e publicar" },
+    { href: "/professor/conteudos", label: "Conteúdos", group: "Criar e publicar" },
 
     { href: "/professor/correcoes", label: "Correções", group: "Revisar" },
     { href: "/professor/mensagens", label: "Mensagens", group: "Revisar" },
