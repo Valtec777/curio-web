@@ -2,17 +2,22 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const jsonHeaders = { "Content-Type": "application/json" };
+const fallbackAppOrigin = "https://curio-web-crcv-git-codex-estabilizacao-curio-pri-2a2b5b-curio16.vercel.app";
 
 function reply(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), { status, headers: jsonHeaders });
 }
 
 function cleanOrigin(value: unknown) {
-  const origin = String(value || "").trim().replace(/\/$/, "");
-  if (origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:") || origin.startsWith("https://")) {
-    return origin;
-  }
-  return "";
+  const candidate = String(value || "").trim().replace(/\/$/, "");
+  try {
+    const url = new URL(candidate);
+    if (url.protocol === "https:") return url.origin;
+    if ((url.hostname === "localhost" || url.hostname === "127.0.0.1") && Deno.env.get("CURIO_ALLOW_LOCAL_REDIRECTS") === "true") return url.origin;
+  } catch {}
+  const configured = String(Deno.env.get("CURIO_APP_URL") || "").trim().replace(/\/$/, "");
+  if (configured.startsWith("https://")) return configured;
+  return fallbackAppOrigin;
 }
 
 function cleanText(value: unknown) {
@@ -75,7 +80,7 @@ Deno.serve(async (req: Request) => {
     if (action === "resend") {
       const invitationId = cleanText(body.invitation_id);
       const origin = cleanOrigin(body.origin);
-      if (!invitationId || !origin) return reply(400, { error: "Convite e origem são obrigatórios." });
+      if (!invitationId) return reply(400, { error: "Convite obrigatório." });
       const { data: invitation, error } = await admin
         .from("access_invitations")
         .select("*")
@@ -105,8 +110,8 @@ Deno.serve(async (req: Request) => {
     const role = cleanText(body.role || "guardian");
     const origin = cleanOrigin(body.origin);
     const allowedRoles = ["guardian", "teacher", "admin"];
-    if (!email.includes("@") || !fullName || !allowedRoles.includes(role) || !origin) {
-      return reply(400, { error: "Preencha nome, e-mail, papel e origem corretamente." });
+    if (!email.includes("@") || !fullName || !allowedRoles.includes(role)) {
+      return reply(400, { error: "Preencha nome, e-mail e papel corretamente." });
     }
 
     const requestDay = new Date().toISOString().slice(0, 10);
