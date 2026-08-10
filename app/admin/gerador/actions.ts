@@ -91,10 +91,10 @@ async function uploadGenerationFile(args: {
 export async function queueAdminGeneration(formData: FormData) {
   const viewer = await requireRole("admin");
   const supabase = await createClient();
-  const sourceFile = formData.get("sourceFile");
-  const modelFile = formData.get("modelFile");
-  const hasSource = sourceFile instanceof File && sourceFile.size > 0;
-  const hasModel = modelFile instanceof File && modelFile.size > 0;
+  const sourceValue = formData.get("sourceFile");
+  const modelValue = formData.get("modelFile");
+  const sourceFile = sourceValue instanceof File && sourceValue.size > 0 ? sourceValue : null;
+  const modelFile = modelValue instanceof File && modelValue.size > 0 ? modelValue : null;
 
   const parsed = schema.safeParse({
     outputType: formData.get("outputType"),
@@ -116,7 +116,7 @@ export async function queueAdminGeneration(formData: FormData) {
   const hasWrittenContent = Boolean(
     clean(parsed.data.theme) || clean(parsed.data.objective) || clean(parsed.data.baseText) || clean(parsed.data.questions),
   );
-  if (!hasWrittenContent && !hasSource) {
+  if (!hasWrittenContent && !sourceFile) {
     redirect(`/admin/gerador?erro=${encodeURIComponent("Cole um conteúdo ou anexe uma fonte para transformar.")}`);
   }
 
@@ -144,8 +144,8 @@ export async function queueAdminGeneration(formData: FormData) {
     student_id: parsed.data.studentId || null,
     subject_id: parsed.data.subjectId || null,
     grade_id: parsed.data.gradeId || null,
-    source: hasSource ? { name: sourceFile.name, size: sourceFile.size, type: sourceFile.type } : null,
-    model: hasModel ? { name: modelFile.name, size: modelFile.size, type: modelFile.type } : null,
+    source: sourceFile ? { name: sourceFile.name, size: sourceFile.size, type: sourceFile.type } : null,
+    model: modelFile ? { name: modelFile.name, size: modelFile.size, type: modelFile.type } : null,
   };
   const key = fingerprint(requestPayload);
   const idempotencyKey = `admin-generation-v1:${key}`;
@@ -162,13 +162,13 @@ export async function queueAdminGeneration(formData: FormData) {
   let sourcePath: string | null = null;
   let modelPath: string | null = null;
 
-  if (hasSource) {
+  if (sourceFile) {
     const upload = await uploadGenerationFile({ supabase, userId: viewer.user.id, file: sourceFile, key, role: "fonte" });
     if (!upload.ok) redirect(`/admin/gerador?erro=${encodeURIComponent(upload.message)}`);
     sourcePath = upload.path;
   }
 
-  if (hasModel) {
+  if (modelFile) {
     const upload = await uploadGenerationFile({ supabase, userId: viewer.user.id, file: modelFile, key, role: "modelo" });
     if (!upload.ok) redirect(`/admin/gerador?erro=${encodeURIComponent(upload.message)}`);
     modelPath = upload.path;
@@ -201,11 +201,11 @@ export async function queueAdminGeneration(formData: FormData) {
       subject_id: parsed.data.subjectId || null,
       grade_id: parsed.data.gradeId || null,
       source_file_path: sourcePath,
-      source_file_name: hasSource ? sourceFile.name : null,
-      source_mime_type: hasSource ? sourceFile.type : null,
+      source_file_name: sourceFile?.name || null,
+      source_mime_type: sourceFile?.type || null,
       model_file_path: modelPath,
-      model_file_name: hasModel ? modelFile.name : null,
-      model_mime_type: hasModel ? modelFile.type : null,
+      model_file_name: modelFile?.name || null,
+      model_mime_type: modelFile?.type || null,
       output_contract: outputContract,
       teacher_review_required: true,
       auto_publish: false,
