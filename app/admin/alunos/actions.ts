@@ -34,6 +34,7 @@ export async function createStudent(formData: FormData) {
     grade_id: parsed.data.gradeId || null,
     school_name: parsed.data.schoolName || null,
     status: "active",
+    deleted_at: null,
   });
 
   if (error) redirect("/admin/alunos?erro=" + encodeURIComponent(error.message));
@@ -89,7 +90,7 @@ export async function updateStudent(formData: FormData) {
   const { error } = await supabase.from("students").update({
     full_name: parsed.data.fullName.trim(), preferred_name: parsed.data.preferredName.trim(), grade_id: parsed.data.gradeId || null,
     school_name: parsed.data.schoolName?.trim() || null, updated_at: new Date().toISOString(),
-  }).eq("id", parsed.data.studentId);
+  }).eq("id", parsed.data.studentId).is("deleted_at", null);
   if (error) redirect("/admin/alunos?erro=" + encodeURIComponent(error.message));
   revalidatePath("/admin/alunos"); revalidatePath("/familia"); revalidatePath("/aluno");
   redirect("/admin/alunos?sucesso=" + encodeURIComponent("Aluno atualizado."));
@@ -100,8 +101,84 @@ export async function setStudentStatus(formData: FormData) {
   const parsed = z.object({ studentId: z.string().uuid(), status: z.enum(["active","paused","inactive","pilot"]) }).safeParse({ studentId: formData.get("studentId"), status: formData.get("status") });
   if (!parsed.success) return;
   const supabase = await createClient();
-  const { error } = await supabase.from("students").update({ status: parsed.data.status, updated_at: new Date().toISOString() }).eq("id", parsed.data.studentId);
+  const { error } = await supabase.from("students").update({ status: parsed.data.status, updated_at: new Date().toISOString() }).eq("id", parsed.data.studentId).is("deleted_at", null);
   if (error) redirect("/admin/alunos?erro=" + encodeURIComponent(error.message));
   revalidatePath("/admin/alunos");
   redirect("/admin/alunos?sucesso=" + encodeURIComponent(parsed.data.status === "inactive" ? "Aluno retirado do acesso ativo. O histórico foi preservado." : parsed.data.status === "active" ? "Aluno reativado." : "Situação do aluno atualizada."));
+}
+
+export async function moveStudentToTrash(formData: FormData) {
+  const viewer = await requireRole("admin");
+  const parsed = z.object({
+    studentId: z.string().uuid(),
+    reason: z.string().max(300).optional(),
+  }).safeParse({
+    studentId: formData.get("studentId"),
+    reason: String(formData.get("reason") || ""),
+  });
+  if (!parsed.success) return;
+
+  const supabase = await createClient();
+  const { data: student } = await supabase
+    .from("students")
+    .select("id,full_name,preferred_name,school_name,grade_id,status,deleted_at")
+    .eq("id", parsed.data.studentId)
+    .maybeSingle();
+
+  if (!student || student.deleted_at) {
+    redirect("/admin/alunos?erro=" + encodeURIComponent("Aluno não encontrado ou já removido."));
+  }
+
+  const [teacherLinks, guardianLinks, missionLinks, assessmentLinks] = await Promise.all([
+    supabase.from("teacher_students").select("student_id", { count: "exact", head: true }).eq("student_id", student.id),
+    supabase.from("guardian_students").select("student_id", { count: "exact", head: true }).eq("student_id", student.id),
+    supabase.from("mission_students").select("student_id", { count: "exact", head: true }).eq("student_id", student.id),
+    supabase.from("assessment_students").select("student_id", { count: "exact", head: true }).eq("student_id", student.id),
+  ]);
+
+  const now = new Date();
+  const reason = parsed.data.reason?.trim() || "Removido pelo Admin";
+  const { error: trashError } = await supabase.from("trash_items").insert({
+    entity_type: "students",
+    entity_id: student.id,
+    entity_snapshot: {
+      label: student.preferred_name || student.full_name,
+      full_name: student.full_name,
+      school_name: student.school_name,
+      grade_id: student.grade_id,
+      previous_status: student.status,
+      reason,
+      dependencies: {
+        teacher_students: teacherLinks.count ?? 0,
+        guardian_students: guardianLinks.count ?? 0,
+        mission_students: missionLinks.count ?? 0,
+        assessment_students: assessmentLinks.count ?? 0,
+      },
+    },
+    deleted_by_user_id: viewer.user.id,
+    deleted_at: now.toISOString(),
+    restore_until: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+  });
+
+  if (trashError && trashError.code !== "23505") {
+    redirect("/admin/alunos?erro=" + encodeURIComponent("Não foi possível enviar o aluno para a Lixeira."));
+  }
+
+  const { error } = await supabase.from("students").update({
+    status: "inactive",
+    deleted_at: now.toISOString(),
+    deleted_by_user_id: viewer.user.id,
+    delete_reason: reason,
+    updated_at: now.toISOString(),
+  }).eq("id", student.id).is("deleted_at", null);
+
+  if (error) redirect("/admin/alunos?erro=" + encodeURIComponent("Não foi possível excluir o aluno da operação."));
+
+  revalidatePath("/admin/alunos");
+  revalidatePath("/admin/matriculas");
+  revalidatePath("/admin/lixeira");
+  revalidatePath("/professor/alunos");
+  revalidatePath("/familia");
+  revalidatePath("/aluno");
+  redirect("/admin/alunos?sucesso=" + encodeURIComponent("Aluno enviado para a Lixeira. Vínculos e histórico foram preservados."));
 }
