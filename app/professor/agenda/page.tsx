@@ -110,8 +110,8 @@ export default async function ProfessorAgendaPage({ searchParams }: { searchPara
             {(event.event_type === "family_meeting" || event.event_type === "meeting") && guardianNames.length > 0 && <small className="muted">Responsável(is): {guardianNames.join(", ")}</small>}
             <div className="teacher-resource-actions">
               {event.status === "scheduled" && <form action={setAgendaEventStatus}><input type="hidden" name="eventId" value={event.id}/><input type="hidden" name="status" value="confirmed"/><button className="button button-secondary button-small" type="submit">Confirmar</button></form>}
-              !{event.status === "completed" ? null : <form action={setAgendaEventStatus}><input type="hidden" name="eventId" value={event.id}/><input type="hidden" name="status" value="completed"/><button className="button button-secondary button-small" type="submit">Marcar realizado</button></form>}
-              {event.status !== "cancelled" && <form action={setAgendaEventStatus}><input type="hidden" name="eventId" value={event.id}/><input type="hidden" name="status" value="cancelled"/><button className="button button-ghost button-small" type="submit">Cancelar</button></form>}
+              {event.status !== "completed" && event.status !== "cancelled" && <form action={setAgendaEventStatus}><input type="hidden" name="eventId" value={event.id}/><input type="hidden" name="status" value="completed"/><button className="button button-secondary button-small" type="submit">Marcar realizado</button></form>}
+              {event.status !== "cancelled" && event.status !== "completed" && <form action={setAgendaEventStatus}><input type="hidden" name="eventId" value={event.id}/><input type="hidden" name="status" value="cancelled"/><button className="button button-ghost button-small" type="submit">Cancelar</button></form>}
             </div>
           </article>;
         })}</div> : <EmptyState title="Nenhum compromisso" description="Crie o primeiro usando o formulário acima." />}
