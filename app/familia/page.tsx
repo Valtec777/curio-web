@@ -4,6 +4,7 @@ import { PageHeader, EmptyState, Badge, StatCard } from "@/components/ui";
 import { enterStudentSpace } from "@/app/familia/access-actions";
 
 function progressLabel(level:number,count:number){ if(count<2)return "Nova habilidade"; if(level>=4)return "Consolidado"; if(level>=3)return "Praticando com autonomia"; return "Em desenvolvimento"; }
+function dt(value?: string | null){ if(!value)return "—"; return new Intl.DateTimeFormat("pt-BR",{dateStyle:"short",timeStyle:"short",timeZone:"America/Bahia"}).format(new Date(value)); }
 
 export default async function FamilyPage({ searchParams }: { searchParams: Promise<{ erro?: string; sucesso?: string }> }) {
   const query = await searchParams;
@@ -11,18 +12,25 @@ export default async function FamilyPage({ searchParams }: { searchParams: Promi
   const supabase = await createClient();
   const { data: guardian } = await supabase.from("guardians").select("id").eq("profile_id", viewer.user.id).maybeSingle();
   if (!guardian) return <EmptyState title="Perfil da família incompleto" description="Falta concluir o registro de responsável." />;
-  const { data: links } = await supabase.from("guardian_students").select("student_id,can_view_progress,students(id,preferred_name,full_name,school_name,grades(name))").eq("guardian_id", guardian.id);
-  if (!links?.length) return <><PageHeader eyebrow="Ninho da Família" title="Acompanhando" description="Uma visão acolhedora e objetiva da jornada escolar."/><EmptyState title="Nenhuma criança vinculada" description="A administração precisa aprovar o vínculo da família com a criança." /></>;
+  const { data: rawLinks } = await supabase.from("guardian_students").select("student_id,can_view_progress,students(id,preferred_name,full_name,school_name,deleted_at,grades(name))").eq("guardian_id", guardian.id);
+  const links = (rawLinks ?? []).filter((link:any)=>link.students && !link.students.deleted_at);
+  if (!links.length) return <><PageHeader eyebrow="Ninho da Família" title="Acompanhando" description="Uma visão acolhedora e objetiva da jornada escolar."/><EmptyState title="Nenhuma criança vinculada" description="A administração precisa aprovar o vínculo da família com a criança." /></>;
 
+  const activeStudentIds = links.map((l:any)=>l.student_id);
   const visibleIds = links.filter((l:any)=>l.can_view_progress).map((l:any)=>l.student_id);
   const childName = new Map(links.map((l:any)=>[l.student_id,l.students?.preferred_name||l.students?.full_name||"Criança"]));
-  const [{ data: states }, { data: currentContents }, { data: missions }, { data: assessments }] = visibleIds.length ? await Promise.all([
-    supabase.from("student_skill_states").select("student_id,domain_level,confidence,trend,evidence_count,skills(name)").in("student_id",visibleIds).order("updated_at",{ascending:false}).limit(80),
-    supabase.from("student_current_contents").select("student_id,confirmed,is_manual,subjects(name),contents(name)").in("student_id",visibleIds).eq("active",true).limit(30),
-    supabase.from("mission_students").select("student_id,status,progress_percent").in("student_id",visibleIds).in("status",["assigned","in_progress"]).limit(100),
-    supabase.from("assessment_students").select("student_id,status,assessments(scheduled_for)").in("student_id",visibleIds).limit(50),
-  ]) : [{data:[] as any[]},{data:[] as any[]},{data:[] as any[]},{data:[] as any[]}];
+  const [{ data: states }, { data: currentContents }, { data: missions }, { data: assessments }, { data: agendaLinks }] = await Promise.all([
+    visibleIds.length ? supabase.from("student_skill_states").select("student_id,domain_level,confidence,trend,evidence_count,skills(name)").in("student_id",visibleIds).order("updated_at",{ascending:false}).limit(80) : Promise.resolve({data:[] as any[]}),
+    visibleIds.length ? supabase.from("student_current_contents").select("student_id,confirmed,is_manual,subjects(name),contents(name)").in("student_id",visibleIds).eq("active",true).limit(30) : Promise.resolve({data:[] as any[]}),
+    visibleIds.length ? supabase.from("mission_students").select("student_id,status,progress_percent").in("student_id",visibleIds).in("status",["assigned","in_progress"]).limit(100) : Promise.resolve({data:[] as any[]}),
+    visibleIds.length ? supabase.from("assessment_students").select("student_id,status,assessments(scheduled_for)").in("student_id",visibleIds).limit(50) : Promise.resolve({data:[] as any[]}),
+    activeStudentIds.length ? supabase.from("agenda_event_students").select("student_id,event_id,agenda_events(id,title,description,event_type,starts_at,status,meeting_url,visible_to_guardian)").in("student_id",activeStudentIds).limit(50) : Promise.resolve({data:[] as any[]}),
+  ]);
 
+  const nextEvent = (agendaLinks ?? [])
+    .map((item:any)=>({student_id:item.student_id,...item.agenda_events}))
+    .filter((event:any)=>event.visible_to_guardian && event.status==="scheduled" && new Date(event.starts_at)>=new Date())
+    .sort((a:any,b:any)=>+new Date(a.starts_at)-+new Date(b.starts_at))[0];
   const improving=(states??[]).filter((s:any)=>s.trend==="improving").length;
   const developing=(states??[]).filter((s:any)=>s.evidence_count>=2&&s.domain_level<3).length;
   const consolidated=(states??[]).filter((s:any)=>s.evidence_count>=2&&s.domain_level>=3).length;
@@ -31,6 +39,7 @@ export default async function FamilyPage({ searchParams }: { searchParams: Promi
     <PageHeader eyebrow="Ninho da Família" title="Acompanhando" description="Veja conteúdos, atividades e evolução com linguagem adequada para a família." />
     {query.erro && <div className="form-message form-error">{query.erro}</div>}
     {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
+    {nextEvent && <section className="panel family-highlight"><div className="panel-head"><div><div className="eyebrow eyebrow-pink">Próximo encontro</div><h2>{nextEvent.title}</h2><p>{childName.get(nextEvent.student_id)} • {dt(nextEvent.starts_at)}</p></div><a href="/familia/agenda">Ver agenda →</a></div><p>{nextEvent.description||"Encontro Curió"}</p>{nextEvent.meeting_url&&<a className="button button-primary button-small" href={nextEvent.meeting_url} target="_blank" rel="noreferrer">Entrar na aula ↗</a>}</section>}
     <section className="panel family-child-switcher">
       <div className="panel-head"><div><div className="eyebrow eyebrow-pink">Espaço da criança</div><h2>Quem vai estudar agora?</h2><p>O acesso da criança usa este mesmo login. Para voltar ao Ninho da Família, o Curió pede o PIN de 4 números.</p></div></div>
       <div className="family-child-buttons">
