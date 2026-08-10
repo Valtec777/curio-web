@@ -7,7 +7,7 @@ import { z } from "zod";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
-const outputTypes = ["mission", "notebook", "material", "assessment", "report"] as const;
+const outputTypes = ["mission", "notebook", "material", "assessment", "report", "course"] as const;
 
 const schema = z.object({
   outputType: z.enum(outputTypes),
@@ -117,7 +117,7 @@ export async function queueAdminGeneration(formData: FormData) {
     clean(parsed.data.theme) || clean(parsed.data.objective) || clean(parsed.data.baseText) || clean(parsed.data.questions),
   );
   if (!hasWrittenContent && !sourceFile) {
-    redirect(`/admin/gerador?erro=${encodeURIComponent("Cole um conteúdo ou anexe uma fonte para transformar.")}`);
+    redirect(`/admin/gerador?erro=${encodeURIComponent("Cole um prompt/conteúdo ou anexe uma fonte para transformar.")}`);
   }
 
   if (parsed.data.studentId && parsed.data.teacherId) {
@@ -182,12 +182,14 @@ export async function queueAdminGeneration(formData: FormData) {
         ? { product: "material", interaction: "print_or_share", requires_pdf: true, teacher_review_required: true }
         : parsed.data.outputType === "assessment"
           ? { product: "assessment", interaction: "print_or_in_app", requires_pdf: true, teacher_review_required: true }
-          : { product: "report", interaction: "document", requires_pdf: true, teacher_review_required: true };
+          : parsed.data.outputType === "course"
+            ? { product: "free_course", interaction: "slides_video_links_and_practice", requires_pdf: false, teacher_review_required: true }
+            : { product: "report", interaction: "document", requires_pdf: true, teacher_review_required: true };
 
   const { error } = await supabase.from("generation_jobs").insert({
     requested_by_user_id: viewer.user.id,
     teacher_id: parsed.data.teacherId || null,
-    job_type: parsed.data.outputType,
+    job_type: parsed.data.outputType === "course" ? "analysis" : parsed.data.outputType,
     status: "queued",
     idempotency_key: idempotencyKey,
     input: {
@@ -220,5 +222,6 @@ export async function queueAdminGeneration(formData: FormData) {
   }
 
   revalidatePath("/admin/gerador");
+  revalidatePath("/admin/cursos");
   redirect(`/admin/gerador?sucesso=${encodeURIComponent(error?.code === "23505" ? "Esse pedido já estava registrado. Nenhuma duplicidade foi criada." : "Fonte recebida e transformação registrada para processamento.")}`);
 }
