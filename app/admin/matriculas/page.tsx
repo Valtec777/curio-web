@@ -9,6 +9,7 @@ import {
   moveGuardianInvitationToTrash,
   resendGuardianInvitation,
 } from "./actions";
+import { updateEnrollmentAssignments } from "./edit-actions";
 import { EnrollmentSubmitButton } from "./submit-button";
 
 function dt(value?: string | null) {
@@ -229,6 +230,33 @@ export default async function AdminEnrollmentsPage({
                   {invite.last_error && <p className="form-message form-error">{invite.last_error}</p>}
 
                   <div className="plan-admin-actions">
+                    {invite.student_id && (
+                      <details className="plan-editor">
+                        <summary className="button button-secondary button-small">Editar professor / plano</summary>
+                        <form action={updateEnrollmentAssignments} className="form-stack compact-form">
+                          <input type="hidden" name="invitationId" value={invite.id} />
+                          <div className="field">
+                            <label>Professor</label>
+                            <select className="select" name="teacherId" defaultValue={invite.teacher_id || ""} required>
+                              <option value="" disabled>Selecionar professor</option>
+                              {(teachers ?? []).map((teacher: any) => (
+                                <option key={teacher.id} value={teacher.id}>{teacher.profiles?.preferred_name || teacher.profiles?.full_name || "Professor"}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="field">
+                            <label>Plano</label>
+                            <select className="select" name="planId" defaultValue={invite.plan_id || ""} required>
+                              <option value="" disabled>Selecionar plano</option>
+                              {(plans ?? []).map((plan: any) => (
+                                <option key={plan.id} value={plan.id}>{plan.name} • {money(plan.monthly_price)}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <button className="button button-secondary button-small" type="submit">Salvar sem recriar matrícula</button>
+                        </form>
+                      </details>
+                    )}
                     {!['accepted', 'cancelled'].includes(invite.status) && (
                       <form action={resendGuardianInvitation}>
                         <input type="hidden" name="invitationId" value={invite.id} />
@@ -307,7 +335,7 @@ export default async function AdminEnrollmentsPage({
             <p>A matrícula criada não precisa ser refeita para corrigir nome, escola ou ano escolar.</p>
           </div>
         </div>
-        <a className="button button-secondary" href="/admin/alunos">Abrir alunos e vínculos</a>
+        <a className="button button-secondary" href="/admin/alunos">Abrir dados acadêmicos do aluno</a>
       </section>
     </>
   );
