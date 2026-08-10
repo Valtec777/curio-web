@@ -58,8 +58,8 @@ export default async function ProfessorAgendaPage({
     <>
       <PageHeader
         eyebrow="Professor • Agenda"
-        title="Agenda"
-        description="Crie aulas e reuniões usando os vínculos reais do aluno. O mesmo evento aparece para quem tiver permissão."
+        title="Agenda e reuniões"
+        description="Agende aula ou reunião, informe o motivo e escolha se o encontro também aparece para o aluno e para a família. A equipe Admin acompanha pelo calendário administrativo."
       />
 
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
@@ -70,7 +70,7 @@ export default async function ProfessorAgendaPage({
           <div className="panel-head">
             <div>
               <h2>Novo encontro</h2>
-              <p>O evento é criado uma única vez e vinculado ao aluno por ID.</p>
+              <p>Preencha só o necessário. O título identifica o motivo; a descrição é opcional.</p>
             </div>
           </div>
 
@@ -91,9 +91,9 @@ export default async function ProfessorAgendaPage({
             <div className="form-row">
               <div className="field">
                 <label>Tipo *</label>
-                <select className="select" name="eventType" defaultValue="class">
+                <select className="select" name="eventType" defaultValue="meeting">
+                  <option value="meeting">Reunião</option>
                   <option value="class">Aula regular</option>
-                  <option value="meeting">Reunião com família</option>
                   <option value="assessment">Avaliação</option>
                   <option value="deadline">Prazo</option>
                   <option value="reminder">Lembrete</option>
@@ -101,14 +101,14 @@ export default async function ProfessorAgendaPage({
                 </select>
               </div>
               <div className="field">
-                <label>Título *</label>
+                <label>Título / motivo *</label>
                 <input className="input" name="title" placeholder="Ex.: Reunião de acompanhamento" required />
               </div>
             </div>
 
             <div className="field">
-              <label>Descrição</label>
-              <textarea className="textarea" name="description" placeholder="Objetivo, conteúdo ou observações do encontro" />
+              <label>Descrição opcional</label>
+              <textarea className="textarea" name="description" placeholder="Se precisar, explique brevemente o que será conversado" />
             </div>
 
             <div className="form-row">
@@ -116,12 +116,13 @@ export default async function ProfessorAgendaPage({
               <div className="field"><label>Término</label><input className="input" type="datetime-local" name="endsAt" /></div>
             </div>
 
-            <div className="field"><label>Link da aula/reunião</label><input className="input" type="url" name="meetingUrl" placeholder="https://..." /></div>
-            <div className="field"><label>Local / observação de acesso</label><input className="input" name="location" placeholder="Online, Sala 2..." /></div>
+            <div className="field"><label>Link do Google Meet / encontro</label><input className="input" type="url" name="meetingUrl" placeholder="https://meet.google.com/..." /></div>
+            <div className="field"><label>Local ou observação de acesso</label><input className="input" name="location" placeholder="Online, Sala 2..." /></div>
 
-            <div className="plan-check-row">
-              <label><input type="checkbox" name="visibleToStudent" defaultChecked /> Mostrar para o aluno</label>
-              <label><input type="checkbox" name="visibleToGuardian" defaultChecked /> Mostrar para a família</label>
+            <div className="plan-check-row meeting-audience-row">
+              <label><input type="checkbox" name="visibleToStudent" defaultChecked /> Aluno</label>
+              <label><input type="checkbox" name="visibleToGuardian" defaultChecked /> Família</label>
+              <label title="O Admin acompanha os encontros pelo calendário administrativo"><input type="checkbox" checked readOnly /> Admin / equipe CURIÓ</label>
             </div>
 
             <AgendaSubmitButton />
@@ -130,14 +131,14 @@ export default async function ProfessorAgendaPage({
 
         <section className="panel">
           <div className="notice">
-            Reunião com família usa o vínculo real Família↔Aluno. Para uma reunião somente com responsáveis, desmarque “Mostrar para o aluno”. O Professor recebe apenas nome e tipo de vínculo dos responsáveis dos próprios alunos; nenhum dado de outras famílias é liberado.
+            O Admin acompanha os encontros automaticamente. Para uma reunião só com a família, desmarque “Aluno”. Se houver link do Google Meet, ele fica associado ao mesmo compromisso.
           </div>
           {!students.length && <EmptyState title="Nenhum aluno vinculado" description="Vincule um aluno antes de criar um encontro." />}
         </section>
       </div>
 
       <section className="panel">
-        <div className="panel-head"><div><h2>Encontros cadastrados</h2><p>Ações de situação preservam o mesmo evento e os vínculos.</p></div></div>
+        <div className="panel-head"><div><h2>Encontros cadastrados</h2><p>Título, participantes, horário e acesso ficam juntos para evitar informação espalhada.</p></div></div>
 
         {events?.length ? (
           <div className="form-stack">
@@ -151,13 +152,14 @@ export default async function ProfessorAgendaPage({
                   <div className="flex space-between gap-8 wrap">
                     <div>
                       <strong>{event.title}</strong>
-                      <p>{participant?.preferred_name || participant?.full_name || "Aluno"} • {event.description || event.event_type}</p>
+                      <p>{participant?.preferred_name || participant?.full_name || "Aluno"}{event.description ? ` • ${event.description}` : ""}</p>
                       {event.event_type === "meeting" && guardianNames.length > 0 && <small className="muted">Responsável(is): {guardianNames.join(", ")}</small>}
                     </div>
                     <Badge tone={tone(event.status)}>{event.status}</Badge>
                   </div>
                   <small className="muted">{dt(event.starts_at)}{event.ends_at ? ` → ${dt(event.ends_at)}` : ""}</small>
                   <div className="flex gap-8 wrap mt-12">
+                    <Badge tone="purple">Admin</Badge>
                     {event.visible_to_student && <Badge tone="blue">Aluno</Badge>}
                     {event.visible_to_guardian && <Badge tone="green">Família</Badge>}
                     {event.meeting_url && <a className="button button-secondary button-small" href={event.meeting_url} target="_blank" rel="noreferrer">{joinLabel}</a>}
