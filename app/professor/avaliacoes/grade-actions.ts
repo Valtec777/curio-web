@@ -27,7 +27,8 @@ export async function gradeTeacherAssessment(formData: FormData) {
     .eq("student_id", parsed.data.studentId)
     .maybeSingle();
 
-  if (!assignment || assignment.assessments?.created_by_teacher_id !== teacher.id) {
+  const ownerId = assignment?.assessments?.[0]?.created_by_teacher_id;
+  if (!assignment || ownerId !== teacher.id) {
     redirect(`/professor/avaliacoes?erro=${encodeURIComponent("Esta avaliação não pertence aos seus alunos.")}`);
   }
 
