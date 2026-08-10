@@ -1,7 +1,9 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { Logo } from "@/components/logo";
 import { logout } from "@/app/login/actions";
 import { SidebarNavLink } from "@/components/nav-link";
+import { SidebarCollapseButton } from "@/components/sidebar-collapse-button";
 import type { AppRole } from "@/lib/auth";
 
 type NavItem = {
@@ -103,6 +105,12 @@ const titles: Record<AppRole, string> = {
   guardian: "Acompanhando",
 };
 
+const supportHref: Partial<Record<AppRole, string>> = {
+  admin: "/admin/suporte",
+  teacher: "/professor/suporte",
+  guardian: "/familia/suporte",
+};
+
 export function AppShell({
   role,
   roles,
@@ -129,11 +137,15 @@ export function AppShell({
     (acc[key] ||= []).push(item);
     return acc;
   }, {});
+  const quickSupport = supportHref[role];
 
   return (
     <div className={`app-frame app-frame-${role}`}>
       <aside className="sidebar">
-        <Logo compact />
+        <div className="sidebar-brand-row">
+          <Logo compact />
+          <SidebarCollapseButton />
+        </div>
         <div className="sidebar-role">
           <span>{titles[role]}</span>
           <strong>{name || "CURIÓ"}</strong>
@@ -174,6 +186,13 @@ export function AppShell({
       </aside>
 
       <main className="app-main">{children}</main>
+
+      {quickSupport && (
+        <Link className="floating-support-button" href={quickSupport} aria-label="Abrir suporte do CURIÓ">
+          <span aria-hidden="true">?</span>
+          <strong>Suporte</strong>
+        </Link>
+      )}
     </div>
   );
 }
