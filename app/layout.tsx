@@ -3,6 +3,7 @@ import { Fredoka, Nunito_Sans } from "next/font/google";
 import { ExperiencePreferences } from "@/components/experience-preferences";
 import "./globals.css";
 import "./responsive.css";
+import "./accessibility.css";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
