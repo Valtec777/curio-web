@@ -15,6 +15,7 @@ function iconLabel(label: string) {
     "Cursos livres": "Cursos Livres",
     "Calendário": "Calendário Escolar",
     "Personagens": "Gestão de Mascotes",
+    "Criar conteúdo": "Gerador",
   };
   return aliases[label] || label;
 }
