@@ -114,7 +114,8 @@ export default async function CorrectionsPage({ searchParams }: { searchParams: 
                 <input type="hidden" name="assignmentId" value={assignment.id}/>
                 <input type="hidden" name="studentId" value={assignment.student_id}/>
                 <div className="form-row"><div className="field"><label>Nota 0–100</label><input className="input" type="number" name="score" min="0" max="100" step="1" required /></div><div className="field"><label>Estrelas</label><select className="select" name="stars" defaultValue="0"><option value="0">Sem estrelas</option><option value="1">1 estrela</option><option value="2">2 estrelas</option><option value="3">3 estrelas</option><option value="4">4 estrelas</option><option value="5">5 estrelas</option></select></div></div>
-                <div className="field"><label>Devolutiva para o aluno</label><textarea className="textarea" name="note" placeholder="O que foi bem feito e o que deve ser retomado." /></div>
+                <div className="field"><label>Devolutiva para o aluno</label><textarea className="textarea" name="note" placeholder="O que foi bem feito e o que deve ser retomado. Se pedir para refazer, explique aqui exatamente o que precisa mudar." /></div>
+                <label className="consent-line"><input type="checkbox" name="requestRedo" /> <span><strong>Pedir para refazer</strong> — a atividade volta para a Família/Aluno com a orientação acima e poderá ser reenviada.</span></label>
                 <button className="button button-primary" type="submit">Concluir correção</button>
               </form>
             </section>
