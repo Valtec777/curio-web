@@ -13,10 +13,12 @@ Use este checklist no preview/deploy antes do merge.
 - [ ] O botão mostra estado de processamento.
 - [ ] O aluno aparece em `/admin/alunos`.
 - [ ] O vínculo professor-aluno existe uma única vez.
-- [ ] O vínculo responsável-aluno existe uma única vez.
+- [x] O vínculo responsável-aluno permanece único ao editar. *(upsert/RPC testado com rollback)*
 - [x] Existe somente uma assinatura corrente para o aluno. *(constraint testada com rollback)*
-- [ ] O convite exibe “Matrícula finalizada”.
-- [ ] Em erro parcial, repetir com a mesma `op` não cria outro aluno.
+- [ ] O convite exibe “Matrícula finalizada” no preview.
+- [ ] Em erro parcial, repetir com a mesma `op` não cria outro aluno no fluxo visual.
+- [x] Edição de dados retorna o mesmo `student_id`, sem recriar aluno. *(RPC testada com rollback)*
+- [x] Professor/Plano atualizam a mesma matrícula, assinatura e vínculo. *(RPC testada com rollback)*
 
 ### Evidências de idempotência já verificadas no banco
 
@@ -26,21 +28,25 @@ Use este checklist no preview/deploy antes do merge.
 
 ## Exclusão e restauração
 
-- [ ] Excluir aluno remove da lista operacional.
-- [ ] O aluno aparece em `/admin/lixeira` com mesmo ID.
+- [ ] Excluir aluno remove da lista operacional no preview.
+- [ ] O aluno aparece em `/admin/lixeira` com mesmo ID no preview.
 - [x] Professor deixa de considerar aluno soft-deletado como vínculo operacional. *(teste RLS com rollback)*
 - [x] Família deixa de considerar aluno soft-deletado como vínculo operacional. *(teste RLS com rollback)*
-- [ ] Restaurar devolve o mesmo aluno e status anterior.
-- [ ] Excluir convite remove apenas o convite da operação; não apaga aluno automaticamente.
-- [ ] Excluir solicitação pública envia para a Lixeira.
-- [ ] Exclusão permanente só aparece para tipos seguros.
-- [ ] Excluir/restaurar Professor preserva perfil, vínculos e histórico.
-- [ ] Excluir/restaurar Família preserva perfil, filhos, assinaturas e histórico.
+- [ ] Restaurar aluno devolve o mesmo aluno e status anterior no preview.
+- [ ] Excluir convite remove apenas o convite da operação; não apaga aluno automaticamente no preview.
+- [ ] Excluir solicitação pública envia para a Lixeira no preview.
+- [x] Exclusão permanente fica limitada aos tipos explicitamente seguros no código.
+- [ ] Excluir/restaurar Professor preserva perfil, vínculos e histórico no preview.
+- [ ] Excluir/restaurar Família preserva perfil, filhos, assinaturas e histórico no preview.
+- [x] Mensagem administrativa: soft delete → Lixeira → restauração com mesmo ID. *(teste com rollback)*
+- [x] Conteúdo administrativo: arquivado → Lixeira → status anterior restaurado. *(material testado com rollback)*
+- [x] Documento operacional preserva mesmo ID e `file_path` na restauração. *(teste com rollback)*
+- [x] Documento soft-deletado deixa de ser visível à conta somente Família. *(teste RLS com rollback)*
 
 ## Agenda
 
-- [ ] Professor abre `/professor/agenda`.
-- [ ] Cria aula para aluno vinculado.
+- [ ] Professor abre `/professor/agenda` no preview.
+- [ ] Cria aula para aluno vinculado no preview.
 - [ ] Evento aparece na Agenda do Professor.
 - [ ] Evento aparece em `/aluno/agenda` quando visível ao aluno.
 - [ ] Próximo evento aparece em `/aluno`.
@@ -59,6 +65,8 @@ Use este checklist no preview/deploy antes do merge.
 - [ ] Aluno A não lê dados gerais do Aluno B.
 - [x] Aluno na Lixeira não permanece acessível operacionalmente a Professor/Família.
 - [ ] Admin continua conseguindo restaurar e auditar pelo fluxo de interface.
+- [x] Helper RLS de mensagens permite participantes autenticados e não fica aberto ao anônimo.
+- [x] RLS de materiais foi corrigido para atribuições por aluno, turma e grupo pedagógico.
 
 ## Qualidade
 
