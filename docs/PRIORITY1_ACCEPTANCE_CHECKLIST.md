@@ -38,7 +38,7 @@ Use este checklist no preview/deploy antes do merge.
 - [ ] Excluir solicitação pública envia para a Lixeira no preview.
 - [x] Exclusão permanente fica limitada aos tipos explicitamente seguros no código.
 - [x] Professor: retirada/restauração de acesso preserva vínculos. *(teste com rollback)*
-- [ ] Família: retirada/restauração preserva filhos/assinaturas. *(código implementado; teste transacional bloqueado pela camada de segurança da ferramenta)*
+- [ ] Família: retirada/restauração preserva filhos/assinaturas. *(código implementado; teste transacional específico ainda pendente)*
 - [x] Mensagem administrativa: soft delete → Lixeira → restauração com mesmo ID. *(teste com rollback)*
 - [x] Conteúdo administrativo: arquivado → Lixeira → status anterior restaurado. *(material testado com rollback)*
 - [x] Documento operacional preserva mesmo ID e `file_path` na restauração. *(teste com rollback)*
@@ -67,9 +67,12 @@ Use este checklist no preview/deploy antes do merge.
 - [x] Atribuição de missão já usa chave única `(mission_id, student_id)` e `ON CONFLICT`.
 - [x] Fila do Gerador possui idempotência por usuário/pedido/dia.
 - [x] Duas inserções equivalentes resultam em um único `generation_job`. *(rollback)*
-- [x] `job_type` do Gerador é traduzido para os valores aceitos pelo banco e o tipo de produto fica em `input.requested_output_type`.
+- [x] `job_type` do Gerador é traduzuzido para os valores aceitos pelo banco e o tipo de produto fica em `input.requested_output_type`.
+- [ ] Processamento real do Gerador termina um job e cria/entrega o produto solicitado no ambiente conectado.
+- [ ] Processador/provedor de geração confirmado e testado; não considerar a IA pronta apenas porque o formulário e a fila existem.
+- [ ] Modelos visuais de PDF/Caderno CURIÓ validados com identidade, paginação e área de respostas.
 
-## RLS
+## RLS e segurança
 
 - [x] Professor vê somente a quantidade esperada de alunos vinculados no teste de isolamento.
 - [x] Família vê somente a quantidade esperada de filhos vinculados no teste de isolamento.
@@ -80,6 +83,12 @@ Use este checklist no preview/deploy antes do merge.
 - [x] Helper RLS de mensagens permite participantes autenticados e não fica aberto ao anônimo.
 - [x] RLS de materiais foi corrigido para atribuições por aluno, turma e grupo pedagógico.
 - [x] Nenhuma policy pública restante referencia helper `private.*` sem `EXECUTE` para `authenticated`.
+- [x] `set_student_avatar` e `teacher_linked_guardian_names` deixaram de ser executáveis pelo papel `anon`.
+- [x] `guardian_portal_pins` não possui grants diretos para `anon/authenticated`; acesso permanece pelas RPCs autenticadas com bloqueio de tentativas.
+- [x] Respostas recebem baseline de segurança: `nosniff`, anti-frame, referrer policy, permissions policy e HSTS em produção Vercel.
+- [x] Recuperação de senha não usa mais `Origin` arbitrário como primeira fonte; prioriza `NEXT_PUBLIC_SITE_URL` configurada.
+- [ ] Ativar Leaked Password Protection no Supabase Auth e retestar primeiro acesso/recuperação.
+- [ ] Confirmar `NEXT_PUBLIC_SITE_URL` e Site URL/Redirect URLs do Supabase Auth apontando para o endereço oficial antes de remover o projeto Vercel antigo.
 
 ## Financeiro e mensagens
 
@@ -88,20 +97,35 @@ Use este checklist no preview/deploy antes do merge.
 - [x] Envio Professor → Família implementado sobre `message_threads`, `message_thread_participants` e `messages` existentes, sem sistema paralelo.
 - [x] Envio protegido por `request_key` e operação atômica/idempotente no banco.
 - [x] Templates reutilizáveis de comunicação usam `content_templates` existentes.
-- [x] Variáveis suportadas: `{{responsavel_nome}}`, `{{aluno_nome}}`, `{{professor_nome}}`, `{{escola}}`, `{{ano_escolar}}`.
-- [x] Preview resolve variáveis antes do envio e o servidor resolve/valida novamente.
-- [x] Botão opcional de ação (`action_label` + `action_url`) aparece para a Família e aceita rota interna ou HTTPS.
+- [x] Variáveis simples continuam suportadas: `{{responsavel_nome}}`, `{{aluno_nome}}`, `{{professor_nome}}`, `{{escola}}`, `{{ano_escolar}}`.
+- [x] Variáveis do prompt suportadas com contexto real: `{{responsavel.nome}}`, `{{aluno.nome}}`, `{{professor.nome}}`, `{{agenda.titulo}}`, `{{agenda.data}}`, `{{agenda.horario}}`, `{{agenda.link}}`, `{{missao.nome}}`, `{{missao.prazo}}`.
+- [x] Contexto de Agenda/Missão é revalidado no servidor contra Professor + Aluno antes do envio.
+- [x] Preview acusa variável sem valor e o servidor impede que placeholder cru seja enviado à Família.
+- [x] Nove modelos CURIÓ iniciais estão cadastrados, incluindo aula, reunião, prazo, ausência e alteração de encontro.
+- [x] Botão opcional de ação (`action_label` + `action_url`) aparece para a Família e aceita rota interna ou HTTPS depois da resolução das variáveis.
 - [x] RLS de mensagens endurecido para impedir autoentrada em thread alheia e manter conversa familiar condicionada ao vínculo atual com o aluno.
-- [ ] Envio, preview, template, botão de ação e leitura pela Família validados visualmente no preview autenticado.
+- [ ] Envio, preview, template, contexto, botão de ação e leitura pela Família validados visualmente no preview autenticado.
 
-## Qualidade
+## Documentos legais e privacidade
+
+- [x] Textos legais usam `legal_documents` existente, com versão, rascunho/publicação e rota pública por slug.
+- [x] Admin consegue editar rascunho; versão publicada exige nova revisão para preservar histórico.
+- [x] Publicação já exige texto ou `file_path`; documento vazio não pode ser publicado pelo fluxo atual.
+- [x] Placeholders antigos que estavam `published` sem conteúdo voltaram automaticamente para `draft` e agora podem ser editados.
+- [x] O rodapé público só exibe documentos publicados que realmente tenham texto/arquivo.
+- [ ] Preencher/revisar e publicar Termos de Uso, Privacidade da Criança, Consentimento, Contrato e demais documentos aplicáveis; conteúdo jurídico deve ser validado pela responsável/assessoria competente.
+- [ ] Confirmar visualmente os links legais no site público depois da publicação.
+
+## Qualidade e deploy
 
 - [x] `npm run typecheck` passa no GitHub Actions.
 - [x] `npm run build` passa no GitHub Actions.
+- [x] Branch gera Preview automaticamente no Vercel conectado.
 - [ ] Preview desktop validado.
 - [ ] Preview tablet validado.
 - [ ] Preview celular validado.
 - [ ] Fluxos antigos relacionados foram retestados para regressão.
+- [ ] Confirmar que o projeto que servirá o endereço oficial possui as mesmas variáveis de ambiente e configurações antes de remover o projeto/endereço antigo.
 
 ## P2 já iniciado sem bloquear o fechamento do P1
 
@@ -109,5 +133,7 @@ Use este checklist no preview/deploy antes do merge.
 - [x] Família vinculada consegue definir o avatar do filho sem ganhar permissão geral de UPDATE em estrelas/nível/streak. *(RPC testada com rollback)*
 - [x] `/aluno/perfil` usa a rota existente e passou typecheck/build.
 - [ ] Avatar validado visualmente em desktop/tablet/celular no preview.
-- [x] Templates/variáveis de mensagens implementados sobre `content_templates` e mensagens existentes, com preview, botão de ação e idempotência.
+- [x] Templates/variáveis de mensagens implementados sobre `content_templates` e mensagens existentes, com preview, contexto real, botão de ação e idempotência.
 - [ ] Mensagens reutilizáveis validadas visualmente em desktop/tablet/celular no preview.
+- [ ] Responsividade completa das quatro áreas validada visualmente.
+- [ ] Gerador completo e modelos visuais PDF validados end-to-end.
