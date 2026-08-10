@@ -4,6 +4,7 @@ import { Logo } from "@/components/logo";
 import { logout } from "@/app/login/actions";
 import { SidebarNavLink } from "@/components/nav-link";
 import { SidebarCollapseButton } from "@/components/sidebar-collapse-button";
+import { FamilySidebarSelector } from "@/components/family-sidebar-selector";
 import type { AppRole } from "@/lib/auth";
 
 type NavItem = {
@@ -11,6 +12,13 @@ type NavItem = {
   label: string;
   requiresRole?: AppRole;
   group?: string;
+};
+
+type FamilyChild = {
+  id: string;
+  name: string;
+  grade?: string | null;
+  teacher?: string | null;
 };
 
 const menus: Record<AppRole, NavItem[]> = {
@@ -86,7 +94,7 @@ const menus: Record<AppRole, NavItem[]> = {
   guardian: [
     { href: "/familia", label: "Visão geral" },
     { href: "/familia/filhos", label: "Meu filho / Meus filhos" },
-    { href: "/familia/conteudos", label: "Conteúdos" },
+    { href: "/familia/conteudos", label: "Conteúdo da Escola" },
     { href: "/familia/atividades", label: "Atividades" },
     { href: "/familia/progresso", label: "Progresso" },
     { href: "/familia/avaliacoes", label: "Avaliações" },
@@ -106,7 +114,7 @@ const titles: Record<AppRole, string> = {
   admin: "Operação CURIÓ",
   teacher: "Portal do Professor",
   student: "Explorador Curió",
-  guardian: "Acompanhando",
+  guardian: "Ninho da Família",
 };
 
 const supportHref: Partial<Record<AppRole, string>> = {
@@ -122,6 +130,7 @@ export function AppShell({
   subtitle,
   metricLabel,
   metricValue,
+  familyChildren,
   children,
 }: {
   role: AppRole;
@@ -130,6 +139,7 @@ export function AppShell({
   subtitle?: string | null;
   metricLabel?: string | null;
   metricValue?: string | number | null;
+  familyChildren?: FamilyChild[];
   children: ReactNode;
 }) {
   const availableRoles = roles ?? [role];
@@ -162,6 +172,8 @@ export function AppShell({
             </div>
           )}
         </div>
+
+        {role === "guardian" && familyChildren?.length ? <FamilySidebarSelector children={familyChildren} /> : null}
 
         <nav className="sidebar-nav" aria-label="Navegação principal">
           {Object.entries(grouped).map(([group, groupItems]) => (
