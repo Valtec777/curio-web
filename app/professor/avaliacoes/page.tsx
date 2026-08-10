@@ -4,17 +4,14 @@ import { MultiStudentPicker } from "@/components/multi-student-picker";
 import { getCurrentTeacher } from "@/lib/teacher";
 import { removeTeacherResource, setTeacherResourceStatus, updateTeacherResource } from "@/app/professor/manage-actions";
 import { assignTeacherAssessment, duplicateTeacherAssessment } from "./actions";
+import { gradeTeacherAssessment } from "./grade-actions";
 
 function dt(value?: string | null) {
   if (!value) return "—";
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Bahia" }).format(new Date(value));
 }
 
-export default async function TeacherAssessmentsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ erro?: string; sucesso?: string }>;
-}) {
+export default async function TeacherAssessmentsPage({ searchParams }: { searchParams: Promise<{ erro?: string; sucesso?: string }> }) {
   const query = await searchParams;
   const { teacher, supabase } = await getCurrentTeacher();
   if (!teacher) return null;
@@ -22,7 +19,7 @@ export default async function TeacherAssessmentsPage({
   const [{ data: assessments }, { data: studentLinks }] = await Promise.all([
     supabase
       .from("assessments")
-      .select("id,title,instructions,scheduled_for,status,file_path,created_at,subjects(name),grades(name),grading_schemes(name,scale_min,scale_max),assessment_students(student_id,status,score,submitted_at,reviewed_at,students(preferred_name,full_name))")
+      .select("id,title,instructions,scheduled_for,status,file_path,created_at,subjects(name),grades(name),grading_schemes(name,scale_min,scale_max),assessment_students(id,student_id,status,score,submitted_at,reviewed_at,students(preferred_name,full_name))")
       .eq("created_by_teacher_id", teacher.id)
       .order("scheduled_for", { ascending: false, nullsFirst: false })
       .limit(80),
@@ -84,12 +81,20 @@ export default async function TeacherAssessmentsPage({
                   {assignments.length > 0 && (
                     <div className="teacher-resource-list">
                       {assignments.map((assignment: any) => (
-                        <div className="teacher-recent-item" key={assignment.student_id}>
+                        <div className="teacher-recent-item" key={assignment.id}>
                           <div>
                             <strong>{assignment.students?.preferred_name || assignment.students?.full_name || "Aluno"}</strong>
                             <small>{assignment.submitted_at ? `Entregue em ${dt(assignment.submitted_at)}` : assignment.status === "assigned" ? "Aguardando aluno" : assignment.status}</small>
                           </div>
-                          {assignment.score != null ? <Badge tone="green">Nota {assignment.score}</Badge> : <Badge tone={assignment.status === "submitted" ? "yellow" : "neutral"}>{assignment.status === "submitted" ? "Revisar" : "Sem nota"}</Badge>}
+                          <div className="flex gap-8 wrap">
+                            {assignment.score != null && <Badge tone="green">Nota {assignment.score}</Badge>}
+                            <form action={gradeTeacherAssessment} className="flex gap-8 wrap">
+                              <input type="hidden" name="assignmentId" value={assignment.id}/>
+                              <input type="hidden" name="studentId" value={assignment.student_id}/>
+                              <input className="input" style={{ width: 90 }} type="number" name="score" min="0" max="100" step="1" defaultValue={assignment.score ?? ""} placeholder="0–100" aria-label={`Nota de ${assignment.students?.preferred_name || "aluno"}`} required />
+                              <button className="button button-secondary button-small" type="submit">Salvar nota</button>
+                            </form>
+                          </div>
                         </div>
                       ))}
                     </div>
