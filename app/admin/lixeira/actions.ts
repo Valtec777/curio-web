@@ -93,42 +93,34 @@ export async function restoreTrashItem(formData: FormData) {
     successMessage = "Aluno restaurado com o mesmo ID e histórico.";
   } else if (item.entity_type === "teachers") {
     const profileId = z.string().uuid().safeParse(snapshot.profile_id);
-    if (!profileId.success) {
-      redirect(`/admin/lixeira?erro=${encodeURIComponent("O registro do professor não possui um perfil válido para restauração.")}`);
-    }
-
+    if (!profileId.success) redirect(`/admin/lixeira?erro=${encodeURIComponent("O registro do professor não possui um perfil válido para restauração.")}`);
     const shouldReactivate = snapshot.previous_active !== false;
-    const { error: teacherError } = await supabase
-      .from("teachers")
-      .update({ active: shouldReactivate })
-      .eq("id", item.entity_id)
-      .eq("profile_id", profileId.data);
-    if (teacherError) {
-      restoreError = teacherError;
-    } else if (snapshot.had_teacher_role === true) {
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .upsert({ user_id: profileId.data, role: "teacher" }, { onConflict: "user_id,role" });
+    const { error: teacherError } = await supabase.from("teachers").update({ active: shouldReactivate }).eq("id", item.entity_id).eq("profile_id", profileId.data);
+    if (teacherError) restoreError = teacherError;
+    else if (snapshot.had_teacher_role === true) {
+      const { error: roleError } = await supabase.from("user_roles").upsert({ user_id: profileId.data, role: "teacher" }, { onConflict: "user_id,role" });
       restoreError = roleError;
     }
-    successMessage = shouldReactivate
-      ? "Professor restaurado com o mesmo perfil, vínculos e acesso."
-      : "Professor restaurado com o mesmo perfil e histórico, permanecendo desativado.";
+    successMessage = shouldReactivate ? "Professor restaurado com o mesmo perfil, vínculos e acesso." : "Professor restaurado com o mesmo perfil e histórico, permanecendo desativado.";
+  } else if (item.entity_type === "guardians") {
+    const profileId = z.string().uuid().safeParse(snapshot.profile_id);
+    if (!profileId.success) redirect(`/admin/lixeira?erro=${encodeURIComponent("O registro do responsável não possui um perfil válido para restauração.")}`);
+    const shouldReactivate = snapshot.previous_active !== false;
+    const { error: guardianError } = await supabase.from("guardians").update({ active: shouldReactivate }).eq("id", item.entity_id).eq("profile_id", profileId.data);
+    if (guardianError) restoreError = guardianError;
+    else if (snapshot.had_guardian_role === true) {
+      const { error: roleError } = await supabase.from("user_roles").upsert({ user_id: profileId.data, role: "guardian" }, { onConflict: "user_id,role" });
+      restoreError = roleError;
+    }
+    successMessage = shouldReactivate ? "Responsável restaurado com o mesmo perfil, filhos vinculados e acesso." : "Responsável restaurado com o mesmo perfil e histórico, permanecendo desativado.";
   } else {
     redirect(`/admin/lixeira?erro=${encodeURIComponent("Este tipo de registro ainda não possui restauração segura implementada.")}`);
   }
 
-  if (restoreError) {
-    redirect(`/admin/lixeira?erro=${encodeURIComponent("Não foi possível restaurar o registro.")}`);
-  }
+  if (restoreError) redirect(`/admin/lixeira?erro=${encodeURIComponent("Não foi possível restaurar o registro.")}`);
 
-  const { error: trashError } = await supabase.from("trash_items").update({
-    restored_at: new Date().toISOString(),
-  }).eq("id", item.id).is("restored_at", null);
-
-  if (trashError) {
-    redirect(`/admin/lixeira?erro=${encodeURIComponent("O registro foi restaurado, mas a Lixeira não conseguiu atualizar o status. Revise o item antes de repetir a ação.")}`);
-  }
+  const { error: trashError } = await supabase.from("trash_items").update({ restored_at: new Date().toISOString() }).eq("id", item.id).is("restored_at", null);
+  if (trashError) redirect(`/admin/lixeira?erro=${encodeURIComponent("O registro foi restaurado, mas a Lixeira não conseguiu atualizar o status. Revise o item antes de repetir a ação.")}`);
 
   refreshOperationalPaths();
   redirect(`/admin/lixeira?sucesso=${encodeURIComponent(successMessage)}`);
@@ -140,28 +132,16 @@ export async function permanentlyDeleteTrashItem(formData: FormData) {
   if (!trashId.success) return;
 
   const supabase = await createClient();
-  const { data: item } = await supabase
-    .from("trash_items")
-    .select("id,entity_type,entity_id,entity_snapshot,restored_at")
-    .eq("id", trashId.data)
-    .maybeSingle();
-
-  if (!item || item.restored_at || !item.entity_id) {
-    redirect(`/admin/lixeira?erro=${encodeURIComponent("Item não encontrado.")}`);
-  }
+  const { data: item } = await supabase.from("trash_items").select("id,entity_type,entity_id,entity_snapshot,restored_at").eq("id", trashId.data).maybeSingle();
+  if (!item || item.restored_at || !item.entity_id) redirect(`/admin/lixeira?erro=${encodeURIComponent("Item não encontrado.")}`);
 
   if (item.entity_type === "enrollment_requests") {
     const { error } = await supabase.from("enrollment_requests").delete().eq("id", item.entity_id).not("deleted_at", "is", null);
     if (error) redirect(`/admin/lixeira?erro=${encodeURIComponent("Não foi possível excluir permanentemente a solicitação.")}`);
   } else if (item.entity_type === "access_invitations") {
-    const { data: invitation } = await supabase
-      .from("access_invitations")
-      .select("id,status,auth_user_id,deleted_at")
-      .eq("id", item.entity_id)
-      .maybeSingle();
-
+    const { data: invitation } = await supabase.from("access_invitations").select("id,status,auth_user_id,deleted_at").eq("id", item.entity_id).maybeSingle();
     if (!invitation) {
-      // O registro já não existe; a entrada órfã da Lixeira pode ser removida.
+      // A entrada órfã da Lixeira pode ser removida.
     } else if (!invitation.deleted_at || invitation.auth_user_id || !["error", "cancelled"].includes(invitation.status)) {
       redirect(`/admin/lixeira?erro=${encodeURIComponent("Este convite possui acesso ou histórico que deve ser preservado. Use restauração ou mantenha-o na Lixeira.")}`);
     } else {
