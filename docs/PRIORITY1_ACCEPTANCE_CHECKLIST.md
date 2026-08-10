@@ -94,3 +94,11 @@ Use este checklist no preview/deploy antes do merge.
 - [ ] Preview tablet validado.
 - [ ] Preview celular validado.
 - [ ] Fluxos antigos relacionados foram retestados para regressão.
+
+## P2 já iniciado sem bloquear o fechamento do P1
+
+- [x] Avatar persistente por aluno usando `student_game_profiles.avatar_character_id` e `characters.assets` existentes.
+- [x] Família vinculada consegue definir o avatar do filho sem ganhar permissão geral de UPDATE em estrelas/nível/streak. *(RPC testada com rollback)*
+- [x] `/aluno/perfil` usa a rota existente e passou typecheck/build.
+- [ ] Avatar validado visualmente em desktop/tablet/celular no preview.
+- [ ] Templates/variáveis de mensagens: auditoria iniciada; implementar somente sobre `content_templates` e mensagens existentes, sem criar sistema paralelo.
