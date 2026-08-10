@@ -26,6 +26,7 @@ function refreshOperationalPaths() {
   revalidatePath("/admin/usuarios");
   revalidatePath("/admin/mensagens");
   revalidatePath("/admin/atividades");
+  revalidatePath("/admin/documentos");
   revalidatePath("/professor");
   revalidatePath("/professor/mensagens");
   revalidatePath("/professor/missoes");
@@ -33,6 +34,7 @@ function refreshOperationalPaths() {
   revalidatePath("/professor/avaliacoes");
   revalidatePath("/familia");
   revalidatePath("/familia/mensagens");
+  revalidatePath("/familia/contrato");
   revalidatePath("/aluno");
 }
 
@@ -130,6 +132,14 @@ export async function restoreTrashItem(formData: FormData) {
     }).eq("id", item.entity_id).not("deleted_at", "is", null);
     restoreError = error;
     successMessage = "Mensagem restaurada na conversa com o mesmo ID.";
+  } else if (item.entity_type === "documents") {
+    const { error } = await supabase.from("documents").update({
+      deleted_at: null,
+      deleted_by_user_id: null,
+      delete_reason: null,
+    }).eq("id", item.entity_id).not("deleted_at", "is", null);
+    restoreError = error;
+    successMessage = "Documento restaurado com o mesmo ID, arquivo e vínculos.";
   } else if (contentEntityTypes.has(item.entity_type)) {
     const status = previousStatus(snapshot, contentStatuses, "draft");
     const { error } = await supabase.from(item.entity_type).update({
