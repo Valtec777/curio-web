@@ -1,76 +1,77 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getCurrentStudent } from "@/lib/student";
-import { EmptyState, Badge, StatCard } from "@/components/ui";
+import { EmptyState, Badge } from "@/components/ui";
 
-function shortDate(value?: string | null) {
-  if (!value) return "—";
-  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Bahia" }).format(new Date(value));
-}
-
-function dateTime(value?: string | null) {
-  if (!value) return "—";
-  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Bahia" }).format(new Date(value));
-}
+function relation<T=any>(value:any):T|null{return (Array.isArray(value)?value[0]:value)||null;}
+function dt(value?:string|null){if(!value)return"—";return new Intl.DateTimeFormat("pt-BR",{dateStyle:"short",timeStyle:"short",timeZone:"America/Bahia"}).format(new Date(value));}
+function startOfWeek(){const d=new Date();const day=(d.getDay()+6)%7;d.setHours(0,0,0,0);d.setDate(d.getDate()-day);return d;}
 
 export default async function StudentHome() {
   const { student, supabase } = await getCurrentStudent();
-  if (!student) return <EmptyState title="Sua conta ainda não está ligada ao perfil de aluno" description="A administração precisa concluir esse vínculo antes de liberar o seu espaço." />;
+  if (!student) return <EmptyState title="Seu espaço ainda está sendo preparado" description="A administração precisa concluir o vínculo antes de liberar o seu portal." />;
+  await supabase.rpc("refresh_student_achievements",{p_student_id:student.id});
 
-  const now = new Date().toISOString();
-  const [
-    { data: missions }, { data: states }, { data: game }, { data: assessments }, { data: achievements }, { data: tips }, { data: agendaLinks },
-  ] = await Promise.all([
-    supabase.from("mission_students").select("id,due_at,status,progress_percent,missions(title,objective,estimated_minutes,subjects(name))").eq("student_id", student.id).in("status", ["assigned", "in_progress"]).order("assigned_at").limit(4),
-    supabase.from("student_skill_states").select("domain_level,evidence_count,skills(name)").eq("student_id", student.id).order("updated_at", { ascending:false }).limit(3),
-    supabase.from("student_game_profiles").select("stars,streak_days,level_name").eq("student_id", student.id).maybeSingle(),
-    supabase.from("assessment_students").select("id,status,assessments(title,scheduled_for,subjects(name))").eq("student_id", student.id).limit(10),
-    supabase.from("student_achievements").select("achievement_id,earned_at,achievements(name,description,icon)").eq("student_id", student.id).order("earned_at", { ascending:false }).limit(1),
-    supabase.from("daily_tips").select("text").eq("active", true).or(`starts_at.is.null,starts_at.lte.${now.slice(0,10)}`).limit(1),
-    supabase.from("agenda_event_students").select("event_id,agenda_events(id,title,description,event_type,starts_at,ends_at,status,meeting_url,location,visible_to_student)").eq("student_id", student.id).limit(30),
+  const now=new Date();
+  const [{data:missionRows},{data:notebooks},{data:game},{data:assessments},{data:achievementRows},{data:tips},{data:agendaLinks},{count:achievementCount}] = await Promise.all([
+    supabase.from("mission_students").select("id,due_at,status,progress_percent,assigned_at,completed_at,stars_awarded,missions(title,objective,estimated_minutes,subjects(name))").eq("student_id",student.id).order("assigned_at",{ascending:false}).limit(120),
+    supabase.from("notebook_assignments").select("id,status,due_at,needs_redo,notebook_activities(title,description,subjects(name))").eq("student_id",student.id).order("created_at",{ascending:false}).limit(60),
+    supabase.from("student_game_profiles").select("stars,streak_days,level_name").eq("student_id",student.id).maybeSingle(),
+    supabase.from("assessment_students").select("id,status,assessments(title,scheduled_for,subjects(name))").eq("student_id",student.id).limit(40),
+    supabase.from("student_achievements").select("achievement_id,earned_at,achievements(name,description,icon)").eq("student_id",student.id).order("earned_at",{ascending:false}).limit(1),
+    supabase.from("daily_tips").select("id,text").eq("active",true).limit(100),
+    supabase.from("agenda_event_students").select("event_id,agenda_events(id,title,description,event_type,starts_at,status,meeting_url,location,visible_to_student)").eq("student_id",student.id).limit(60),
+    supabase.from("student_achievements").select("achievement_id",{count:"exact",head:true}).eq("student_id",student.id),
   ]);
-  const nextAssessment = (assessments ?? []).map((a:any)=>a.assessments ? ({...a,...a.assessments}) : null).filter(Boolean).filter((a:any)=>!a.scheduled_for || new Date(a.scheduled_for) >= new Date()).sort((a:any,b:any)=>+(new Date(a.scheduled_for||"2999-01-01"))-(+new Date(b.scheduled_for||"2999-01-01")))[0];
-  const nextEvent = (agendaLinks ?? [])
-    .map((item: any) => item.agenda_events)
-    .filter((event: any) => event?.visible_to_student && event.status === "scheduled" && new Date(event.starts_at) >= new Date())
-    .sort((a: any, b: any) => +new Date(a.starts_at) - +new Date(b.starts_at))[0];
-  const recentAchievement:any = achievements?.[0];
 
-  return (
-    <>
-      <section className="kid-hero kid-hero-rich">
-        <div className="kid-hero-copy"><div className="eyebrow" style={{ color: "#dfffa8" }}>Meu dia no CURIÓ</div><h1>Oi, {student.preferred_name}! 👋</h1><p>Escolha um desafio, tente primeiro e use as pistas quando precisar.</p><div className="kid-mini-stats"><span>★ {game?.stars ?? 0} estrelas</span><span>🔥 {game?.streak_days ?? 0} dia(s)</span><span>🧭 {game?.level_name || "Explorador Curió"}</span></div></div>
-        <Image src="/mascotes/curio_capivara_principal_acolhendo.png" alt="Capivara do Curió" width={210} height={240} priority />
-      </section>
+  const missions=(missionRows??[]).map((row:any)=>({...row,mission:relation(row.missions)}));
+  const pendingMissions=missions.filter((row:any)=>["assigned","in_progress"].includes(row.status));
+  const completedMissions=missions.filter((row:any)=>row.status==="reviewed");
+  const pendingNotebooks=(notebooks??[]).filter((row:any)=>["assigned","in_progress"].includes(row.status)||row.needs_redo);
+  const week=startOfWeek(); const nextWeek=new Date(week);nextWeek.setDate(nextWeek.getDate()+7);
+  const weekRows=missions.filter((row:any)=>{const d=new Date(row.completed_at||row.assigned_at);return d>=week&&d<nextWeek;});
+  const weekDone=weekRows.filter((row:any)=>row.status==="reviewed").length;
+  const weekProgress=weekRows.length?Math.round(weekDone/weekRows.length*100):0;
+  const grade:any=relation((student as any).grades);
 
-      {nextEvent && (
-        <section className="panel family-highlight">
-          <div className="panel-head"><div><h2>📅 Seu próximo encontro</h2><p>{dateTime(nextEvent.starts_at)}</p></div><Link href="/aluno/agenda">Ver agenda →</Link></div>
-          <div className="mission-card">
-            <Badge tone="blue">{nextEvent.event_type === "class" ? "Aula" : nextEvent.event_type === "meeting" ? "Encontro" : "Agenda"}</Badge>
-            <h3>{nextEvent.title}</h3>
-            <p>{nextEvent.description || nextEvent.location || "Encontro Curió"}</p>
-            {nextEvent.meeting_url && <a className="button button-primary button-small" href={nextEvent.meeting_url} target="_blank" rel="noreferrer">Entrar na aula ↗</a>}
-          </div>
-        </section>
-      )}
+  const upcomingAssessments=(assessments??[]).map((row:any)=>({row,assessment:relation(row.assessments)})).filter((item:any)=>item.assessment?.scheduled_for&&new Date(item.assessment.scheduled_for)>=now).sort((a:any,b:any)=>+new Date(a.assessment.scheduled_for)-+new Date(b.assessment.scheduled_for));
+  const nextAssessment=upcomingAssessments[0]?.assessment;
+  const events=(agendaLinks??[]).map((row:any)=>relation(row.agenda_events)).filter((event:any)=>event?.visible_to_student&&event.status!=="cancelled"&&new Date(event.starts_at)>=now).sort((a:any,b:any)=>+new Date(a.starts_at)-+new Date(b.starts_at));
+  const nextEvent:any=events[0];
+  const recentAchievement:any=achievementRows?.[0];
+  const dayIndex=Math.floor(Date.now()/86400000); const tip=(tips??[]).length?(tips??[])[dayIndex%(tips??[]).length]?.text:null;
 
-      <div className="grid-2">
-        <section className="panel">
-          <div className="panel-head"><div><h2>🎯 Missões de hoje</h2><p>Continue uma missão ou comece uma nova.</p></div><Link href="/aluno/missoes">Ver todas →</Link></div>
-          {missions?.length ? <div className="form-stack">{missions.map((item:any)=><Link className="mission-card" href={`/aluno/missoes/${item.id}`} key={item.id}><div className="flex space-between gap-8 wrap"><div className="flex gap-8 wrap"><Badge tone="pink">{item.missions?.subjects?.name || "Missão Cuca"}</Badge><Badge tone="neutral">{item.missions?.estimated_minutes || 20} min</Badge></div><Badge tone={item.status === "in_progress" ? "yellow" : "blue"}>{item.status === "in_progress" ? "Em andamento" : "Não iniciada"}</Badge></div><h3>{item.missions?.title}</h3><p>{item.missions?.objective}</p>{item.status === "in_progress" && <div className="progress"><span style={{ width: `${item.progress_percent || 0}%` }} /></div>}<small className="muted">{item.due_at ? `Entrega ${shortDate(item.due_at)}` : "Sem prazo definido"}</small></Link>)}</div> : <EmptyState title="Tudo em dia!" description="Não há missão pendente neste momento." />}
-        </section>
+  return <>
+    <section className="kid-hero kid-hero-rich">
+      <div className="kid-hero-copy"><div className="eyebrow" style={{color:"#dfffa8"}}>Portal do Aluno</div><h1>Oi, {student.preferred_name}! 👋</h1><p>Pronto para mais uma descoberta? Hoje o CURIÓ separou o que merece sua atenção.</p><div className="student-today-pills"><span>🎯 Missões</span><span>📓 Atividades</span><span>💡 Dica</span><span>✨ Novidades</span></div></div>
+      <Image src="/mascotes/curio_capivara_principal_acolhendo.png" alt="Capivara do Curió" width={210} height={240} priority />
+    </section>
 
-        <div className="form-stack">
-          <section className="panel"><div className="panel-head"><div><h2>📅 Próxima avaliação</h2><p>Prepare-se sem deixar para a última hora.</p></div></div>{nextAssessment ? <div className="mission-card"><Badge tone="blue">{nextAssessment.subjects?.name || "Avaliação"}</Badge><h3>{nextAssessment.title}</h3><p>{nextAssessment.scheduled_for ? `Marcada para ${shortDate(nextAssessment.scheduled_for)}` : "Data será informada pela professora."}</p><Link href="/aluno/modo-prova">Abrir Modo Prova →</Link></div> : <p className="muted">Nenhuma avaliação próxima.</p>}</section>
-          <section className="panel"><div className="panel-head"><div><h2>🏆 Conquista recente</h2></div></div>{recentAchievement ? <div className="achievement-inline"><span>{recentAchievement.achievements?.icon || "★"}</span><div><strong>{recentAchievement.achievements?.name}</strong><p>{recentAchievement.achievements?.description}</p></div></div> : <p className="muted">Sua primeira conquista está chegando.</p>}</section>
-        </div>
-      </div>
+    <div className="student-home-stats">
+      <article><span>⭐</span><strong>{game?.stars??0}</strong><small>Estrelas</small></article>
+      <article><span>🔥</span><strong>{game?.streak_days??0}</strong><small>Dias seguidos</small></article>
+      <article><span>🎒</span><strong>{grade?.name||"—"}</strong><small>Série</small></article>
+      <article><span>✅</span><strong>{completedMissions.length}</strong><small>Missões concluídas</small></article>
+    </div>
 
-      <div className="grid-2">
-        <section className="panel"><div className="panel-head"><div><h2>🌱 Estou desenvolvendo</h2><p>Sem rótulos. Só próximos desafios.</p></div></div>{states?.length ? <div className="form-stack">{states.map((state:any,index)=><div className="preview-step" key={index}>{state.evidence_count < 2 ? "🔎" : state.domain_level >= 3 ? "✨" : "🌱"} {state.skills?.name}</div>)}</div> : <p className="muted">Seu mapa começa a aparecer depois das primeiras missões corrigidas.</p>}</section>
-        <section className="panel tip-card"><Image src="/mascotes/curio_tamandua_avatar_neutro.png" alt="Tamanduá do Curió" width={105} height={120}/><div><div className="eyebrow">Dica do Curió</div><h2>Pare, procure a pista e explique.</h2><p>{tips?.[0]?.text || "Antes de responder, descubra o que a questão está pedindo e tente explicar com suas palavras."}</p><Link href="/aluno/modo-pensar">Abrir Modo Pensar →</Link></div></section>
-      </div>
-    </>
-  );
+    <div className="student-home-stats student-home-stats-secondary">
+      <article><strong>{weekRows.length?`${weekProgress}%`:"—"}</strong><small>Progresso da semana</small></article>
+      <article><strong>{pendingMissions.length}</strong><small>Missões para fazer</small></article>
+      <article><strong>{achievementCount??0}</strong><small>Conquistas</small></article>
+      <article><strong>{game?.level_name||"Curioso"}</strong><small>Nível</small></article>
+    </div>
+
+    {nextEvent ? <section className="panel student-next-event"><div className="panel-head"><div><h2>📅 Próximo encontro</h2><p>{dt(nextEvent.starts_at)}</p></div><Link href="/aluno/agenda">Ver agenda →</Link></div><div className="student-inline-event"><div><Badge tone="blue">{nextEvent.event_type==="class"?"Aula":"Encontro"}</Badge><h3>{nextEvent.title}</h3><p>{nextEvent.description||nextEvent.location||"Encontro Curió"}</p></div>{nextEvent.meeting_url?<a className="button button-primary" href={nextEvent.meeting_url} target="_blank" rel="noreferrer">Entrar na aula ↗</a>:null}</div></section> : null}
+
+    <section className="panel"><div className="panel-head"><div><h2>Suas missões de hoje 🎯</h2><p>Comece por onde quiser. Cada missão te leva um passo adiante.</p></div><Link href="/aluno/missoes">Ver todas →</Link></div>{pendingMissions.length?<div className="mission-list-grid">{pendingMissions.slice(0,6).map((item:any)=>{const subject:any=relation(item.mission?.subjects);return <Link className="mission-card mission-card-clickable" href={`/aluno/missoes/${item.id}`} key={item.id}><div className="flex space-between gap-8 wrap"><Badge tone="pink">{subject?.name||"Missão Cuca"}</Badge><Badge tone={item.status==="in_progress"?"yellow":"blue"}>{item.status==="in_progress"?"Em andamento":"Começar"}</Badge></div><h3>{item.mission?.title||"Missão Cuca"}</h3><p>{item.mission?.objective||"Uma nova descoberta está esperando por você."}</p>{item.status==="in_progress"?<div className="progress"><span style={{width:`${item.progress_percent||0}%`}} /></div>:null}<small className="muted">{item.due_at?`Prazo: ${dt(item.due_at)}`:`${item.mission?.estimated_minutes||20} min`}</small></Link>})}</div>:<EmptyState title="Tudo em dia!" description="Nenhuma Missão Cuca pendente neste momento." />}</section>
+
+    <section className="panel"><div className="panel-head"><div><h2>Meu Caderno ✍️</h2><p>Atividades para fazer à mão e enviar uma foto quando terminar.</p></div><Link href="/aluno/caderno">Abrir Meu Caderno →</Link></div>{pendingNotebooks.length?<div className="student-notebook-strip">{pendingNotebooks.slice(0,4).map((row:any)=>{const activity:any=relation(row.notebook_activities);const subject:any=relation(activity?.subjects);return <Link href="/aluno/caderno" className="student-notebook-mini" key={row.id}><Badge tone={row.needs_redo?"pink":"purple"}>{row.needs_redo?"Para refazer":subject?.name||"Caderno"}</Badge><h3>{activity?.title||"Atividade do Caderno"}</h3><p>{activity?.description||"Faça no caderno e envie sua atividade."}</p><small>{row.due_at?`Prazo: ${dt(row.due_at)}`:"Sem prazo"}</small></Link>})}</div>:<p className="muted">Nenhuma atividade de caderno pendente.</p>}</section>
+
+    <div className="grid-2">
+      <section className="panel"><div className="panel-head"><div><h2>📝 Próxima avaliação</h2><p>Saiba o que vem por aí.</p></div><Link href="/aluno/modo-prova">Modo Prova →</Link></div>{nextAssessment?<div className="mission-card"><Badge tone="blue">{relation<any>(nextAssessment.subjects)?.name||"Avaliação"}</Badge><h3>{nextAssessment.title}</h3><p>Marcada para {dt(nextAssessment.scheduled_for)}</p></div>:<p className="muted">Nenhuma avaliação próxima.</p>}</section>
+      <section className="panel"><div className="panel-head"><div><h2>🏆 Conquista recente</h2><p>Seu mural vai crescendo junto com você.</p></div><Link href="/aluno/conquistas">Ver conquistas →</Link></div>{recentAchievement?<div className="achievement-inline"><span>🏅</span><div><strong>{relation<any>(recentAchievement.achievements)?.name}</strong><p>{relation<any>(recentAchievement.achievements)?.description}</p></div></div>:<p className="muted">Sua primeira conquista está chegando.</p>}</section>
+    </div>
+
+    <section className="panel tip-card"><Image src="/mascotes/curio_tamandua_avatar_neutro.png" alt="Tamanduá do Curió" width={105} height={120}/><div><div className="eyebrow">Dica do dia</div><h2>Pequenos passos fazem diferença.</h2><p>{tip||"Antes de responder, descubra exatamente o que a questão está pedindo."}</p><Link href="/aluno/caminho">Ver meu caminho →</Link></div></section>
+  </>;
 }
