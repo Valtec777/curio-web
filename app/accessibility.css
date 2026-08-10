@@ -1,0 +1,249 @@
+/* ===== CURIÓ · legibilidade, conforto visual e separação de metadados internos ===== */
+
+/* Metadados de contratos/códigos CURIÓ ficam no backend/Admin e não na experiência do Professor. */
+.generator-source-card + .family-highlight {
+  display: none !important;
+}
+
+/* Foco visível consistente para teclado em todos os temas. */
+:focus-visible {
+  outline: 3px solid #5f86ff;
+  outline-offset: 3px;
+}
+
+/* Tema escuro: superfícies calmas, contraste alto sem branco estourado. */
+html[data-theme="dark"] body {
+  background: #121722;
+  color: #edf1f8;
+}
+
+html[data-theme="dark"] .public-header {
+  background: rgba(18, 23, 34, .94);
+  border-bottom-color: #343d50;
+}
+html[data-theme="dark"] .public-nav { color: #c3cad8; }
+html[data-theme="dark"] .public-nav a:hover { color: #f5f7fb; background: #202737; }
+html[data-theme="dark"] .footer { background: #0d121c; color: #c0c7d5; }
+
+html[data-theme="dark"] .app-main,
+html[data-theme="dark"] .auth-form-side,
+html[data-theme="dark"] .kid-dashboard {
+  background: #151a24;
+}
+
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .stat-card,
+html[data-theme="dark"] .mission-card,
+html[data-theme="dark"] .question-box,
+html[data-theme="dark"] .resource-card,
+html[data-theme="dark"] .role-card,
+html[data-theme="dark"] .feature-card,
+html[data-theme="dark"] .method-card,
+html[data-theme="dark"] .step-card,
+html[data-theme="dark"] .experience-card,
+html[data-theme="dark"] .course-card,
+html[data-theme="dark"] .course-start-panel,
+html[data-theme="dark"] .course-progress-panel,
+html[data-theme="dark"] .course-module-card,
+html[data-theme="dark"] .course-admin-card,
+html[data-theme="dark"] .legal-doc-card,
+html[data-theme="dark"] .person-admin-card,
+html[data-theme="dark"] .access-invite-card,
+html[data-theme="dark"] .generator-type-card,
+html[data-theme="dark"] .generator-upload-drop,
+html[data-theme="dark"] .auth-card,
+html[data-theme="dark"] .family-pin-card,
+html[data-theme="dark"] .child-space-button,
+html[data-theme="dark"] .legal-public-sheet {
+  background: #202633;
+  color: #edf1f8;
+  border-color: #3c465b;
+  box-shadow: none;
+}
+
+html[data-theme="dark"] .family-highlight,
+html[data-theme="dark"] .mission-library-panel,
+html[data-theme="dark"] .tip-card,
+html[data-theme="dark"] .notice {
+  background: #242a36;
+  color: #e7ebf3;
+  border-color: #4a556c;
+}
+
+html[data-theme="dark"] .page-header h1,
+html[data-theme="dark"] .panel h1,
+html[data-theme="dark"] .panel h2,
+html[data-theme="dark"] .panel h3,
+html[data-theme="dark"] .mission-card h2,
+html[data-theme="dark"] .mission-card h3,
+html[data-theme="dark"] .question-box h2,
+html[data-theme="dark"] .question-box h3,
+html[data-theme="dark"] .resource-card h2,
+html[data-theme="dark"] .resource-card h3,
+html[data-theme="dark"] .auth-card h1,
+html[data-theme="dark"] .auth-card h2,
+html[data-theme="dark"] .course-card h3,
+html[data-theme="dark"] .course-module-content h3,
+html[data-theme="dark"] .legal-public-sheet h1,
+html[data-theme="dark"] .legal-public-sheet h2,
+html[data-theme="dark"] .legal-public-sheet h3 {
+  color: #f5f7fb;
+}
+
+html[data-theme="dark"] .page-header p,
+html[data-theme="dark"] .panel p,
+html[data-theme="dark"] .panel small,
+html[data-theme="dark"] .mission-card p,
+html[data-theme="dark"] .mission-card small,
+html[data-theme="dark"] .question-box p,
+html[data-theme="dark"] .resource-card p,
+html[data-theme="dark"] .resource-card small,
+html[data-theme="dark"] .course-card p,
+html[data-theme="dark"] .course-module-content p,
+html[data-theme="dark"] .legal-public-body,
+html[data-theme="dark"] .muted {
+  color: #bfc7d7;
+}
+
+html[data-theme="dark"] .field label,
+html[data-theme="dark"] .experience-label,
+html[data-theme="dark"] .data-table th {
+  color: #cbd3e2;
+}
+
+html[data-theme="dark"] .input,
+html[data-theme="dark"] .select,
+html[data-theme="dark"] .textarea {
+  background: #171d28;
+  color: #f4f6fb;
+  border-color: #4a566e;
+  color-scheme: dark;
+}
+html[data-theme="dark"] .input::placeholder,
+html[data-theme="dark"] .textarea::placeholder { color: #8f9aaf; opacity: 1; }
+html[data-theme="dark"] .select option { background: #171d28; color: #f4f6fb; }
+html[data-theme="dark"] .input:focus,
+html[data-theme="dark"] .select:focus,
+html[data-theme="dark"] .textarea:focus {
+  background: #1b2230;
+  border-color: #7fa1ff;
+  box-shadow: 0 0 0 3px rgba(127,161,255,.2);
+}
+
+html[data-theme="dark"] .button-secondary,
+html[data-theme="dark"] .button-ghost {
+  background: #252d3b;
+  color: #edf1f8;
+  border-color: #4c5870;
+}
+html[data-theme="dark"] .button-secondary:hover,
+html[data-theme="dark"] .button-ghost:hover { background: #30394a; }
+html[data-theme="dark"] .button-danger {
+  background: #3a2227;
+  color: #ffbdc4;
+  border-color: #7c3e47;
+}
+html[data-theme="dark"] .button-danger:hover { background: #47272d; }
+
+html[data-theme="dark"] .data-table th { background: #1b212c; border-bottom-color: #465067; }
+html[data-theme="dark"] .data-table td { color: #e8ecf4; border-bottom-color: #333c4f; }
+html[data-theme="dark"] .data-table tbody tr:hover { background: #242b39; }
+
+/* Badges continuam semânticos, mas com contraste suficiente no escuro. */
+html[data-theme="dark"] .badge-blue { background: #263c70; color: #c8d8ff; }
+html[data-theme="dark"] .badge-pink { background: #592a45; color: #ffc6df; }
+html[data-theme="dark"] .badge-green { background: #30451f; color: #d9f7aa; }
+html[data-theme="dark"] .badge-yellow { background: #55461e; color: #ffeaa1; }
+html[data-theme="dark"] .badge-purple { background: #3c315d; color: #d9ceff; }
+html[data-theme="dark"] .badge-neutral { background: #303846; color: #d5dbe6; }
+
+/* Sidebar/ícones: evita ícone claro sobre fundo claro e mantém estado ativo identificável. */
+html[data-theme="dark"] .sidebar {
+  background: #181e29;
+  color: #edf1f8;
+  border-color: #343e52;
+}
+html[data-theme="dark"] .sidebar-role { background: #202734; border-color: #3a4458; }
+html[data-theme="dark"] .sidebar-role span,
+html[data-theme="dark"] .sidebar-subtitle { color: #aeb8ca; }
+html[data-theme="dark"] .sidebar-nav a,
+html[data-theme="dark"] .sidebar-nav-link { color: #c5cddd; }
+html[data-theme="dark"] .sidebar-nav a:hover,
+html[data-theme="dark"] .sidebar-nav-link:hover,
+html[data-theme="dark"] .sidebar-nav-link.is-active {
+  background: #252e3d;
+  color: #f5f7fb;
+  border-color: #46536b;
+}
+html[data-theme="dark"] .sidebar-nav-icon,
+html[data-theme="dark"] .dashboard-role-icon {
+  background: #273145;
+  color: #a9bfff;
+  border-color: #40506a;
+}
+html[data-theme="dark"] .nav-icon-svg { color: currentColor; }
+
+/* Painel de Aparência e acessibilidade. */
+html[data-theme="dark"] .experience-trigger {
+  background: #242c3a;
+  color: #f5f7fb;
+  border-color: #53617b;
+}
+html[data-theme="dark"] .experience-panel {
+  background: #1b212d;
+  color: #edf1f8;
+  border-color: #465168;
+  box-shadow: 0 20px 58px rgba(0,0,0,.34);
+}
+html[data-theme="dark"] .experience-panel-head { border-bottom-color: #394358; }
+html[data-theme="dark"] .experience-panel-head strong,
+html[data-theme="dark"] .preference-toggle strong { color: #f5f7fb; }
+html[data-theme="dark"] .experience-panel-head small,
+html[data-theme="dark"] .preference-toggle small { color: #b7c0d1; }
+html[data-theme="dark"] .experience-close {
+  background: #252d3b;
+  color: #f5f7fb;
+  border-color: #4b5870;
+}
+html[data-theme="dark"] .segmented-control {
+  background: #151b25;
+  border-color: #3d485e;
+}
+html[data-theme="dark"] .segmented-control button {
+  background: transparent;
+  color: #c5cede;
+  border-color: transparent;
+}
+html[data-theme="dark"] .segmented-control button[aria-pressed="true"] {
+  background: #29467e;
+  color: #eef4ff;
+  border-color: #6588d8;
+}
+html[data-theme="dark"] .preference-toggle { border-bottom-color: #343e51; }
+html[data-theme="dark"] .preference-toggle input {
+  background: #3b4558;
+  border-color: #58657c;
+}
+html[data-theme="dark"] .preference-toggle input::before { background: #f6f8fb; }
+html[data-theme="dark"] .preference-toggle input:checked {
+  background: #315efb;
+  border-color: #7e9cff;
+}
+html[data-theme="dark"] .sound-preview button {
+  background: #252d3b;
+  color: #eef2f8;
+  border-color: #4b5870;
+}
+
+/* Estados de feedback não perdem leitura no escuro. */
+html[data-theme="dark"] .form-error { background: #402329; color: #ffc2c8; }
+html[data-theme="dark"] .form-success { background: #20392d; color: #bcebd0; }
+
+/* Elementos desabilitados continuam legíveis sem parecer ativos. */
+html[data-theme="dark"] :disabled {
+  opacity: .62;
+}
+
+@media (max-width: 640px) {
+  .experience-panel { max-height: calc(100vh - 86px); }
+}
