@@ -6,6 +6,69 @@ import { z } from "zod";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
+const allowedPeriods = ["Manhã", "Tarde", "Noite"] as const;
+
+export async function updateTeacherTeachingProfile(formData: FormData) {
+  await requireRole("admin");
+  const parsed = z.object({
+    teacherId: z.string().uuid(),
+    notes: z.string().max(800).optional(),
+  }).safeParse({
+    teacherId: formData.get("teacherId"),
+    notes: String(formData.get("availabilityNotes") || ""),
+  });
+  if (!parsed.success) {
+    redirect(`/admin/professores?erro=${encodeURIComponent("Revise as informações de especialidade e disponibilidade.")}`);
+  }
+
+  const subjectIds = [...new Set(formData.getAll("subjectIds").map(String).filter((value) => z.string().uuid().safeParse(value).success))];
+  const periods = [...new Set(formData.getAll("availablePeriods").map(String).filter((value): value is typeof allowedPeriods[number] => allowedPeriods.includes(value as typeof allowedPeriods[number])))];
+  const supabase = await createClient();
+
+  const { data: currentLinks, error: currentError } = await supabase
+    .from("teacher_subjects")
+    .select("subject_id")
+    .eq("teacher_id", parsed.data.teacherId);
+  if (currentError) {
+    redirect(`/admin/professores?erro=${encodeURIComponent("Não foi possível carregar as matérias atuais do professor.")}`);
+  }
+
+  if (subjectIds.length) {
+    const { error: upsertError } = await supabase.from("teacher_subjects").upsert(
+      subjectIds.map((subjectId) => ({ teacher_id: parsed.data.teacherId, subject_id: subjectId })),
+      { onConflict: "teacher_id,subject_id" },
+    );
+    if (upsertError) {
+      redirect(`/admin/professores?erro=${encodeURIComponent("Não foi possível salvar as matérias do professor.")}`);
+    }
+  }
+
+  const removeIds = (currentLinks ?? []).map((item: any) => item.subject_id).filter((id: string) => !subjectIds.includes(id));
+  if (removeIds.length) {
+    const { error: removeError } = await supabase
+      .from("teacher_subjects")
+      .delete()
+      .eq("teacher_id", parsed.data.teacherId)
+      .in("subject_id", removeIds);
+    if (removeError) {
+      redirect(`/admin/professores?erro=${encodeURIComponent("As novas matérias foram salvas, mas não foi possível remover uma matéria antiga. Revise o cadastro.")}`);
+    }
+  }
+
+  const { error: availabilityError } = await supabase.from("teacher_availability").upsert({
+    teacher_id: parsed.data.teacherId,
+    available_periods: periods,
+    notes: parsed.data.notes?.trim() || null,
+  }, { onConflict: "teacher_id" });
+  if (availabilityError) {
+    redirect(`/admin/professores?erro=${encodeURIComponent("As matérias foram salvas, mas não foi possível atualizar a disponibilidade.")}`);
+  }
+
+  revalidatePath("/admin/professores");
+  revalidatePath("/admin/matriculas");
+  redirect(`/admin/professores?sucesso=${encodeURIComponent("Matérias e disponibilidade atualizadas.")}`);
+}
+
 export async function moveTeacherToTrash(formData: FormData) {
   const viewer = await requireRole("admin");
   const parsed = z.object({
