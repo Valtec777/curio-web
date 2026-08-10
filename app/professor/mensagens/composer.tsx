@@ -115,7 +115,7 @@ export function FamilyMessageComposer({
 
           <div className="field">
             <label>Assunto</label>
-            <input className="input" name="subject" value={subject} onChange={(event) => setSubject(event.target.value)} required maxLength={300} />
+            <input className="input" name="subject" value={subject} onChange={(event) => setSubject(event.target.value)} required maxLength={160} />
           </div>
 
           <div className="field">
