@@ -4,6 +4,7 @@ import { ExperiencePreferences } from "@/components/experience-preferences";
 import "./globals.css";
 import "./responsive.css";
 import "./accessibility.css";
+import "./urgent-preview-fixes.css";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
