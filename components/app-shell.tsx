@@ -24,14 +24,12 @@ type FamilyChild = {
 const menus: Record<AppRole, NavItem[]> = {
   admin: [
     { href: "/admin", label: "Hoje", group: "Visão geral" },
-
     { href: "/admin/matriculas", label: "Matrículas", group: "Pessoas" },
     { href: "/admin/alunos", label: "Alunos", group: "Pessoas" },
     { href: "/admin/familias", label: "Famílias", group: "Pessoas" },
     { href: "/admin/professores", label: "Professores", group: "Pessoas" },
     { href: "/admin/vinculos", label: "Vínculos", group: "Pessoas" },
     { href: "/admin/turmas", label: "Turmas", group: "Pessoas" },
-
     { href: "/admin/relatorios", label: "Relatórios", group: "Pedagógico" },
     { href: "/admin/ocorrencias", label: "Ocorrências", group: "Pedagógico" },
     { href: "/admin/conteudo", label: "Conteúdo", group: "Pedagógico" },
@@ -40,7 +38,6 @@ const menus: Record<AppRole, NavItem[]> = {
     { href: "/admin/gerador", label: "Gerador", group: "Pedagógico" },
     { href: "/admin/modelos", label: "Modelos", group: "Pedagógico" },
     { href: "/admin/cursos", label: "Cursos livres", group: "Pedagógico" },
-
     { href: "/admin/calendario", label: "Calendário", group: "Operação" },
     { href: "/admin/financeiro", label: "Financeiro", group: "Operação" },
     { href: "/admin/planos", label: "Planos", group: "Operação" },
@@ -48,7 +45,6 @@ const menus: Record<AppRole, NavItem[]> = {
     { href: "/admin/comunicacao", label: "Comunicação", group: "Operação" },
     { href: "/admin/documentos", label: "Documentos", group: "Operação" },
     { href: "/admin/suporte", label: "Suporte", group: "Operação" },
-
     { href: "/admin/usuarios", label: "Usuários e acessos", group: "Sistema" },
     { href: "/admin/mascotes", label: "Personagens", group: "Sistema" },
     { href: "/admin/auditoria", label: "Auditoria", group: "Sistema" },
@@ -59,22 +55,18 @@ const menus: Record<AppRole, NavItem[]> = {
     { href: "/professor", label: "Hoje", group: "Visão geral" },
     { href: "/professor/agenda", label: "Agenda", group: "Visão geral" },
     { href: "/professor/reunioes", label: "Reuniões", group: "Visão geral" },
-
     { href: "/professor/alunos", label: "Alunos", group: "Acompanhamento" },
     { href: "/professor/turmas", label: "Turmas", group: "Acompanhamento" },
     { href: "/professor/mapa", label: "Mapa Pedagógico", group: "Acompanhamento" },
     { href: "/professor/grupos", label: "Grupos Pedagógicos", group: "Acompanhamento" },
-
     { href: "/professor/criar", label: "Criar conteúdo", group: "Criar e publicar" },
     { href: "/professor/missoes", label: "Missões", group: "Criar e publicar" },
     { href: "/professor/materiais", label: "Materiais", group: "Criar e publicar" },
     { href: "/professor/avaliacoes", label: "Avaliações", group: "Criar e publicar" },
     { href: "/professor/conteudos", label: "Conteúdos", group: "Criar e publicar" },
-
     { href: "/professor/correcoes", label: "Correções", group: "Revisar" },
     { href: "/professor/mensagens", label: "Mensagens", group: "Revisar" },
     { href: "/professor/relatorios", label: "Relatórios", group: "Revisar" },
-
     { href: "/professor/perfil", label: "Perfil", group: "Conta" },
     { href: "/professor/suporte", label: "Suporte", group: "Conta" },
     { href: "/admin", label: "Área Administrativa", requiresRole: "admin", group: "Conta" },
@@ -130,6 +122,7 @@ export function AppShell({
   subtitle,
   metricLabel,
   metricValue,
+  avatarUrl,
   familyChildren,
   children,
 }: {
@@ -139,13 +132,12 @@ export function AppShell({
   subtitle?: string | null;
   metricLabel?: string | null;
   metricValue?: string | number | null;
+  avatarUrl?: string | null;
   familyChildren?: FamilyChild[];
   children: ReactNode;
 }) {
   const availableRoles = roles ?? [role];
-  const items = menus[role].filter(
-    (item) => !item.requiresRole || availableRoles.includes(item.requiresRole),
-  );
+  const items = menus[role].filter((item) => !item.requiresRole || availableRoles.includes(item.requiresRole));
   const grouped = items.reduce<Record<string, NavItem[]>>((acc, item) => {
     const key = item.group || "";
     (acc[key] ||= []).push(item);
@@ -162,8 +154,9 @@ export function AppShell({
           <SidebarCollapseButton />
         </div>
         <div className="sidebar-role">
+          {role === "student" && avatarUrl ? <img className="sidebar-profile-avatar" src={avatarUrl} alt="Seu avatar Curió" /> : null}
           <span>{titles[role]}</span>
-          <strong>{role === "teacher" ? `Olá, ${displayName}` : displayName}</strong>
+          <strong>{role === "teacher" ? `Olá, ${displayName}` : role === "student" ? `Oi, ${displayName}` : displayName}</strong>
           {subtitle && <small className="sidebar-subtitle">{subtitle}</small>}
           {metricLabel && (
             <div className="sidebar-metric">
@@ -179,9 +172,7 @@ export function AppShell({
           {Object.entries(grouped).map(([group, groupItems]) => (
             <div className="sidebar-nav-group" key={group || "principal"}>
               {group && <span className="sidebar-nav-title">{group}</span>}
-              {groupItems.map((item) => (
-                <SidebarNavLink key={item.href} href={item.href} label={item.label} />
-              ))}
+              {groupItems.map((item) => <SidebarNavLink key={item.href} href={item.href} label={item.label} />)}
             </div>
           ))}
           <div className="sidebar-nav-group sidebar-nav-utility">
@@ -196,9 +187,7 @@ export function AppShell({
         </nav>
 
         <form action={logout}>
-          <button className="button button-ghost sidebar-logout" type="submit">
-            Sair do CURIÓ
-          </button>
+          <button className="button button-ghost sidebar-logout" type="submit">Sair do CURIÓ</button>
         </form>
       </aside>
 
