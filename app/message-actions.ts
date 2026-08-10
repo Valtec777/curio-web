@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { requireUser } from "@/lib/auth";
+import { requireRole, requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 function safeReturnPath(value: FormDataEntryValue | null) {
@@ -15,6 +15,109 @@ const messageEditSchema = z.object({
   messageId: z.string().uuid(),
   body: z.string().min(1).max(5000),
 });
+
+const sendFamilyMessageSchema = z.object({
+  studentId: z.string().uuid(),
+  guardianId: z.string().uuid(),
+  subject: z.string().trim().min(2).max(300),
+  body: z.string().trim().min(1).max(5000),
+  actionLabel: z.string().trim().max(80).optional(),
+  actionUrl: z.string().trim().max(500).optional(),
+  requestKey: z.string().trim().min(8).max(160),
+}).superRefine((value, ctx) => {
+  const hasLabel = Boolean(value.actionLabel);
+  const hasUrl = Boolean(value.actionUrl);
+  if (hasLabel !== hasUrl) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Informe texto e destino do botão juntos." });
+  }
+  if (value.actionUrl && !value.actionUrl.startsWith("/") && !value.actionUrl.startsWith("https://")) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "O destino do botão precisa ser uma rota do CURIÓ ou URL HTTPS." });
+  }
+});
+
+type MessageVariables = Record<"responsavel_nome" | "aluno_nome" | "professor_nome" | "escola" | "ano_escolar", string>;
+
+function renderVariables(value: string, variables: MessageVariables) {
+  const unknown = new Set<string>();
+  const rendered = value.replace(/\{\{\s*([a-z_]+)\s*\}\}/gi, (_match, rawName: string) => {
+    const name = rawName.toLowerCase() as keyof MessageVariables;
+    if (name in variables) return variables[name];
+    unknown.add(rawName);
+    return `{{${rawName}}}`;
+  });
+  return { rendered, unknown: [...unknown] };
+}
+
+export async function sendFamilyMessage(formData: FormData) {
+  const viewer = await requireRole("teacher");
+  const returnPath = safeReturnPath(formData.get("returnPath") || "/professor/mensagens");
+  const parsed = sendFamilyMessageSchema.safeParse({
+    studentId: formData.get("studentId"),
+    guardianId: formData.get("guardianId"),
+    subject: formData.get("subject"),
+    body: formData.get("body"),
+    actionLabel: String(formData.get("actionLabel") || "").trim() || undefined,
+    actionUrl: String(formData.get("actionUrl") || "").trim() || undefined,
+    requestKey: formData.get("requestKey"),
+  });
+
+  if (!parsed.success) {
+    redirect(`${returnPath}?erro=${encodeURIComponent(parsed.error.issues[0]?.message || "Revise a mensagem.")}`);
+  }
+
+  const supabase = await createClient();
+  const [{ data: student }, { data: guardianRows, error: guardiansError }] = await Promise.all([
+    supabase
+      .from("students")
+      .select("id,preferred_name,full_name,school_name,grades(name)")
+      .eq("id", parsed.data.studentId)
+      .is("deleted_at", null)
+      .maybeSingle(),
+    supabase.rpc("teacher_linked_guardian_names"),
+  ]);
+
+  const guardian = (guardianRows ?? []).find((item: any) => item.student_id === parsed.data.studentId && item.guardian_id === parsed.data.guardianId);
+  if (guardiansError || !student || !guardian) {
+    redirect(`${returnPath}?erro=${encodeURIComponent("Responsável ou aluno não está disponível para este professor.")}`);
+  }
+
+  const variables: MessageVariables = {
+    responsavel_nome: guardian.guardian_name || "Responsável",
+    aluno_nome: student.preferred_name || student.full_name || "aluno",
+    professor_nome: viewer.profile?.preferred_name || viewer.profile?.full_name || "Professor CURIÓ",
+    escola: student.school_name || "escola não informada",
+    ano_escolar: (student.grades as any)?.name || "ano escolar não informado",
+  };
+
+  const subject = renderVariables(parsed.data.subject, variables);
+  const body = renderVariables(parsed.data.body, variables);
+  const actionLabel = parsed.data.actionLabel ? renderVariables(parsed.data.actionLabel, variables) : null;
+  const actionUrl = parsed.data.actionUrl ? renderVariables(parsed.data.actionUrl, variables) : null;
+  const unknownVariables = [...subject.unknown, ...body.unknown, ...(actionLabel?.unknown ?? []), ...(actionUrl?.unknown ?? [])];
+
+  if (unknownVariables.length) {
+    redirect(`${returnPath}?erro=${encodeURIComponent(`Variável não reconhecida: {{${unknownVariables[0]}}}.`)}`);
+  }
+
+  const { error } = await supabase.rpc("send_curio_family_message", {
+    p_student_id: parsed.data.studentId,
+    p_guardian_id: parsed.data.guardianId,
+    p_subject: subject.rendered,
+    p_body: body.rendered,
+    p_action_label: actionLabel?.rendered || null,
+    p_action_url: actionUrl?.rendered || null,
+    p_request_key: parsed.data.requestKey,
+  });
+
+  if (error) {
+    redirect(`${returnPath}?erro=${encodeURIComponent(error.message || "Não foi possível enviar a mensagem.")}`);
+  }
+
+  revalidatePath("/professor/mensagens");
+  revalidatePath("/familia/mensagens");
+  revalidatePath("/familia");
+  redirect(`${returnPath}?sucesso=${encodeURIComponent("Mensagem enviada para a família.")}`);
+}
 
 export async function editTeamMessage(formData: FormData) {
   const viewer = await requireUser();
