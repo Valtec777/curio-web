@@ -29,18 +29,38 @@ function queryError(message: string) {
   return `/login?erro=${encodeURIComponent(message)}`;
 }
 
+function normalizedOrigin(value?: string | null) {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+  try {
+    const url = new URL(raw.includes("://") ? raw : `https://${raw}`);
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
+function isLocalOrigin(origin?: string | null) {
+  return Boolean(origin && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin));
+}
+
 function siteOrigin() {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (configured) {
-    try {
-      return new URL(configured).origin;
-    } catch {
-      console.error("NEXT_PUBLIC_SITE_URL inválida; usando fallback seguro.");
-    }
+  const configured = normalizedOrigin(process.env.NEXT_PUBLIC_SITE_URL);
+  const branchUrl = normalizedOrigin(process.env.VERCEL_BRANCH_URL);
+  const deploymentUrl = normalizedOrigin(process.env.VERCEL_URL);
+  const runningOnVercel = process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV);
+
+  // Em Vercel, nunca gere e-mail apontando para localhost. O URL estável da
+  // branch é preferível para convites/recuperação em Preview.
+  if (runningOnVercel) {
+    if (configured && !isLocalOrigin(configured)) return configured;
+    if (branchUrl) return branchUrl;
+    if (deploymentUrl) return deploymentUrl;
   }
 
-  const vercelUrl = process.env.VERCEL_URL?.trim();
-  if (vercelUrl) return `https://${vercelUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}`;
+  if (configured) return configured;
+  if (branchUrl) return branchUrl;
+  if (deploymentUrl) return deploymentUrl;
   return "http://localhost:3000";
 }
 
@@ -83,7 +103,7 @@ async function sendPasswordLink(email: string, successPath: string) {
   const supabase = await createClient();
   const origin = siteOrigin();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/definir-senha`,
+    redirectTo: `${origin}/auth/confirm?next=/definir-senha`,
   });
 
   // Não revelamos se o e-mail existe ou não.
