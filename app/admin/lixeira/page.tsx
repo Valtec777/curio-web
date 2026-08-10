@@ -54,11 +54,13 @@ export default async function AdminTrashPage({ searchParams }: { searchParams: P
   const query = await searchParams;
   await requireRole("admin");
   const supabase = await createClient();
+  const now = new Date().toISOString();
 
   const { data: items } = await supabase
     .from("trash_items")
     .select("id,entity_type,entity_id,entity_snapshot,deleted_by_user_id,deleted_at,restore_until,restored_at")
     .is("restored_at", null)
+    .gte("restore_until", now)
     .order("deleted_at", { ascending: false })
     .limit(120);
 
@@ -68,21 +70,20 @@ export default async function AdminTrashPage({ searchParams }: { searchParams: P
 
   return (
     <>
-      <PageHeader eyebrow="Operação CURIÓ" title="Lixeira" description="Registros excluídos saem da operação normal sem apagar automaticamente o histórico importante." />
+      <PageHeader eyebrow="Operação CURIÓ" title="Lixeira" description="Restaure durante 30 dias ou exclua manualmente quando a exclusão definitiva for segura." />
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
       {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
-      <div className="notice">Arquivar, cancelar e excluir são ações diferentes. A Lixeira usa exclusão lógica e mantém o mesmo ID para restauração quando o tipo de registro permite.</div>
+      <div className="notice">Depois de 30 dias, o item sai automaticamente da janela visível de restauração. Registros com histórico pedagógico, financeiro, jurídico ou de acesso não são apagados fisicamente de forma automática: ficam preservados internamente conforme as regras de segurança e retenção. A exclusão permanente manual só aparece quando o tipo de registro é seguro para isso.</div>
 
       <section className="panel">
-        <div className="panel-head"><div><h2>Itens removidos</h2><p>{items?.length ?? 0} registro(s) aguardando restauração ou decisão administrativa.</p></div></div>
+        <div className="panel-head"><div><h2>Itens removidos</h2><p>{items?.length ?? 0} registro(s) ainda dentro da janela de 30 dias.</p></div></div>
         {items?.length ? (
           <div className="form-stack">
             {items.map((item: any) => {
               const snapshot = item.entity_snapshot || {};
-              const expired = Boolean(item.restore_until && new Date(item.restore_until).getTime() < Date.now());
               return (
                 <article className="mission-card" key={item.id}>
-                  <div className="flex space-between gap-8 wrap"><div><strong>{snapshot.label || typeLabel(item.entity_type)}</strong><p>{typeLabel(item.entity_type)}</p></div><Badge tone={expired ? "pink" : "neutral"}>{expired ? "Prazo encerrado" : "Na Lixeira"}</Badge></div>
+                  <div className="flex space-between gap-8 wrap"><div><strong>{snapshot.label || typeLabel(item.entity_type)}</strong><p>{typeLabel(item.entity_type)}</p></div><Badge tone="neutral">Na Lixeira</Badge></div>
                   <div className="form-stack compact-form">
                     {snapshot.email && <small className="muted">{snapshot.email}</small>}
                     {snapshot.body_preview && <p className="muted">“{snapshot.body_preview}”</p>}
@@ -96,14 +97,14 @@ export default async function AdminTrashPage({ searchParams }: { searchParams: P
                     {item.entity_id && <small className="muted">ID preservado: {item.entity_id}</small>}
                   </div>
                   <div className="plan-admin-actions mt-12">
-                    {canRestore(item.entity_type) && !expired && <form action={restoreTrashItem}><input type="hidden" name="trashId" value={item.id} /><button className="button button-secondary button-small" type="submit">Restaurar</button></form>}
+                    {canRestore(item.entity_type) && <form action={restoreTrashItem}><input type="hidden" name="trashId" value={item.id} /><button className="button button-secondary button-small" type="submit">Restaurar</button></form>}
                     {canPermanentlyDelete(item) && <details className="plan-editor"><summary className="button button-danger button-small">Excluir permanentemente</summary><form action={permanentlyDeleteTrashItem} className="form-stack compact-form"><input type="hidden" name="trashId" value={item.id} /><p className="muted">Esta ação não poderá ser desfeita.</p><button className="button button-danger button-small" type="submit">Confirmar exclusão permanente</button></form></details>}
                   </div>
                 </article>
               );
             })}
           </div>
-        ) : <EmptyState title="Lixeira vazia" description="Itens excluídos de áreas compatíveis aparecerão aqui durante a janela de restauração." />}
+        ) : <EmptyState title="Lixeira vazia" description="Itens excluídos aparecem aqui durante a janela de 30 dias para restauração ou exclusão segura." />}
       </section>
     </>
   );
