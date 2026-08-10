@@ -8,13 +8,18 @@ function shortDate(value?: string | null) {
   return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Bahia" }).format(new Date(value));
 }
 
+function dateTime(value?: string | null) {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Bahia" }).format(new Date(value));
+}
+
 export default async function StudentHome() {
   const { student, supabase } = await getCurrentStudent();
   if (!student) return <EmptyState title="Sua conta ainda não está ligada ao perfil de aluno" description="A administração precisa concluir esse vínculo antes de liberar o seu espaço." />;
 
   const now = new Date().toISOString();
   const [
-    { data: missions }, { data: states }, { data: game }, { data: assessments }, { data: achievements }, { data: tips },
+    { data: missions }, { data: states }, { data: game }, { data: assessments }, { data: achievements }, { data: tips }, { data: agendaLinks },
   ] = await Promise.all([
     supabase.from("mission_students").select("id,due_at,status,progress_percent,missions(title,objective,estimated_minutes,subjects(name))").eq("student_id", student.id).in("status", ["assigned", "in_progress"]).order("assigned_at").limit(4),
     supabase.from("student_skill_states").select("domain_level,evidence_count,skills(name)").eq("student_id", student.id).order("updated_at", { ascending:false }).limit(3),
@@ -22,8 +27,13 @@ export default async function StudentHome() {
     supabase.from("assessment_students").select("id,status,assessments(title,scheduled_for,subjects(name))").eq("student_id", student.id).limit(10),
     supabase.from("student_achievements").select("achievement_id,earned_at,achievements(name,description,icon)").eq("student_id", student.id).order("earned_at", { ascending:false }).limit(1),
     supabase.from("daily_tips").select("text").eq("active", true).or(`starts_at.is.null,starts_at.lte.${now.slice(0,10)}`).limit(1),
+    supabase.from("agenda_event_students").select("event_id,agenda_events(id,title,description,event_type,starts_at,ends_at,status,meeting_url,location,visible_to_student)").eq("student_id", student.id).limit(30),
   ]);
   const nextAssessment = (assessments ?? []).map((a:any)=>a.assessments ? ({...a,...a.assessments}) : null).filter(Boolean).filter((a:any)=>!a.scheduled_for || new Date(a.scheduled_for) >= new Date()).sort((a:any,b:any)=>+(new Date(a.scheduled_for||"2999-01-01"))-(+new Date(b.scheduled_for||"2999-01-01")))[0];
+  const nextEvent = (agendaLinks ?? [])
+    .map((item: any) => item.agenda_events)
+    .filter((event: any) => event?.visible_to_student && event.status === "scheduled" && new Date(event.starts_at) >= new Date())
+    .sort((a: any, b: any) => +new Date(a.starts_at) - +new Date(b.starts_at))[0];
   const recentAchievement:any = achievements?.[0];
 
   return (
@@ -32,6 +42,18 @@ export default async function StudentHome() {
         <div className="kid-hero-copy"><div className="eyebrow" style={{ color: "#dfffa8" }}>Meu dia no CURIÓ</div><h1>Oi, {student.preferred_name}! 👋</h1><p>Escolha um desafio, tente primeiro e use as pistas quando precisar.</p><div className="kid-mini-stats"><span>★ {game?.stars ?? 0} estrelas</span><span>🔥 {game?.streak_days ?? 0} dia(s)</span><span>🧭 {game?.level_name || "Explorador Curió"}</span></div></div>
         <Image src="/mascotes/curio_capivara_principal_acolhendo.png" alt="Capivara do Curió" width={210} height={240} priority />
       </section>
+
+      {nextEvent && (
+        <section className="panel family-highlight">
+          <div className="panel-head"><div><h2>📅 Seu próximo encontro</h2><p>{dateTime(nextEvent.starts_at)}</p></div><Link href="/aluno/agenda">Ver agenda →</Link></div>
+          <div className="mission-card">
+            <Badge tone="blue">{nextEvent.event_type === "class" ? "Aula" : nextEvent.event_type === "meeting" ? "Encontro" : "Agenda"}</Badge>
+            <h3>{nextEvent.title}</h3>
+            <p>{nextEvent.description || nextEvent.location || "Encontro Curió"}</p>
+            {nextEvent.meeting_url && <a className="button button-primary button-small" href={nextEvent.meeting_url} target="_blank" rel="noreferrer">Entrar na aula ↗</a>}
+          </div>
+        </section>
+      )}
 
       <div className="grid-2">
         <section className="panel">
