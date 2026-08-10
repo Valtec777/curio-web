@@ -11,11 +11,7 @@ function statusLabel(status?: string | null) {
   return "Rascunho";
 }
 
-export default async function MissionsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ erro?: string; sucesso?: string }>;
-}) {
+export default async function MissionsPage({ searchParams }: { searchParams: Promise<{ erro?: string; sucesso?: string }> }) {
   const params = await searchParams;
   const { teacher, supabase } = await getCurrentTeacher();
   if (!teacher) return <EmptyState title="Perfil incompleto" description="Falta o registro de professor." />;
@@ -23,7 +19,7 @@ export default async function MissionsPage({
   const [{ data: missions }, { data: links }] = await Promise.all([
     supabase
       .from("missions")
-      .select("id,title,objective,description,status,estimated_minutes,created_at,subjects(name),grades(name),characters(name),mission_students(student_id,due_at,status,students(preferred_name,full_name))")
+      .select("id,title,objective,description,status,estimated_minutes,created_at,subjects(name),grades(name),characters(name),mission_students(student_id,due_at,status,students(preferred_name,full_name)),mission_questions(id,position,prompt,question_type,options,mission_question_answer_keys(correct_value))")
       .eq("created_by_teacher_id", teacher.id)
       .order("created_at", { ascending: false }),
     supabase
@@ -57,6 +53,7 @@ export default async function MissionsPage({
             const assignments = mission.mission_students ?? [];
             const assignedIds = assignments.map((item: any) => item.student_id);
             const names = assignments.map((item: any) => item.students?.preferred_name || item.students?.full_name).filter(Boolean);
+            const questions = [...(mission.mission_questions ?? [])].sort((a: any, b: any) => Number(a.position || 0) - Number(b.position || 0));
             return (
               <article className="teacher-resource-card" id={`missao-${mission.id}`} key={mission.id}>
                 <div className="teacher-resource-top">
@@ -79,11 +76,24 @@ export default async function MissionsPage({
                   <span>• {assignments.length} atribuição(ões)</span>
                 </div>
 
-                {names.length > 0 && (
-                  <div className="flex gap-8 wrap">
-                    <small className="muted">Enviada para:</small>
-                    {names.map((name: string, index: number) => <Badge tone="blue" key={`${name}-${index}`}>{name}</Badge>)}
-                  </div>
+                {names.length > 0 && <div className="flex gap-8 wrap"><small className="muted">Enviada para:</small>{names.map((name: string, index: number) => <Badge tone="blue" key={`${name}-${index}`}>{name}</Badge>)}</div>}
+
+                {questions.length > 0 && (
+                  <details className="plan-editor">
+                    <summary>Ver questões e gabarito</summary>
+                    <div className="form-stack compact-form">
+                      {questions.map((question: any, index: number) => {
+                        const options = Array.isArray(question.options) ? question.options : [];
+                        const correct = question.mission_question_answer_keys?.correct_value;
+                        return <div className="question-box" key={question.id}>
+                          <small className="eyebrow">Questão {index + 1}</small>
+                          <strong>{question.prompt}</strong>
+                          {options.length > 0 && <div className="form-stack compact-form mt-12">{options.map((option: string, optionIndex: number) => <div className="flex gap-8" key={`${question.id}-${optionIndex}`}><Badge tone={correct === option ? "green" : "neutral"}>{String.fromCharCode(65 + optionIndex)}</Badge><span>{option}</span>{correct === option && <strong>✓ correta</strong>}</div>)}</div>}
+                          {question.question_type === "open_text" ? <Badge tone="yellow">Correção humana</Badge> : correct ? <div className="teacher-answer-key"><strong>Gabarito:</strong> {correct}</div> : <Badge tone="yellow">Gabarito não informado</Badge>}
+                        </div>;
+                      })}
+                    </div>
+                  </details>
                 )}
 
                 <details className="plan-editor">
@@ -117,9 +127,7 @@ export default async function MissionsPage({
             );
           })}
         </div>
-      ) : (
-        <EmptyState title="Nenhuma missão criada" description="Crie sua primeira Missão Cuca pelo botão acima." />
-      )}
+      ) : <EmptyState title="Nenhuma missão criada" description="Crie sua primeira Missão Cuca pelo botão acima." />}
     </>
   );
 }
