@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { AppShell } from "@/components/app-shell";
 import { getCurrentTeacher } from "@/lib/teacher";
 import "./teacher-workspace.css";
+import "./teacher-fixes.css";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
