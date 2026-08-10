@@ -4,6 +4,67 @@
   overflow-x: hidden;
 }
 
+/* Professor: a lateral precisa ser explicitamente azul para não depender de CSS herdado. */
+.app-frame-teacher .sidebar {
+  background: linear-gradient(180deg, #315efb 0%, #4a36d5 100%) !important;
+  color: #fff !important;
+}
+
+.app-frame-teacher .sidebar-role {
+  margin: 14px 0 6px;
+  padding: 16px;
+  border: 1px solid rgba(26, 43, 110, .12) !important;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .98) !important;
+  color: #263458 !important;
+  box-shadow: 0 10px 28px rgba(24, 32, 96, .14);
+}
+
+.app-frame-teacher .sidebar-role > span {
+  color: #52617f !important;
+}
+
+.app-frame-teacher .sidebar-role > strong {
+  color: #253454 !important;
+}
+
+.app-frame-teacher .sidebar-subtitle {
+  color: #6f7b94 !important;
+}
+
+.app-frame-teacher .sidebar-metric {
+  margin-top: 10px;
+  padding: 11px 12px;
+  border-radius: 15px;
+  background: #f2f5ff;
+  border: 1px solid #dfe5ff;
+}
+
+.app-frame-teacher .sidebar-metric span,
+.app-frame-teacher .sidebar-metric strong {
+  color: #33456f !important;
+}
+
+.app-frame-teacher .sidebar-nav-title {
+  color: rgba(255,255,255,.78) !important;
+}
+
+.app-frame-teacher .sidebar-nav-link,
+.app-frame-teacher .sidebar-nav-label {
+  color: #fff !important;
+}
+
+.app-frame-teacher .sidebar-nav-link:hover {
+  background: rgba(255,255,255,.12) !important;
+}
+
+.app-frame-teacher .sidebar-nav-link.is-active,
+.app-frame-teacher .sidebar-nav-link[aria-current="page"] {
+  background: rgba(255,255,255,.17) !important;
+  color: #fff !important;
+  box-shadow: inset 3px 0 0 #b8f238;
+}
+
 .sidebar-brand-row {
   display: flex;
   align-items: center;
@@ -53,6 +114,13 @@
 .sidebar-metric strong {
   color: #fff !important;
 }
+
+/* Reaplica o contraste específico do card branco do Professor depois das regras gerais. */
+.app-frame-teacher .sidebar-role > span { color: #52617f !important; }
+.app-frame-teacher .sidebar-role > strong { color: #253454 !important; }
+.app-frame-teacher .sidebar-subtitle { color: #6f7b94 !important; }
+.app-frame-teacher .sidebar-metric span,
+.app-frame-teacher .sidebar-metric strong { color: #33456f !important; }
 
 .sidebar-nav-title {
   font-weight: 900;
