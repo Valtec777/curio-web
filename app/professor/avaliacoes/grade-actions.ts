@@ -35,7 +35,6 @@ export async function gradeTeacherAssessment(formData: FormData) {
     score: parsed.data.score,
     status: "reviewed",
     reviewed_at: new Date().toISOString(),
-    submitted_at: assignment ? undefined : undefined,
   }).eq("id", assignment.id);
 
   if (error) redirect(`/professor/avaliacoes?erro=${encodeURIComponent("Não foi possível registrar a nota.")}`);
