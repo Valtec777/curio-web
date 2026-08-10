@@ -5,6 +5,7 @@ import "./globals.css";
 import "./responsive.css";
 import "./accessibility.css";
 import "./urgent-preview-fixes.css";
+import "./urgent-fixes.css";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
