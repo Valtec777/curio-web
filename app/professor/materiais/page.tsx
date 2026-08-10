@@ -73,7 +73,7 @@ export default async function TeacherMaterialsPage({
         eyebrow="Professor • Criar e publicar"
         title="Materiais"
         description="Publique materiais e Cadernos Curió para os alunos selecionados, com prazo e horário de liberação."
-        action={<Link className="button button-primary" href="/professor/criar?modo=material#material">+ Novo material</Link>}
+        action={<Link className="button button-primary" href="/professor/materiais/novo">+ Novo material</Link>}
       />
 
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
