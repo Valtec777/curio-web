@@ -1,5 +1,6 @@
 "use server";
 
+import { createHash } from "node:crypto";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -32,6 +33,24 @@ function safeFileName(name: string) {
   return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/-+/g, "-").slice(0, 110);
 }
 
+function bahiaDay() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Bahia",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+function generationFingerprint(payload: Record<string, unknown>) {
+  return createHash("sha256").update(JSON.stringify(payload)).digest("hex");
+}
+
+function isDuplicateStorageError(message?: string) {
+  const value = String(message || "").toLowerCase();
+  return value.includes("already exists") || value.includes("duplicate") || value.includes("resource exists");
+}
+
 export async function queueCurioGeneration(formData: FormData) {
   const { teacher, supabase, viewer } = await getCurrentTeacher();
   if (!teacher) redirect("/professor/gerador?erro=Professor+não+vinculado");
@@ -51,20 +70,37 @@ export async function queueCurioGeneration(formData: FormData) {
 
   if (!parsed.success) redirect(`/professor/gerador?erro=${encodeURIComponent(parsed.error.issues[0]?.message || "Revise os campos.")}`);
 
+  if (hasFile) {
+    if (file.size > 10 * 1024 * 1024) redirect("/professor/gerador?erro=O+arquivo+deve+ter+até+10+MB");
+    if (!allowedMimeTypes.has(file.type)) redirect("/professor/gerador?erro=Envie+PDF,+TXT+ou+DOCX");
+  }
+
+  const fingerprint = generationFingerprint({
+    output_type: parsed.data.outputType,
+    prompt: rawPrompt.trim() || null,
+    title_hint: parsed.data.titleHint?.trim() || null,
+    student_id: parsed.data.studentId || null,
+    grade_id: parsed.data.gradeId || null,
+    subject_id: parsed.data.subjectId || null,
+    source_file_name: hasFile ? file.name : null,
+    source_file_size: hasFile ? file.size : null,
+    source_mime_type: hasFile ? file.type : null,
+  });
+  const idempotencyKey = `generation-v1:${fingerprint}`;
+
   let sourceFilePath: string | null = null;
   let sourceFileName: string | null = null;
   let sourceMimeType: string | null = null;
 
   if (hasFile) {
-    if (file.size > 10 * 1024 * 1024) redirect("/professor/gerador?erro=O+arquivo+deve+ter+até+10+MB");
-    if (!allowedMimeTypes.has(file.type)) redirect("/professor/gerador?erro=Envie+PDF,+TXT+ou+DOCX");
-
-    const path = `${viewer.user.id}/${crypto.randomUUID()}-${safeFileName(file.name || "fonte.pdf")}`;
+    const path = `${viewer.user.id}/${bahiaDay()}-${fingerprint}-${safeFileName(file.name || "fonte.pdf")}`;
     const { error: uploadError } = await supabase.storage.from("generation-sources").upload(path, file, {
       contentType: file.type,
       upsert: false,
     });
-    if (uploadError) redirect(`/professor/gerador?erro=${encodeURIComponent("Não foi possível anexar o arquivo: " + uploadError.message)}`);
+    if (uploadError && !isDuplicateStorageError(uploadError.message)) {
+      redirect(`/professor/gerador?erro=${encodeURIComponent("Não foi possível anexar o arquivo: " + uploadError.message)}`);
+    }
     sourceFilePath = path;
     sourceFileName = file.name;
     sourceMimeType = file.type;
@@ -97,6 +133,7 @@ export async function queueCurioGeneration(formData: FormData) {
     teacher_id: teacher.id,
     job_type: parsed.data.outputType,
     status: "queued",
+    idempotency_key: idempotencyKey,
     input: {
       prompt: rawPrompt.trim() || null,
       title_hint: parsed.data.titleHint?.trim() || null,
@@ -114,7 +151,11 @@ export async function queueCurioGeneration(formData: FormData) {
     },
   });
 
-  if (error) redirect(`/professor/gerador?erro=${encodeURIComponent(error.message)}`);
+  if (error && error.code !== "23505") {
+    if (sourceFilePath) await supabase.storage.from("generation-sources").remove([sourceFilePath]);
+    redirect(`/professor/gerador?erro=${encodeURIComponent(error.message)}`);
+  }
+
   revalidatePath("/professor/gerador");
-  redirect("/professor/gerador?sucesso=Fonte+recebida.+Rascunho+colocado+na+fila+de+geração.");
+  redirect(`/professor/gerador?sucesso=${encodeURIComponent(error?.code === "23505" ? "Esse pedido já estava na fila. Nenhuma geração duplicada foi criada." : "Fonte recebida. Rascunho colocado na fila de geração.")}`);
 }
