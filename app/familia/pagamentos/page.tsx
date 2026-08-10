@@ -1,6 +1,5 @@
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
-import { requireRole } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { getFamilyPortal } from "@/lib/family";
 import { submitPaymentReceipt } from "./actions";
 
 function money(value: number | string | null | undefined) {
@@ -18,17 +17,16 @@ function receiptLabel(status?: string | null) {
   return "Aguardando conferência";
 }
 
-export default async function FamilyPaymentsPage({ searchParams }: { searchParams: Promise<{ erro?: string; sucesso?: string }> }) {
+export default async function FamilyPaymentsPage({ searchParams }: { searchParams: Promise<{ aluno?: string; erro?: string; sucesso?: string }> }) {
   const query = await searchParams;
-  const viewer = await requireRole("guardian");
-  const supabase = await createClient();
-  const { data: guardian } = await supabase.from("guardians").select("id,active").eq("profile_id", viewer.user.id).maybeSingle();
-  if (!guardian) return <EmptyState title="Perfil da família incompleto" description="A administração precisa concluir o vínculo do responsável." />;
+  const { guardian, selectedChild, supabase } = await getFamilyPortal(query.aluno || null);
+  if (!guardian?.active || !selectedChild) return <EmptyState title="Perfil da família incompleto" description="A administração precisa concluir o vínculo do responsável e da criança." />;
 
   const { data: subscriptions } = await supabase
     .from("subscriptions")
     .select("id,status,agreed_monthly_price,starts_at,plans(name),students(preferred_name,full_name)")
     .eq("guardian_id", guardian.id)
+    .eq("student_id", selectedChild.student_id)
     .order("created_at", { ascending: false });
   const subscriptionIds = (subscriptions ?? []).map((item: any) => item.id);
   const [{ data: payments }, { data: receipts }] = await Promise.all([
@@ -44,6 +42,7 @@ export default async function FamilyPaymentsPage({ searchParams }: { searchParam
 
   const signedByReceipt = new Map<string, string>();
   for (const receipt of receipts ?? []) {
+    if (!payments?.some((payment: any) => payment.id === receipt.payment_id)) continue;
     const { data } = await supabase.storage.from("payment-receipts").createSignedUrl(receipt.file_path, 600);
     if (data?.signedUrl) signedByReceipt.set(receipt.id, data.signedUrl);
   }
@@ -52,19 +51,19 @@ export default async function FamilyPaymentsPage({ searchParams }: { searchParam
     <>
       <PageHeader
         eyebrow="Ninho da Família"
-        title="Pagamentos"
-        description="Envie o comprovante do Pix e acompanhe a conferência. O pagamento só aparece como confirmado depois que a equipe verificar a entrada no banco."
+        title={`Pagamento de ${selectedChild.student_name}`}
+        description="Escolha a mensalidade correta, anexe o comprovante do Pix e acompanhe a conferência da equipe."
       />
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
       {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
 
       <section className="panel family-highlight">
-        <strong>Como funciona</strong>
-        <p className="mb-0">Após pagar, anexe o comprovante. A equipe CURIÓ confere a transação e só então marca a mensalidade como paga.</p>
+        <strong>Confirmação humana</strong>
+        <p className="mb-0">O comprovante não marca a mensalidade como paga sozinho. A equipe CURIÓ confere a entrada no banco e só então confirma o mês.</p>
       </section>
 
       <section className="panel">
-        <div className="panel-head"><div><h2>Mensalidades</h2><p>Comprovantes enviados ficam associados ao mês correto.</p></div></div>
+        <div className="panel-head"><div><h2>Mensalidades</h2><p>O comprovante fica associado à competência/mês escolhido abaixo.</p></div></div>
         {payments?.length ? (
           <div className="form-stack">
             {payments.map((payment: any) => {
@@ -73,11 +72,11 @@ export default async function FamilyPaymentsPage({ searchParams }: { searchParam
               const paid = payment.status === "paid";
               const canSend = !paid && receipt?.status !== "pending";
               return (
-                <article className="mission-card" key={payment.id}>
+                <article className="family-upload-card" key={payment.id}>
                   <div className="flex space-between gap-8 wrap">
                     <div>
                       <strong>{monthLabel(payment.due_date)}</strong>
-                      <p>{subscription?.students?.preferred_name || subscription?.students?.full_name || "Criança"} • {subscription?.plans?.name || "Plano CURIÓ"}</p>
+                      <p>{selectedChild.student_name} • {subscription?.plans?.name || "Plano CURIÓ"}</p>
                     </div>
                     <Badge tone={paid ? "green" : payment.status === "overdue" ? "pink" : "yellow"}>{paid ? "Pagamento confirmado" : payment.status === "overdue" ? "Vencido" : "Aguardando pagamento"}</Badge>
                   </div>
@@ -95,7 +94,7 @@ export default async function FamilyPaymentsPage({ searchParams }: { searchParam
                     <form action={submitPaymentReceipt} className="form-stack">
                       <input type="hidden" name="paymentId" value={payment.id} />
                       <div className="field">
-                        <label>{receipt?.status === "rejected" ? "Enviar novo comprovante" : "Anexar comprovante"}</label>
+                        <label>{receipt?.status === "rejected" ? `Enviar novo comprovante de ${monthLabel(payment.due_date)}` : `Anexar comprovante de ${monthLabel(payment.due_date)}`}</label>
                         <input className="input" type="file" name="receiptFile" accept="application/pdf,image/png,image/jpeg,image/webp,.pdf,.png,.jpg,.jpeg,.webp" required />
                         <small className="muted">PDF, PNG, JPG ou WEBP · até 10 MB.</small>
                       </div>
@@ -106,7 +105,7 @@ export default async function FamilyPaymentsPage({ searchParams }: { searchParam
               );
             })}
           </div>
-        ) : <EmptyState title="Nenhuma mensalidade cadastrada" description="Quando houver cobranças vinculadas ao seu plano, elas aparecerão aqui." />}
+        ) : <EmptyState title="Nenhuma mensalidade cadastrada" description={`Quando houver cobranças vinculadas ao plano de ${selectedChild.student_name}, elas aparecerão aqui.`} />}
       </section>
     </>
   );
