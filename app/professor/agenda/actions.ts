@@ -10,7 +10,8 @@ const agendaSchema = z.object({
   studentId: z.string().uuid(),
   title: z.string().trim().min(2).max(160),
   description: z.string().trim().max(1200).optional(),
-  eventType: z.enum(["meeting", "assessment", "deadline", "reminder", "class", "other"]),
+  eventType: z.enum(["meeting", "family_meeting", "review", "assessment", "deadline", "reminder", "class", "other"]),
+  status: z.enum(["scheduled", "confirmed", "completed", "cancelled"]),
   startsAt: z.string().min(10),
   endsAt: z.string().optional(),
   meetingUrl: z.string().trim().max(1200).optional(),
@@ -32,6 +33,7 @@ export async function createAgendaEvent(formData: FormData) {
     title: formData.get("title"),
     description: String(formData.get("description") || ""),
     eventType: formData.get("eventType"),
+    status: formData.get("status") || "scheduled",
     startsAt: formData.get("startsAt"),
     endsAt: String(formData.get("endsAt") || ""),
     meetingUrl: String(formData.get("meetingUrl") || ""),
@@ -63,7 +65,7 @@ export async function createAgendaEvent(formData: FormData) {
     redirect(`/professor/agenda?erro=${encodeURIComponent("Este aluno não está vinculado a você.")}`);
   }
 
-  const { error } = await supabase.rpc("create_teacher_agenda_event", {
+  const { data: eventId, error } = await supabase.rpc("create_teacher_agenda_event", {
     p_idempotency_key: parsed.data.idempotencyKey,
     p_student_id: parsed.data.studentId,
     p_title: parsed.data.title,
@@ -77,24 +79,34 @@ export async function createAgendaEvent(formData: FormData) {
     p_visible_to_guardian: formData.get("visibleToGuardian") === "on",
   });
 
-  if (error) {
-    console.error("Falha ao criar evento da agenda", error.code);
+  if (error || !eventId) {
+    console.error("Falha ao criar evento da agenda", error?.code);
     redirect(`/professor/agenda?erro=${encodeURIComponent("Não foi possível criar o encontro. Verifique o vínculo do aluno e tente novamente.")}`);
+  }
+
+  if (parsed.data.status !== "scheduled") {
+    const { error: statusError } = await supabase
+      .from("agenda_events")
+      .update({ status: parsed.data.status, updated_at: new Date().toISOString() })
+      .eq("id", eventId)
+      .eq("created_by_teacher_id", teacher.id);
+    if (statusError) redirect(`/professor/agenda?erro=${encodeURIComponent("O encontro foi criado, mas o status precisa ser atualizado novamente.")}`);
   }
 
   revalidatePath("/professor/agenda");
   revalidatePath("/professor");
+  revalidatePath("/professor/alunos");
   revalidatePath("/aluno/agenda");
   revalidatePath("/aluno");
   revalidatePath("/familia/agenda");
   revalidatePath("/familia");
-  redirect(`/professor/agenda?sucesso=${encodeURIComponent("Encontro criado e disponibilizado para os participantes selecionados.")}`);
+  redirect(`/professor/agenda?sucesso=${encodeURIComponent("Encontro salvo e disponibilizado para os participantes selecionados.")}`);
 }
 
 export async function setAgendaEventStatus(formData: FormData) {
   const parsed = z.object({
     eventId: z.string().uuid(),
-    status: z.enum(["scheduled", "completed", "cancelled"]),
+    status: z.enum(["scheduled", "confirmed", "completed", "cancelled"]),
   }).safeParse({
     eventId: formData.get("eventId"),
     status: formData.get("status"),
@@ -111,6 +123,8 @@ export async function setAgendaEventStatus(formData: FormData) {
 
   if (error) redirect(`/professor/agenda?erro=${encodeURIComponent("Não foi possível atualizar o encontro.")}`);
   revalidatePath("/professor/agenda");
+  revalidatePath("/professor");
+  revalidatePath("/professor/alunos");
   revalidatePath("/aluno/agenda");
   revalidatePath("/familia/agenda");
   redirect(`/professor/agenda?sucesso=${encodeURIComponent(parsed.data.status === "cancelled" ? "Encontro cancelado." : "Situação do encontro atualizada.")}`);
