@@ -38,6 +38,7 @@ export default async function FamilyAgendaPage() {
   const activeLinks = (links ?? []).filter((link: any) => link.students && !link.students.deleted_at);
   const studentIds = activeLinks.map((link: any) => link.student_id);
   const studentName = new Map(activeLinks.map((link: any) => [link.student_id, link.students?.preferred_name || link.students?.full_name || "Criança"]));
+  const guardianName = viewer.profile?.preferred_name || viewer.profile?.full_name || "Responsável";
 
   const { data: eventLinks } = studentIds.length
     ? await supabase
@@ -65,19 +66,23 @@ export default async function FamilyAgendaPage() {
           <div className="form-stack">
             {events.map((item: any) => {
               const event = item.agenda_events;
+              const isMeeting = event.event_type === "meeting";
               return (
                 <article className="mission-card" key={`${item.student_id}-${item.event_id}`}>
                   <div className="flex space-between gap-8 wrap">
                     <div>
                       <strong>{event.title}</strong>
-                      <p>{studentName.get(item.student_id)} • {event.description || event.event_type}</p>
+                      <p>{studentName.get(item.student_id)} • {event.description || (isMeeting ? "Reunião com a família" : event.event_type)}</p>
+                      {isMeeting && <small className="muted">Responsável: {guardianName}</small>}
                     </div>
                     <Badge tone={tone(event.status)}>{event.status}</Badge>
                   </div>
                   <small className="muted">{dt(event.starts_at)}{event.ends_at ? ` → ${dt(event.ends_at)}` : ""}{event.location ? ` • ${event.location}` : ""}</small>
                   {event.meeting_url && event.status !== "cancelled" && (
                     <div className="mt-12">
-                      <a className="button button-primary button-small" href={event.meeting_url} target="_blank" rel="noreferrer">Entrar na aula ↗</a>
+                      <a className="button button-primary button-small" href={event.meeting_url} target="_blank" rel="noreferrer">
+                        {isMeeting ? "Entrar na reunião ↗" : "Entrar na aula ↗"}
+                      </a>
                     </div>
                   )}
                 </article>
