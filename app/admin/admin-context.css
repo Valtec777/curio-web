@@ -1,0 +1,18 @@
+.admin-context-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 0 0 18px;
+  padding: 15px 17px;
+  border: 1px solid rgba(77,67,173,.12);
+  border-radius: 20px;
+  background: linear-gradient(135deg,#f1ffd1 0%,#fff 72%);
+}
+.admin-context-action-row > div { display: grid; gap: 2px; }
+.admin-context-action-row strong { color: #17284e; font-size: 14px; }
+.admin-context-action-row span { color: #6b7487; font-size: 12px; }
+html[data-theme="dark"] .admin-context-action-row { background: #202636; border-color: #414b60; }
+html[data-theme="dark"] .admin-context-action-row strong { color: #f5f7fb; }
+html[data-theme="dark"] .admin-context-action-row span { color: #bcc5d6; }
+@media(max-width:640px){.admin-context-action-row{align-items:flex-start;flex-direction:column}.admin-context-action-row .button{width:100%}}
