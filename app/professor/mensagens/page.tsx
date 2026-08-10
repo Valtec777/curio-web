@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { Badge, EmptyState, PageHeader } from "@/components/ui";
+import Link from "next/link";
+import { EmptyState, PageHeader } from "@/components/ui";
 import { getCurrentTeacher } from "@/lib/teacher";
-import { FamilyMessageComposer } from "./composer";
-import { editTeamMessage, removeTeamMessage } from "@/app/message-actions";
+import { sendTeacherChatMessage } from "./actions";
 
 function dt(value?: string | null) {
   if (!value) return "—";
@@ -13,209 +13,172 @@ function dt(value?: string | null) {
   }).format(new Date(value));
 }
 
-function d(value?: string | null) {
-  if (!value) return "";
-  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeZone: "America/Bahia" }).format(new Date(value));
-}
-
-function t(value?: string | null) {
-  if (!value) return "";
-  return new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Bahia" }).format(new Date(value));
-}
-
 export default async function ProfessorMessagesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ erro?: string; sucesso?: string }>;
+  searchParams: Promise<{ conversa?: string; erro?: string; sucesso?: string }>;
 }) {
   const query = await searchParams;
   const { teacher, supabase, viewer } = await getCurrentTeacher();
-  if (!teacher) {
-    return <EmptyState title="Perfil de professor ainda não vinculado" description="A administração precisa concluir seu perfil antes de enviar mensagens." />;
-  }
+  if (!teacher) return <EmptyState title="Perfil de professor ainda não vinculado" description="A administração precisa concluir seu perfil antes de usar as conversas." />;
 
-  const [studentLinksResult, guardianResult, templatesResult, sentMessagesResult, agendaResult, missionResult] = await Promise.all([
+  const [{ data: targets }, { data: ownParticipantRows }] = await Promise.all([
+    supabase.rpc("teacher_chat_targets"),
     supabase
-      .from("teacher_students")
-      .select("student_id,students(id,preferred_name,full_name,school_name,deleted_at,grades(name))")
-      .eq("teacher_id", teacher.id)
-      .eq("active", true),
-    supabase.rpc("teacher_linked_guardian_names"),
-    supabase
-      .from("content_templates")
-      .select("id,name,description,config")
-      .eq("template_type", "communication")
-      .eq("active", true)
-      .order("name"),
-    supabase
-      .from("messages")
-      .select("id,thread_id,body,created_at,edited_at,action_label,action_url,message_threads(subject,context_student_id)")
-      .eq("sender_user_id", viewer.user.id)
-      .is("deleted_at", null)
-      .order("created_at", { ascending: false })
-      .limit(40),
-    supabase
-      .from("agenda_events")
-      .select("id,title,starts_at,meeting_url,status,agenda_event_students(student_id)")
-      .eq("created_by_teacher_id", teacher.id)
-      .order("starts_at", { ascending: false })
-      .limit(120),
-    supabase
-      .from("mission_students")
-      .select("id,student_id,due_at,status,assigned_at,missions(id,title,status)")
-      .eq("assigned_by_teacher_id", teacher.id)
-      .order("assigned_at", { ascending: false })
+      .from("message_thread_participants")
+      .select("thread_id,last_read_at,message_threads(id,subject,thread_type,updated_at,context_student_id)")
+      .eq("user_id", viewer.user.id)
+      .order("joined_at", { ascending: false })
       .limit(120),
   ]);
 
-  const loadErrors = [studentLinksResult.error, guardianResult.error, templatesResult.error, sentMessagesResult.error, agendaResult.error, missionResult.error].filter(Boolean);
-  if (loadErrors.length) {
-    console.error("Falha parcial ao carregar mensagens do professor", loadErrors.map((error: any) => error?.code || "unknown"));
+  const threadIds = (ownParticipantRows ?? []).map((item: any) => item.thread_id);
+  const [{ data: participantRows }, { data: messages }] = await Promise.all([
+    threadIds.length
+      ? supabase.from("message_thread_participants").select("thread_id,user_id").in("thread_id", threadIds)
+      : Promise.resolve({ data: [] as any[] }),
+    threadIds.length
+      ? supabase.from("messages").select("id,thread_id,sender_user_id,body,created_at,edited_at,action_label,action_url").in("thread_id", threadIds).is("deleted_at", null).order("created_at", { ascending: true }).limit(600)
+      : Promise.resolve({ data: [] as any[] }),
+  ]);
+
+  const threads = (ownParticipantRows ?? []).map((row: any) => ({ ...row.message_threads, participantMeta: row })).filter((thread: any) => thread?.id);
+  const conversations = threads.filter((thread: any) => thread.thread_type === "family" || thread.thread_type === "student");
+  const adminThreads = threads.filter((thread: any) => thread.thread_type !== "family" && thread.thread_type !== "student");
+  const conversationIds = new Set(conversations.map((thread: any) => thread.id));
+  const selectedId = query.conversa && conversationIds.has(query.conversa) ? query.conversa : conversations[0]?.id || "";
+  const selectedThread: any = conversations.find((thread: any) => thread.id === selectedId);
+
+  const participantsByThread = new Map<string, string[]>();
+  for (const row of participantRows ?? []) {
+    participantsByThread.set(row.thread_id, [...(participantsByThread.get(row.thread_id) || []), row.user_id]);
+  }
+  const messagesByThread = new Map<string, any[]>();
+  for (const message of messages ?? []) {
+    messagesByThread.set(message.thread_id, [...(messagesByThread.get(message.thread_id) || []), message]);
   }
 
-  const studentMap = new Map(
-    (studentLinksResult.data ?? [])
-      .filter((link: any) => link.students && !link.students.deleted_at)
-      .map((link: any) => [link.student_id, link.students]),
-  );
+  function targetForThread(thread: any) {
+    const otherUserId = (participantsByThread.get(thread.id) || []).find((userId) => userId !== viewer.user.id);
+    return (targets ?? []).find((target: any) => target.target_user_id === otherUserId && target.student_id === thread.context_student_id) || null;
+  }
 
-  const targets = (guardianResult.data ?? [])
-    .map((guardian: any) => {
-      const student: any = studentMap.get(guardian.student_id);
-      if (!student) return null;
-      return {
-        studentId: guardian.student_id,
-        studentName: student.preferred_name || student.full_name || "Aluno",
-        guardianId: guardian.guardian_id,
-        guardianName: guardian.guardian_name || "Responsável",
-        relationship: guardian.relationship || "Responsável",
-        schoolName: student.school_name || "",
-        gradeName: student.grades?.name || "",
-      };
-    })
-    .filter(Boolean) as Array<{
-      studentId: string;
-      studentName: string;
-      guardianId: string;
-      guardianName: string;
-      relationship: string;
-      schoolName: string;
-      gradeName: string;
-    }>;
+  function threadTitle(thread: any) {
+    const target: any = targetForThread(thread);
+    if (target?.target_kind === "family") return `${target.target_name} · família de ${target.student_name}`;
+    if (target?.target_kind === "student") return target.target_name;
+    return thread.subject || "Conversa";
+  }
 
-  const messageTemplates = (templatesResult.data ?? []).map((template: any) => ({
-    id: template.id,
-    name: template.name,
-    description: template.description || "",
-    subject: String(template.config?.subject || ""),
-    body: String(template.config?.body || ""),
-    actionLabel: String(template.config?.action_label || ""),
-    actionUrl: String(template.config?.action_url || ""),
-    contextKind: template.config?.context_kind === "agenda" || template.config?.context_kind === "mission" ? template.config.context_kind : "",
-  }));
+  function threadDetail(thread: any) {
+    const target: any = targetForThread(thread);
+    if (target?.target_kind === "family") return `${target.relationship || "Responsável"} · ${target.student_name}`;
+    if (target?.target_kind === "student") return `Aluno · ${target.student_name}`;
+    return thread.thread_type;
+  }
 
-  const contexts = [
-    ...(agendaResult.data ?? []).flatMap((event: any) => (event.agenda_event_students ?? [])
-      .filter((link: any) => studentMap.has(link.student_id))
-      .map((link: any) => ({
-        kind: "agenda" as const,
-        id: event.id,
-        studentId: link.student_id,
-        label: `Agenda • ${event.title} • ${d(event.starts_at)} ${t(event.starts_at)}`,
-        agendaTitle: event.title || "Encontro CURIÓ",
-        agendaDate: d(event.starts_at),
-        agendaTime: t(event.starts_at),
-        agendaLink: event.meeting_url || "",
-        missionName: "",
-        missionDue: "",
-      }))),
-    ...(missionResult.data ?? [])
-      .filter((assignment: any) => studentMap.has(assignment.student_id))
-      .map((assignment: any) => ({
-        kind: "mission" as const,
-        id: assignment.id,
-        studentId: assignment.student_id,
-        label: `Missão • ${assignment.missions?.title || "Missão Cuca"} • ${assignment.due_at ? `prazo ${d(assignment.due_at)}` : "sem prazo"}`,
-        agendaTitle: "",
-        agendaDate: "",
-        agendaTime: "",
-        agendaLink: "",
-        missionName: assignment.missions?.title || "Missão Cuca",
-        missionDue: assignment.due_at ? d(assignment.due_at) : "sem prazo definido",
-      })),
-  ];
-
-  const studentName = new Map(
-    [...studentMap.entries()].map(([id, student]: any) => [id, student.preferred_name || student.full_name || "Aluno"]),
-  );
+  const selectedMessages = selectedId ? messagesByThread.get(selectedId) || [] : [];
+  const adminMessages = adminThreads.flatMap((thread: any) => (messagesByThread.get(thread.id) || [])
+    .filter((message: any) => message.sender_user_id !== viewer.user.id)
+    .map((message: any) => ({ ...message, subject: thread.subject || "Recado da administração" })))
+    .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   return (
     <>
       <PageHeader
         eyebrow="Professor • Mensagens"
         title="Mensagens"
-        description="Envie mensagens internas para famílias vinculadas, com modelos CURIÓ, dados reais de agenda/missão e preview antes do envio."
+        description="Converse normalmente com famílias e alunos vinculados. Comunicados administrativos aparecem separados e não viram um chat comum."
       />
 
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
       {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
-      {loadErrors.length > 0 && <div className="form-message form-error">Alguns dados complementares não puderam ser carregados. Você ainda pode escrever uma mensagem sem contexto; recarregue a página para tentar buscar Agenda/Missões novamente.</div>}
 
-      <div className="notice">
-        O envio acontece dentro do CURIÓ. Nenhum WhatsApp, e-mail ou serviço externo é acionado por esta tela. O backend revalida Professor → Aluno → Família e também o encontro/missão selecionado antes de salvar a mensagem.
+      <div className="teacher-chat-layout">
+        <section className="panel">
+          <div className="panel-head"><div><h2>Conversas</h2><p>Famílias e alunos vinculados a você.</p></div></div>
+
+          <details className="plan-editor mb-16">
+            <summary className="button button-primary button-small">+ Nova conversa</summary>
+            <form action={sendTeacherChatMessage} className="form-stack compact-form mt-12">
+              <input type="hidden" name="requestKey" value={randomUUID()} />
+              <div className="field">
+                <label>Conversar com *</label>
+                <select className="select" name="target" defaultValue="" required>
+                  <option value="" disabled>Selecione</option>
+                  {(targets ?? []).map((target: any) => (
+                    <option key={`${target.target_kind}-${target.student_id}-${target.target_user_id}`} value={`${target.target_kind}|${target.student_id}|${target.guardian_id || ""}`}>
+                      {target.target_kind === "family" ? `Família de ${target.student_name} — ${target.target_name}${target.relationship ? ` (${target.relationship})` : ""}` : `Aluno — ${target.target_name}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field"><label>Primeira mensagem *</label><textarea className="textarea textarea-compact" name="body" required maxLength={5000} /></div>
+              <button className="button button-primary button-small" type="submit">Iniciar conversa</button>
+            </form>
+          </details>
+
+          {conversations.length ? (
+            <div className="teacher-chat-list">
+              {conversations.map((thread: any) => {
+                const threadMessages = messagesByThread.get(thread.id) || [];
+                const last = threadMessages[threadMessages.length - 1];
+                return (
+                  <Link className={`teacher-chat-thread${thread.id === selectedId ? " is-active" : ""}`} href={`/professor/mensagens?conversa=${thread.id}`} key={thread.id}>
+                    <strong>{threadTitle(thread)}</strong>
+                    <small>{threadDetail(thread)}</small>
+                    <small>{last?.body ? `${last.body.slice(0, 62)}${last.body.length > 62 ? "…" : ""}` : "Conversa iniciada"}</small>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : <EmptyState title="Nenhuma conversa" description="Clique em “Nova conversa” para falar com uma família ou aluno vinculado." />}
+        </section>
+
+        {selectedThread ? (
+          <section className="panel teacher-chat-window">
+            <header className="teacher-chat-head">
+              <h2>{threadTitle(selectedThread)}</h2>
+              <p>{threadDetail(selectedThread)}</p>
+            </header>
+            <div className="teacher-chat-messages">
+              {selectedMessages.length ? selectedMessages.map((message: any) => {
+                const isOwn = message.sender_user_id === viewer.user.id;
+                return (
+                  <div className={`teacher-chat-bubble${isOwn ? " is-own" : ""}`} key={message.id}>
+                    <p>{message.body}</p>
+                    <small>{isOwn ? "Você" : threadTitle(selectedThread)} · {dt(message.created_at)}{message.edited_at ? " · editada" : ""}</small>
+                    {message.action_label && message.action_url && <a className="button button-secondary button-small mt-12" href={message.action_url} target={message.action_url.startsWith("https://") ? "_blank" : undefined} rel={message.action_url.startsWith("https://") ? "noreferrer" : undefined}>{message.action_label}</a>}
+                  </div>
+                );
+              }) : <p className="muted">Ainda não há mensagens nesta conversa.</p>}
+            </div>
+            <form action={sendTeacherChatMessage} className="teacher-chat-compose">
+              <input type="hidden" name="threadId" value={selectedThread.id} />
+              <input type="hidden" name="requestKey" value={randomUUID()} />
+              <textarea className="textarea" name="body" placeholder="Escreva uma mensagem…" required maxLength={5000} aria-label="Mensagem" />
+              <button className="button button-primary" type="submit">Enviar</button>
+            </form>
+          </section>
+        ) : (
+          <section className="panel"><EmptyState title="Escolha uma conversa" description="Quando você iniciar ou abrir um chat, as mensagens aparecerão aqui." /></section>
+        )}
       </div>
 
-      <FamilyMessageComposer
-        targets={targets}
-        templates={messageTemplates}
-        contexts={contexts}
-        teacherName={viewer.profile?.preferred_name || viewer.profile?.full_name || "Professor CURIÓ"}
-        requestKey={randomUUID()}
-      />
-
-      <section className="panel">
-        <div className="panel-head">
-          <div>
-            <h2>Mensagens enviadas</h2>
-            <p>Edite ou remova somente mensagens que você enviou. A remoção preserva o histórico operacional.</p>
-          </div>
-        </div>
-
-        {sentMessagesResult.data?.length ? (
-          <div className="form-stack">
-            {sentMessagesResult.data.map((message: any) => (
-              <article className="mission-card" key={message.id}>
-                <div className="flex space-between gap-8 wrap">
-                  <div>
-                    <strong>{message.message_threads?.subject || "Conversa CURIÓ"}</strong>
-                    <p>{message.body}</p>
-                  </div>
-                  <Badge tone="blue">{studentName.get(message.message_threads?.context_student_id) || "Família"}</Badge>
-                </div>
-                <small className="muted">{dt(message.created_at)}{message.edited_at ? " • editada" : ""}</small>
-                {message.action_label && message.action_url && (
-                  <p className="muted">Botão: {message.action_label} → {message.action_url}</p>
-                )}
-                <details className="plan-editor mt-12">
-                  <summary className="button button-secondary button-small">Editar mensagem</summary>
-                  <form action={editTeamMessage} className="form-stack compact-form">
-                    <input type="hidden" name="messageId" value={message.id} />
-                    <input type="hidden" name="returnPath" value="/professor/mensagens" />
-                    <textarea className="textarea" name="body" defaultValue={message.body} required maxLength={5000} />
-                    <button className="button button-secondary button-small" type="submit">Salvar edição</button>
-                  </form>
-                </details>
-                <form action={removeTeamMessage} className="mt-12">
-                  <input type="hidden" name="messageId" value={message.id} />
-                  <input type="hidden" name="returnPath" value="/professor/mensagens" />
-                  <button className="button button-danger button-small" type="submit">Remover mensagem</button>
-                </form>
+      <section className="panel mt-16">
+        <div className="panel-head"><div><h2>Recados da administração</h2><p>Comunicados do Admin aparecem aqui como mensagens informativas, separados das conversas com alunos e famílias.</p></div></div>
+        {adminMessages.length ? (
+          <div className="teacher-admin-notice-list">
+            {adminMessages.map((message: any) => (
+              <article className="teacher-admin-notice" key={message.id}>
+                <strong>{message.subject}</strong>
+                <p>{message.body}</p>
+                <small className="muted">{dt(message.created_at)}</small>
+                {message.action_label && message.action_url && <div className="mt-12"><a className="button button-secondary button-small" href={message.action_url} target={message.action_url.startsWith("https://") ? "_blank" : undefined} rel={message.action_url.startsWith("https://") ? "noreferrer" : undefined}>{message.action_label}</a></div>}
               </article>
             ))}
           </div>
-        ) : (
-          <EmptyState title="Nenhuma mensagem enviada" description="Use o compositor acima para iniciar uma conversa com uma família vinculada." />
-        )}
+        ) : <p className="muted">Nenhum recado administrativo no momento.</p>}
       </section>
     </>
   );
