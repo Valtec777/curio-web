@@ -48,24 +48,28 @@ const menus: Record<AppRole, NavItem[]> = {
     { href: "/admin/configuracoes", label: "Configurações", group: "Sistema" },
   ],
   teacher: [
-    { href: "/professor", label: "Hoje" },
-    { href: "/professor/agenda", label: "Agenda" },
-    { href: "/professor/reunioes", label: "Reuniões" },
-    { href: "/professor/alunos", label: "Alunos" },
-    { href: "/professor/turmas", label: "Turmas" },
-    { href: "/professor/mapa", label: "Mapa Pedagógico" },
-    { href: "/professor/grupos", label: "Grupos Pedagógicos" },
-    { href: "/professor/missoes", label: "Missões" },
-    { href: "/professor/materiais", label: "Materiais" },
-    { href: "/professor/gerador", label: "Gerador" },
-    { href: "/professor/conteudos", label: "Conteúdos" },
-    { href: "/professor/correcoes", label: "Correções" },
-    { href: "/professor/avaliacoes", label: "Avaliações" },
-    { href: "/professor/mensagens", label: "Mensagens" },
-    { href: "/professor/relatorios", label: "Relatórios" },
-    { href: "/professor/suporte", label: "Suporte" },
-    { href: "/professor/perfil", label: "Perfil" },
-    { href: "/admin", label: "Área Administrativa", requiresRole: "admin" },
+    { href: "/professor", label: "Hoje", group: "Visão geral" },
+    { href: "/professor/agenda", label: "Agenda", group: "Visão geral" },
+    { href: "/professor/reunioes", label: "Reuniões", group: "Visão geral" },
+
+    { href: "/professor/alunos", label: "Alunos", group: "Acompanhamento" },
+    { href: "/professor/turmas", label: "Turmas", group: "Acompanhamento" },
+    { href: "/professor/mapa", label: "Mapa Pedagógico", group: "Acompanhamento" },
+    { href: "/professor/grupos", label: "Grupos Pedagógicos", group: "Acompanhamento" },
+
+    { href: "/professor/criar", label: "Criar conteúdo", group: "Criar e publicar" },
+    { href: "/professor/missoes", label: "Missões", group: "Criar e publicar" },
+    { href: "/professor/materiais", label: "Materiais", group: "Criar e publicar" },
+    { href: "/professor/conteudos", label: "Conteúdos", group: "Criar e publicar" },
+    { href: "/professor/avaliacoes", label: "Avaliações", group: "Criar e publicar" },
+
+    { href: "/professor/correcoes", label: "Correções", group: "Revisar" },
+    { href: "/professor/mensagens", label: "Mensagens", group: "Revisar" },
+    { href: "/professor/relatorios", label: "Relatórios", group: "Revisar" },
+
+    { href: "/professor/perfil", label: "Perfil", group: "Conta" },
+    { href: "/professor/suporte", label: "Suporte", group: "Conta" },
+    { href: "/admin", label: "Área Administrativa", requiresRole: "admin", group: "Conta" },
   ],
   student: [
     { href: "/aluno", label: "Hoje" },
@@ -138,6 +142,7 @@ export function AppShell({
     return acc;
   }, {});
   const quickSupport = supportHref[role];
+  const displayName = name || (role === "teacher" ? "Professor(a)" : "CURIÓ");
 
   return (
     <div className={`app-frame app-frame-${role}`}>
@@ -148,7 +153,7 @@ export function AppShell({
         </div>
         <div className="sidebar-role">
           <span>{titles[role]}</span>
-          <strong>{name || "CURIÓ"}</strong>
+          <strong>{role === "teacher" ? `Olá, ${displayName}` : displayName}</strong>
           {subtitle && <small className="sidebar-subtitle">{subtitle}</small>}
           {metricLabel && (
             <div className="sidebar-metric">
@@ -188,7 +193,7 @@ export function AppShell({
       <main className="app-main">{children}</main>
 
       {quickSupport && (
-        <Link className="floating-support-button" href={quickSupport} aria-label="Abrir suporte do CURIÓ">
+        <Link className="floating-support-button" href={quickSupport} aria-label="Abrir suporte do CURIÓ" title="Suporte">
           <span aria-hidden="true">?</span>
           <strong>Suporte</strong>
         </Link>
