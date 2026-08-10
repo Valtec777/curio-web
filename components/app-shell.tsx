@@ -52,6 +52,7 @@ const menus: Record<AppRole, NavItem[]> = {
   teacher: [
     { href: "/professor", label: "Hoje" },
     { href: "/professor/agenda", label: "Agenda" },
+    { href: "/professor/reunioes", label: "Reuniões" },
     { href: "/professor/alunos", label: "Alunos" },
     { href: "/professor/turmas", label: "Turmas" },
     { href: "/professor/mapa", label: "Mapa Pedagógico" },
