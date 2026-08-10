@@ -41,7 +41,7 @@ export default async function MissionsPage({ searchParams }: { searchParams: Pro
         eyebrow="Professor • Criar e publicar"
         title="Missões"
         description="Crie, atribua e acompanhe suas Missões Cuca. Uma mesma missão pode ser enviada para vários alunos."
-        action={<Link className="button button-primary" href="/professor/criar?modo=missao#missao">+ Nova missão</Link>}
+        action={<Link className="button button-primary" href="/professor/missoes/nova">+ Nova missão</Link>}
       />
 
       {params.erro && <div className="form-message form-error">{params.erro}</div>}
@@ -74,6 +74,7 @@ export default async function MissionsPage({ searchParams }: { searchParams: Pro
                   <span><strong>Objetivo:</strong> {mission.objective}</span>
                   {mission.characters?.name && <span>• Mascote: {mission.characters.name}</span>}
                   <span>• {assignments.length} atribuição(ões)</span>
+                  <span>• {questions.length} questão(ões)</span>
                 </div>
 
                 {names.length > 0 && <div className="flex gap-8 wrap"><small className="muted">Enviada para:</small>{names.map((name: string, index: number) => <Badge tone="blue" key={`${name}-${index}`}>{name}</Badge>)}</div>}
