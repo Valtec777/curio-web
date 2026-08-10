@@ -21,6 +21,7 @@ function typeLabel(entityType: string) {
     materials: "Material",
     notebook_activities: "Caderno Curió",
     assessments: "Avaliação",
+    documents: "Documento operacional",
   };
   return labels[entityType] || entityType;
 }
@@ -38,6 +39,7 @@ function canRestore(entityType: string) {
     "materials",
     "notebook_activities",
     "assessments",
+    "documents",
   ].includes(entityType);
 }
 
@@ -84,6 +86,7 @@ export default async function AdminTrashPage({ searchParams }: { searchParams: P
                   <div className="form-stack compact-form">
                     {snapshot.email && <small className="muted">{snapshot.email}</small>}
                     {snapshot.body_preview && <p className="muted">“{snapshot.body_preview}”</p>}
+                    {snapshot.file_path && <div className="asset-path">{snapshot.file_path}</div>}
                     <small className="muted">Removido em {dt(item.deleted_at)} por {actorName.get(item.deleted_by_user_id) || "Sistema / Admin"}</small>
                     <small className="muted">Restaurável até {dt(item.restore_until)}</small>
                     {snapshot.reason && <p><strong>Motivo:</strong> {snapshot.reason}</p>}
