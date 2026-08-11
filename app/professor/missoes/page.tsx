@@ -24,16 +24,18 @@ export default async function MissionsPage({ searchParams }: { searchParams: Pro
       .order("created_at", { ascending: false }),
     supabase
       .from("teacher_students")
-      .select("student_id,students(id,preferred_name,full_name,school_name,grades(name))")
+      .select("student_id,students(id,preferred_name,full_name,school_name,deleted_at,grades(name))")
       .eq("teacher_id", teacher.id)
       .eq("active", true),
   ]);
 
-  const students = (links ?? []).filter((link: any) => link.students).map((link: any) => ({
-    id: link.student_id,
-    name: link.students.preferred_name || link.students.full_name || "Aluno",
-    detail: link.students.grades?.name || link.students.school_name || "",
-  }));
+  const students = (links ?? [])
+    .filter((link: any) => link.students && !link.students.deleted_at)
+    .map((link: any) => ({
+      id: link.student_id,
+      name: link.students.preferred_name || link.students.full_name || "Aluno",
+      detail: link.students.grades?.name || link.students.school_name || "",
+    }));
 
   return (
     <>
@@ -101,7 +103,7 @@ export default async function MissionsPage({ searchParams }: { searchParams: Pro
                   <summary>Enviar / atualizar alunos</summary>
                   <form action={assignMissionMany} className="form-stack compact-form">
                     <input type="hidden" name="missionId" value={mission.id} />
-                    <MultiStudentPicker students={students} defaultSelected={assignedIds} />
+                    <MultiStudentPicker students={students} defaultSelected={assignedIds.filter((id: string) => students.some((student) => student.id === id))} />
                     <div className="field"><label>Prazo</label><input className="input" name="dueAt" type="date" /></div>
                     <button className="button button-primary button-small" type="submit">Publicar para selecionados</button>
                   </form>
