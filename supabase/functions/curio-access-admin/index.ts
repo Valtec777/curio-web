@@ -79,6 +79,40 @@ Deno.serve(async (req: Request) => {
     const body = await req.json() as Record<string, unknown>;
     const action = cleanText(body.action || "invite");
 
+    if (action === "update_email") {
+      const invitationId = cleanText(body.invitation_id);
+      const newEmail = cleanText(body.email).toLowerCase();
+      if (!invitationId || !newEmail.includes("@")) return reply(400, { error: "Informe a matrícula e um e-mail válido." });
+
+      const { data: invitation, error: invitationError } = await admin
+        .from("access_invitations")
+        .select("id,email,auth_user_id,role,deleted_at")
+        .eq("id", invitationId)
+        .eq("role", "guardian")
+        .is("deleted_at", null)
+        .maybeSingle();
+      if (invitationError || !invitation) return reply(404, { error: "Matrícula não encontrada." });
+      if (!invitation.auth_user_id) return reply(409, { error: "O acesso ainda não possui usuário para editar o e-mail." });
+      if (String(invitation.email || "").toLowerCase() === newEmail) return reply(200, { ok: true, unchanged: true });
+
+      const oldEmail = String(invitation.email || "").toLowerCase();
+      const { error: authUpdateError } = await admin.auth.admin.updateUserById(invitation.auth_user_id, { email: newEmail });
+      if (authUpdateError) return reply(400, { error: authUpdateError.message || "Não foi possível atualizar o e-mail de acesso." });
+
+      const { error: invitationUpdateError } = await admin
+        .from("access_invitations")
+        .update({ email: newEmail, updated_at: new Date().toISOString(), last_error: null })
+        .eq("auth_user_id", invitation.auth_user_id)
+        .is("deleted_at", null);
+
+      if (invitationUpdateError) {
+        if (oldEmail) await admin.auth.admin.updateUserById(invitation.auth_user_id, { email: oldEmail });
+        return reply(500, { error: "O e-mail de login foi alterado, mas a matrícula não pôde ser sincronizada. A alteração foi revertida." });
+      }
+
+      return reply(200, { ok: true, email: newEmail });
+    }
+
     if (action === "resend") {
       const invitationId = cleanText(body.invitation_id);
       const origin = cleanOrigin(body.origin);
