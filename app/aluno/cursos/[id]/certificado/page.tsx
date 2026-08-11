@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PrintCertificateButton } from "@/components/print-certificate-button";
 import { getCurrentStudent } from "@/lib/student";
 
 function issueDate(value: string) {
@@ -25,8 +26,9 @@ export default async function CourseCertificatePage({ params }: { params: Promis
     <div className="certificate-page">
       <div className="certificate-toolbar no-print">
         <Link className="button button-secondary" href={`/aluno/cursos/${id}`}>← Voltar ao curso</Link>
+        <PrintCertificateButton />
         <Link className="button button-secondary" href={validationHref} target="_blank">Validar certificado</Link>
-        <span className="muted">Para guardar em PDF: use Imprimir no navegador e escolha “Salvar como PDF”.</span>
+        <span className="muted">Na janela de impressão, escolha “Salvar como PDF” para guardar o certificado digital.</span>
       </div>
       <section className="certificate-sheet">
         <div className="certificate-mark">CURIÓ</div>
