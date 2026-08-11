@@ -10,7 +10,8 @@ function dt(value?: string | null) {
 }
 
 function decisionLabel(decision?: string | null) {
-  if (decision === "accepted") return "Aceito";
+  if (decision === "accepted") return "Concordância / autorização";
+  if (decision === "acknowledged") return "Ciência registrada";
   if (decision === "declined") return "Não autorizado";
   if (decision === "revoked") return "Revogado";
   return decision || "—";
@@ -77,8 +78,8 @@ export default async function AdminDocumentsPage({ searchParams }: { searchParam
   const placeholderCount = currentLegal.filter((doc: any) => String(doc.body || "").includes("PREENCHER")).length;
   const legalReady = currentLegal.length > 0 && publishedCount === currentLegal.length && placeholderCount === 0;
   const acceptedCount = (acceptanceEvents ?? []).filter((event: any) => event.decision === "accepted").length;
-  const declinedCount = (acceptanceEvents ?? []).filter((event: any) => event.decision === "declined").length;
-  const revokedCount = (acceptanceEvents ?? []).filter((event: any) => event.decision === "revoked").length;
+  const acknowledgedCount = (acceptanceEvents ?? []).filter((event: any) => event.decision === "acknowledged").length;
+  const negativeCount = (acceptanceEvents ?? []).filter((event: any) => ["declined", "revoked"].includes(event.decision)).length;
   const contractsAwaiting = (contracts ?? []).filter((contract: any) => contract.status === "sent").length;
   const contractsSigned = (contracts ?? []).filter((contract: any) => contract.status === "signed").length;
 
@@ -97,7 +98,7 @@ export default async function AdminDocumentsPage({ searchParams }: { searchParam
           <article><strong>{placeholderCount}</strong><small>Com campos a preencher</small></article>
         </div>
         <div className="notice">
-          <strong>Aceite versionado: implementado.</strong> O Ninho da Família registra a versão exata, o usuário autenticado e o horário do servidor para Termos, Privacidade e autorizações específicas. Antes de publicar os textos, ainda é necessário confirmar identificação da prestadora, regras comerciais reais, fornecedores que tratam dados e fazer a revisão jurídica/contábil final.
+          <strong>Evidência jurídica versionada: implementada.</strong> O Ninho da Família diferencia concordância com Termos, ciência da Política de Privacidade e autorizações específicas, sempre registrando a versão exata, o usuário autenticado e o horário do servidor. Antes de publicar os textos, ainda é necessário confirmar identificação da prestadora, regras comerciais reais, fornecedores que tratam dados e fazer a revisão jurídica/contábil final.
         </div>
       </section>
 
@@ -149,24 +150,25 @@ export default async function AdminDocumentsPage({ searchParams }: { searchParam
         <div className="panel-head"><div><h2>Evidências de aceite e autorização</h2><p>Histórico imutável das decisões registradas no Ninho da Família. A versão do documento permanece preservada mesmo quando uma nova versão for publicada.</p></div></div>
         <div className="student-home-stats student-home-stats-secondary">
           <article><strong>{acceptanceEvents?.length ?? 0}</strong><small>Eventos registrados</small></article>
-          <article><strong>{acceptedCount}</strong><small>Aceites</small></article>
-          <article><strong>{declinedCount}</strong><small>Não autorizações</small></article>
-          <article><strong>{revokedCount}</strong><small>Revogações</small></article>
+          <article><strong>{acceptedCount}</strong><small>Concordâncias / autorizações</small></article>
+          <article><strong>{acknowledgedCount}</strong><small>Ciências de privacidade</small></article>
+          <article><strong>{negativeCount}</strong><small>Recusas / revogações</small></article>
         </div>
         {acceptanceEvents?.length ? <div className="form-stack mt-16">{acceptanceEvents.map((event: any) => {
           const guardianProfile = Array.isArray(event.guardians?.profiles) ? event.guardians.profiles[0] : event.guardians?.profiles;
           const student = Array.isArray(event.students) ? event.students[0] : event.students;
+          const positive = ["accepted", "acknowledged"].includes(event.decision);
           return <article className="mission-card" key={event.id}>
             <div className="flex space-between gap-8 wrap">
               <div>
-                <div className="flex gap-8 wrap"><Badge tone={event.decision === "accepted" ? "green" : "pink"}>{decisionLabel(event.decision)}</Badge><Badge tone="blue">v{event.document_version}</Badge></div>
+                <div className="flex gap-8 wrap"><Badge tone={positive ? "green" : "pink"}>{decisionLabel(event.decision)}</Badge><Badge tone="blue">v{event.document_version}</Badge></div>
                 <h3>{event.document_title}</h3>
                 <p>{guardianProfile?.preferred_name || guardianProfile?.full_name || "Responsável"}{student ? ` · ${student.preferred_name || student.full_name}` : " · decisão da conta"}</p>
               </div>
               <small className="muted">{dt(event.occurred_at)}</small>
             </div>
           </article>;
-        })}</div> : <EmptyState title="Nenhum aceite registrado ainda" description="Isso é esperado enquanto os documentos jurídicos permanecem em rascunho. Após a publicação, as decisões da Família aparecerão aqui." />}
+        })}</div> : <EmptyState title="Nenhum registro jurídico ainda" description="Isso é esperado enquanto os documentos jurídicos permanecem em rascunho. Após a publicação, concordâncias, ciências e autorizações da Família aparecerão aqui." />}
       </section>
 
       <section className="panel">
