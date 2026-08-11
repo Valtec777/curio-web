@@ -12,7 +12,7 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 export default async function FamilyLayout({ children }: { children: React.ReactNode }) {
   const viewer = await requireRole("guardian");
   const supabase = await createClient();
-  const [{ data: pinStatus }, { data: childRows }, showInterest, { data: currentLegal }, { data: acceptedLegal }] = await Promise.all([
+  const [{ data: pinStatus }, { data: childRows }, showInterest, { data: currentLegal }, { data: legalRecords }] = await Promise.all([
     supabase.rpc("guardian_pin_status"),
     supabase.rpc("guardian_child_overview"),
     shouldShowMonthlyInterest(supabase, viewer.user.id, "guardian"),
@@ -24,9 +24,9 @@ export default async function FamilyLayout({ children }: { children: React.React
       .in("public_slug", ["termos-de-uso", "politica-de-privacidade"]),
     supabase
       .from("legal_acceptance_events")
-      .select("legal_document_id,document_version,decision")
+      .select("legal_document_id,document_slug,document_version,decision")
       .eq("user_id", viewer.user.id)
-      .eq("decision", "accepted"),
+      .in("decision", ["accepted", "acknowledged"]),
   ]);
   const firstStatus = Array.isArray(pinStatus) ? pinStatus[0] : null;
   const needsPin = !firstStatus?.has_pin;
@@ -36,8 +36,12 @@ export default async function FamilyLayout({ children }: { children: React.React
     grade: child.grade_name,
     teacher: child.teacher_name,
   }));
-  const acceptedKeys = new Set((acceptedLegal ?? []).map((event: any) => `${event.legal_document_id}:${event.document_version}`));
-  const pendingLegalCount = (currentLegal ?? []).filter((doc: any) => !acceptedKeys.has(`${doc.id}:${doc.version}`)).length;
+  const validRecordKeys = new Set((legalRecords ?? []).filter((event: any) => {
+    if (event.document_slug === "politica-de-privacidade") return event.decision === "acknowledged";
+    if (event.document_slug === "termos-de-uso") return event.decision === "accepted";
+    return false;
+  }).map((event: any) => `${event.legal_document_id}:${event.document_version}`));
+  const pendingLegalCount = (currentLegal ?? []).filter((doc: any) => !validRecordKeys.has(`${doc.id}:${doc.version}`)).length;
 
   return (
     <AppShell
