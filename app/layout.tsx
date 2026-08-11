@@ -26,7 +26,7 @@ const nunito = Nunito_Sans({
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_BRANCH_URL ? `https://${process.env.VERCEL_BRANCH_URL}` : "http://localhost:3000");
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://curioeducacao.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     default: "CURIÓ | Acompanhamento escolar personalizado",
     template: "%s | CURIÓ",
   },
-  description: "Acompanhamento escolar personalizado para estudantes do 1º ao 8º ano, com Missões Cuca, Caderno Curió, trilhas extras, preparação para provas e acompanhamento humano.",
+  description: "Acompanhamento escolar personalizado do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio, com Missões Cuca, Caderno Curió, trilhas extras, preparação para provas e acompanhamento humano.",
   applicationName: "CURIÓ",
   authors: [{ name: "CURIÓ", url: siteUrl }],
   creator: "CURIÓ",
@@ -59,12 +59,12 @@ export const metadata: Metadata = {
     url: "/",
     siteName: "CURIÓ",
     title: "CURIÓ | Acompanhamento escolar que descobre como seu filho aprende",
-    description: "Missões personalizadas, atividades no caderno, trilhas extras e acompanhamento humano do 1º ao 8º ano.",
+    description: "Missões personalizadas, atividades no caderno, trilhas extras e acompanhamento humano do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio.",
   },
   twitter: {
     card: "summary",
     title: "CURIÓ | Acompanhamento escolar personalizado",
-    description: "Missões personalizadas, Caderno Curió, trilhas extras e acompanhamento humano do 1º ao 8º ano.",
+    description: "Missões personalizadas, Caderno Curió, trilhas extras e acompanhamento humano do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio.",
   },
   robots: {
     index: true,
