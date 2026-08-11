@@ -33,6 +33,65 @@ function bahiaDateTime(value?: string | null, endOfDay = false) {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
+function dueDateLabel(value?: string | null) {
+  if (!value) return null;
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeZone: "America/Bahia",
+  }).format(new Date(value));
+}
+
+async function notifyFamiliesAboutMission({
+  supabase,
+  missionId,
+  missionTitle,
+  studentIds,
+  dueAt,
+}: {
+  supabase: any;
+  missionId: string;
+  missionTitle: string;
+  studentIds: string[];
+  dueAt: string | null;
+}) {
+  if (!studentIds.length) return { attempted: 0, failed: 0 };
+  const { data: targets, error: targetError } = await supabase.rpc("teacher_chat_targets");
+  if (targetError) {
+    console.error("Falha ao localizar famílias para aviso de missão", targetError.code);
+    return { attempted: 0, failed: studentIds.length };
+  }
+
+  const families = (targets ?? []).filter((target: any) =>
+    target.target_kind === "family"
+    && target.guardian_id
+    && studentIds.includes(target.student_id)
+  );
+  let failed = 0;
+  const dueLabel = dueDateLabel(dueAt);
+
+  for (const family of families) {
+    const body = dueLabel
+      ? `Olá, ${family.target_name || "responsável"}! Uma nova missão foi disponibilizada para ${family.student_name}: “${missionTitle}”. O prazo indicado é ${dueLabel}. O lembrete serve para apoiar a organização, preservando a autonomia da criança.`
+      : `Olá, ${family.target_name || "responsável"}! Uma nova missão foi disponibilizada para ${family.student_name}: “${missionTitle}”. Ela já aparece na área de atividades da família e no Portal do Aluno.`;
+
+    const { error } = await supabase.rpc("send_curio_family_message", {
+      p_student_id: family.student_id,
+      p_guardian_id: family.guardian_id,
+      p_subject: `Nova missão de ${family.student_name}`,
+      p_body: body,
+      p_action_label: "Ver atividades",
+      p_action_url: "/familia/atividades",
+      p_request_key: `mission:${missionId}:${family.student_id}:${family.guardian_id}`,
+    });
+    if (error) {
+      failed += 1;
+      console.error("Falha ao enviar aviso interno de missão", error.code);
+    }
+  }
+
+  return { attempted: families.length, failed };
+}
+
 function returnPath(formData: FormData) {
   const value = String(formData.get("returnTo") || "");
   return value.startsWith("/professor/criar") ? "/professor/criar" : "/professor/missoes";
@@ -124,6 +183,7 @@ export async function createMission(formData: FormData) {
   }
 
   const studentIds = [...new Set(formData.getAll("studentIds").map(String).filter((value) => z.string().uuid().safeParse(value).success))];
+  let noticeFailed = 0;
   if (studentIds.length) {
     const dueAt = bahiaDateTime(String(formData.get("dueAt") || ""), true);
     const { error: assignmentError } = await supabase.rpc("assign_mission_to_students", {
@@ -134,14 +194,26 @@ export async function createMission(formData: FormData) {
     if (assignmentError) {
       redirect(`${target}?erro=${encodeURIComponent("A missão foi criada como rascunho, mas não foi possível publicar para todos os alunos selecionados.")}`);
     }
+    const notices = await notifyFamiliesAboutMission({
+      supabase,
+      missionId: String(missionId),
+      missionTitle: parsed.data.title,
+      studentIds,
+      dueAt,
+    });
+    noticeFailed = notices.failed;
   }
 
   revalidatePath("/professor");
   revalidatePath("/professor/missoes");
   revalidatePath("/professor/conteudos");
   revalidatePath("/aluno/missoes");
+  revalidatePath("/familia/atividades");
+  revalidatePath("/familia/mensagens");
   const message = studentIds.length
-    ? `Missão criada e publicada para ${studentIds.length} aluno(s).`
+    ? noticeFailed
+      ? `Missão publicada para ${studentIds.length} aluno(s). Um ou mais avisos internos da família não puderam ser enviados.`
+      : `Missão criada, publicada e comunicada à família vinculada para ${studentIds.length} aluno(s).`
     : "Missão criada como rascunho.";
   redirect(`${target}?sucesso=${encodeURIComponent(message)}`);
 }
@@ -167,6 +239,14 @@ export async function assignMissionMany(formData: FormData) {
   }
   const dueAt = bahiaDateTime(String(formData.get("dueAt") || ""), true);
 
+  const { data: mission } = await supabase
+    .from("missions")
+    .select("id,title")
+    .eq("id", missionId)
+    .eq("created_by_teacher_id", teacher.id)
+    .maybeSingle();
+  if (!mission) redirect(`/professor/missoes?erro=${encodeURIComponent("Missão não encontrada.")}`);
+
   const { error } = await supabase.rpc("assign_mission_to_students", {
     p_mission_id: missionId,
     p_student_ids: studentIds,
@@ -175,10 +255,23 @@ export async function assignMissionMany(formData: FormData) {
 
   if (error) redirect(`/professor/missoes?erro=${encodeURIComponent("Não foi possível publicar a missão para os alunos selecionados.")}`);
 
+  const notices = await notifyFamiliesAboutMission({
+    supabase,
+    missionId,
+    missionTitle: mission.title,
+    studentIds,
+    dueAt,
+  });
+
   revalidatePath("/professor");
   revalidatePath("/professor/missoes");
   revalidatePath("/aluno/missoes");
-  redirect(`/professor/missoes?sucesso=${encodeURIComponent(`Missão publicada para ${studentIds.length} aluno(s).`)}`);
+  revalidatePath("/familia/atividades");
+  revalidatePath("/familia/mensagens");
+  const message = notices.failed
+    ? `Missão publicada para ${studentIds.length} aluno(s). Um ou mais avisos internos da família não puderam ser enviados.`
+    : `Missão publicada para ${studentIds.length} aluno(s) e família vinculada avisada no portal.`;
+  redirect(`/professor/missoes?sucesso=${encodeURIComponent(message)}`);
 }
 
 export async function duplicateMission(formData: FormData) {
