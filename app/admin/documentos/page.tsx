@@ -23,17 +23,36 @@ export default async function AdminDocumentsPage({ searchParams }: { searchParam
       .limit(120),
   ]);
 
+  const currentLegal = (legal ?? []).filter((doc: any) => doc.is_current);
+  const publishedCount = currentLegal.filter((doc: any) => doc.status === "published").length;
+  const draftCount = currentLegal.filter((doc: any) => doc.status === "draft").length;
+  const placeholderCount = currentLegal.filter((doc: any) => String(doc.body || "").includes("PREENCHER")).length;
+  const legalReady = currentLegal.length > 0 && publishedCount === currentLegal.length && placeholderCount === 0;
+
   return (
     <>
       <PageHeader eyebrow="Admin • Operação" title="Documentos" description="Textos legais versionados e documentos operacionais. Apenas uma versão publicada e atual pode aparecer para o público." />
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
       {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
 
+      <section className="panel">
+        <div className="panel-head"><div><h2>Prontidão jurídica</h2><p>Visão rápida do que já está estruturado e do que ainda precisa ser fechado antes de considerar a camada jurídica pronta para uso público.</p></div><Badge tone={legalReady ? "green" : "yellow"}>{legalReady ? "Documentos publicados" : "Em preparação"}</Badge></div>
+        <div className="student-home-stats student-home-stats-secondary">
+          <article><strong>{currentLegal.length}</strong><small>Documentos atuais</small></article>
+          <article><strong>{draftCount}</strong><small>Rascunhos</small></article>
+          <article><strong>{publishedCount}</strong><small>Publicados</small></article>
+          <article><strong>{placeholderCount}</strong><small>Com campos a preencher</small></article>
+        </div>
+        <div className="notice">
+          <strong>Antes de publicar:</strong> confirmar identificação da prestadora (nome/razão social, CPF/CNPJ e endereço), regras comerciais reais, cancelamento/reagendamento, pagamento/inadimplência, fornecedores que tratam dados, política de IA e a forma de registrar o aceite da família por versão. Faça revisão jurídica/contábil dos textos finais antes de colocá-los em produção.
+        </div>
+      </section>
+
       <section className="panel legal-admin-panel">
         <div className="panel-head"><div><h2>Textos legais</h2><p>Documentos publicados não são sobrescritos: para alterar um texto já publicado, crie uma nova versão, revise e publique quando estiver pronta.</p></div></div>
-        <div className="notice">Os documentos iniciais agora têm rascunhos editáveis. Eles não são publicados automaticamente: revise os campos marcados com “PREENCHER”, ajuste as regras comerciais e, idealmente, faça uma revisão jurídica/contábil antes de clicar em Publicar.</div>
+        <div className="notice">Os documentos iniciais têm rascunhos editáveis. Eles não são publicados automaticamente: revise os campos marcados com “PREENCHER”, ajuste as regras comerciais e faça revisão jurídica/contábil antes de clicar em Publicar.</div>
         {legal?.length ? <div className="legal-doc-list">{legal.map((doc: any) => <article className="legal-doc-card" key={doc.id}>
-          <div className="flex space-between gap-8 wrap"><div><div className="flex gap-8 wrap"><Badge tone={doc.status === "published" ? "green" : doc.status === "draft" ? "yellow" : "neutral"}>{doc.status === "published" ? "Publicado" : doc.status === "draft" ? "Rascunho" : "Arquivado"}</Badge><Badge tone="blue">v{doc.version}</Badge>{doc.is_current && <Badge tone="pink">atual</Badge>}</div><h3>{doc.title}</h3><p>{doc.document_type}{doc.file_path ? " · tem arquivo" : doc.body ? " · texto no portal" : " · conteúdo ainda não vinculado"}</p></div><small className="muted">{doc.published_at ? `Publicado ${dt(doc.published_at)}` : `Criado ${dt(doc.created_at)}`}</small></div>
+          <div className="flex space-between gap-8 wrap"><div><div className="flex gap-8 wrap"><Badge tone={doc.status === "published" ? "green" : doc.status === "draft" ? "yellow" : "neutral"}>{doc.status === "published" ? "Publicado" : doc.status === "draft" ? "Rascunho" : "Arquivado"}</Badge><Badge tone="blue">v{doc.version}</Badge>{doc.is_current && <Badge tone="pink">atual</Badge>}{String(doc.body || "").includes("PREENCHER") && <Badge tone="yellow">requer preenchimento</Badge>}</div><h3>{doc.title}</h3><p>{doc.document_type}{doc.file_path ? " · tem arquivo" : doc.body ? " · texto no portal" : " · conteúdo ainda não vinculado"}</p></div><small className="muted">{doc.published_at ? `Publicado ${dt(doc.published_at)}` : `Criado ${dt(doc.created_at)}`}</small></div>
           {doc.status === "draft" ? <details className="plan-editor" open={!doc.body && !doc.file_path}><summary>Editar rascunho</summary><form action={updateLegalDraft} className="form-stack plan-form"><input type="hidden" name="documentId" value={doc.id} /><div className="form-row"><div className="field"><label>Título</label><input className="input" name="title" defaultValue={doc.title} required /></div><div className="field"><label>Tipo</label><input className="input" name="documentType" defaultValue={doc.document_type} required /></div></div><div className="field"><label>Texto do documento — rascunho editável</label><textarea className="textarea legal-textarea" name="body" defaultValue={doc.body || ""} placeholder="Edite o rascunho e revise antes de publicar." /></div><div className="field"><label>Caminho/URL do arquivo (opcional)</label><input className="input" name="filePath" defaultValue={doc.file_path || ""} placeholder="URL pública ou caminho de Storage" /></div><button className="button button-secondary" type="submit">Salvar rascunho</button></form></details> : null}
           <div className="flex gap-8 wrap legal-doc-actions">
             {doc.status === "published" && <form action={createLegalRevision}><input type="hidden" name="documentId" value={doc.id} /><button className="button button-secondary button-small" type="submit">Criar nova versão para editar</button></form>}
