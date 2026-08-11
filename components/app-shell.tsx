@@ -35,7 +35,6 @@ const menus: Record<AppRole, NavItem[]> = {
     { href: "/admin/conteudo", label: "Conteúdo", group: "Pedagógico" },
     { href: "/admin/atividades", label: "Missões e atividades", group: "Pedagógico" },
     { href: "/admin/notas", label: "Notas e avaliações", group: "Pedagógico" },
-    { href: "/admin/gerador", label: "Gerador", group: "Pedagógico" },
     { href: "/admin/modelos", label: "Modelos", group: "Pedagógico" },
     { href: "/admin/cursos", label: "Cursos livres", group: "Pedagógico" },
     { href: "/admin/calendario", label: "Calendário", group: "Operação" },
