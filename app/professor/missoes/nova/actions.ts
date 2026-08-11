@@ -94,13 +94,17 @@ export async function createMissionWithQuestions(formData: FormData) {
   if (studentIds.length) {
     const { data: linked } = await supabase
       .from("teacher_students")
-      .select("student_id")
+      .select("student_id,students(deleted_at)")
       .eq("teacher_id", teacher.id)
       .eq("active", true)
       .in("student_id", studentIds);
-    const allowed = new Set((linked ?? []).map((item: any) => item.student_id));
+    const allowed = new Set(
+      (linked ?? [])
+        .filter((item: any) => item.students && !item.students.deleted_at)
+        .map((item: any) => item.student_id),
+    );
     if (studentIds.some((studentId) => !allowed.has(studentId))) {
-      redirect(`/professor/missoes/nova?erro=${encodeURIComponent("Um dos alunos selecionados não está vinculado a você.")}`);
+      redirect(`/professor/missoes/nova?erro=${encodeURIComponent("Um dos alunos selecionados não está mais ativo. Atualize a página e escolha um aluno disponível.")}`);
     }
   }
 
@@ -183,7 +187,8 @@ export async function createMissionWithQuestions(formData: FormData) {
       p_due_at: bahiaDueDate(String(formData.get("dueAt") || "")),
     });
     if (assignmentError) {
-      redirect(`/professor/missoes?erro=${encodeURIComponent("A missão foi criada como rascunho, mas não foi possível publicar para todos os alunos selecionados.")}`);
+      console.error("Falha ao publicar missão para alunos", assignmentError.code);
+      redirect(`/professor/missoes?erro=${encodeURIComponent("A missão ficou salva como rascunho, mas não foi publicada. Abra ‘Enviar / atualizar alunos’ e escolha somente alunos ativos.")}`);
     }
   }
 
