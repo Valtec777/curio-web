@@ -13,6 +13,16 @@ const studentSchema = z.object({
   schoolName: z.string().optional(),
 });
 
+const studentTeacherLinkSchema = z.object({
+  studentId: z.string().uuid(),
+  teacherId: z.string().uuid(),
+});
+
+const studentGuardianLinkSchema = z.object({
+  studentId: z.string().uuid(),
+  guardianId: z.string().uuid(),
+});
+
 export async function createStudent(formData: FormData) {
   await requireRole("admin");
 
@@ -45,12 +55,17 @@ export async function createStudent(formData: FormData) {
 
 export async function linkTeacher(formData: FormData) {
   await requireRole("admin");
-  const studentId = String(formData.get("studentId") || "");
-  const teacherId = String(formData.get("teacherId") || "");
+  const parsed = studentTeacherLinkSchema.safeParse({
+    studentId: formData.get("studentId"),
+    teacherId: formData.get("teacherId"),
+  });
+  if (!parsed.success) {
+    redirect("/admin/alunos?erro=" + encodeURIComponent("Selecione um aluno e um professor válidos."));
+  }
 
   const supabase = await createClient();
   const { error } = await supabase.from("teacher_students").upsert(
-    { student_id: studentId, teacher_id: teacherId, active: true },
+    { student_id: parsed.data.studentId, teacher_id: parsed.data.teacherId, active: true },
     { onConflict: "teacher_id,student_id" }
   );
 
@@ -60,14 +75,19 @@ export async function linkTeacher(formData: FormData) {
 
 export async function linkGuardian(formData: FormData) {
   await requireRole("admin");
-  const studentId = String(formData.get("studentId") || "");
-  const guardianId = String(formData.get("guardianId") || "");
+  const parsed = studentGuardianLinkSchema.safeParse({
+    studentId: formData.get("studentId"),
+    guardianId: formData.get("guardianId"),
+  });
+  if (!parsed.success) {
+    redirect("/admin/alunos?erro=" + encodeURIComponent("Selecione um aluno e um responsável válidos."));
+  }
 
   const supabase = await createClient();
   const { error } = await supabase.from("guardian_students").upsert(
     {
-      student_id: studentId,
-      guardian_id: guardianId,
+      student_id: parsed.data.studentId,
+      guardian_id: parsed.data.guardianId,
       relationship: "responsável",
       can_view_progress: true,
       can_manage_access: true,
@@ -99,7 +119,9 @@ export async function updateStudent(formData: FormData) {
 export async function setStudentStatus(formData: FormData) {
   await requireRole("admin");
   const parsed = z.object({ studentId: z.string().uuid(), status: z.enum(["active","paused","inactive","pilot"]) }).safeParse({ studentId: formData.get("studentId"), status: formData.get("status") });
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    redirect("/admin/alunos?erro=" + encodeURIComponent("Não foi possível identificar o aluno ou a situação escolhida."));
+  }
   const supabase = await createClient();
   const { error } = await supabase.from("students").update({ status: parsed.data.status, updated_at: new Date().toISOString() }).eq("id", parsed.data.studentId).is("deleted_at", null);
   if (error) redirect("/admin/alunos?erro=" + encodeURIComponent(error.message));
@@ -116,7 +138,9 @@ export async function moveStudentToTrash(formData: FormData) {
     studentId: formData.get("studentId"),
     reason: String(formData.get("reason") || ""),
   });
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    redirect("/admin/alunos?erro=" + encodeURIComponent("Não foi possível identificar o aluno que deve ser excluído."));
+  }
 
   const supabase = await createClient();
   const { data: student } = await supabase
