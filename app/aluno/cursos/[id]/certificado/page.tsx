@@ -19,11 +19,13 @@ export default async function CourseCertificatePage({ params }: { params: Promis
   if (!certificate) notFound();
   const course: any = certificate.free_courses;
   const certificateStudent: any = certificate.students;
+  const validationHref = `/certificados/validar?codigo=${encodeURIComponent(certificate.certificate_code)}`;
 
   return (
     <div className="certificate-page">
       <div className="certificate-toolbar no-print">
         <Link className="button button-secondary" href={`/aluno/cursos/${id}`}>← Voltar ao curso</Link>
+        <Link className="button button-secondary" href={validationHref} target="_blank">Validar certificado</Link>
         <span className="muted">Para guardar em PDF: use Imprimir no navegador e escolha “Salvar como PDF”.</span>
       </div>
       <section className="certificate-sheet">
@@ -38,6 +40,7 @@ export default async function CourseCertificatePage({ params }: { params: Promis
           <div><span>Emitido em</span><strong>{issueDate(certificate.issued_at)}</strong></div>
           <div><span>Código de validação</span><strong>{certificate.certificate_code}</strong></div>
         </div>
+        <p className="certificate-validation no-print"><Link href={validationHref}>Verificar autenticidade deste certificado</Link></p>
         <footer>Curió · Tecnologia ajuda. Seu cérebro resolve. · curio.educacao@gmail.com</footer>
       </section>
     </div>
