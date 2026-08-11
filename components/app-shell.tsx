@@ -36,7 +36,7 @@ const menus: Record<AppRole, NavItem[]> = {
     { href: "/admin/atividades", label: "Missões e atividades", group: "Pedagógico" },
     { href: "/admin/notas", label: "Notas e avaliações", group: "Pedagógico" },
     { href: "/admin/modelos", label: "Modelos", group: "Pedagógico" },
-    { href: "/admin/cursos", label: "Cursos livres", group: "Pedagógico" },
+    { href: "/admin/cursos", label: "Modo Pensar", group: "Pedagógico" },
     { href: "/admin/calendario", label: "Calendário", group: "Operação" },
     { href: "/admin/financeiro", label: "Financeiro", group: "Operação" },
     { href: "/admin/planos", label: "Planos", group: "Operação" },
@@ -79,7 +79,7 @@ const menus: Record<AppRole, NavItem[]> = {
     { href: "/aluno/caderno", label: "Meu Caderno" },
     { href: "/aluno/conquistas", label: "Conquistas" },
     { href: "/aluno/descobertas", label: "Descobertas" },
-    { href: "/aluno/modo-pensar", label: "Modo Pensar · Cursos" },
+    { href: "/aluno/modo-pensar", label: "Modo Pensar" },
     { href: "/aluno/modo-prova", label: "Modo Prova" },
   ],
   guardian: [
@@ -166,7 +166,7 @@ export function AppShell({
           )}
         </div>
 
-        {role === "guardian" && familyChildren?.length ? <FamilySidebarSelector children={familyChildren} /> : null}
+        {role === "guardian" && familyChildren?.length ? <FamilySidebarSelector children={familyChildren} variant="sidebar" /> : null}
 
         <nav className="sidebar-nav" aria-label="Navegação principal">
           {Object.entries(grouped).map(([group, groupItems]) => (
@@ -191,7 +191,10 @@ export function AppShell({
         </form>
       </aside>
 
-      <main className="app-main">{children}</main>
+      <main className="app-main">
+        {role === "guardian" && familyChildren?.length ? <FamilySidebarSelector children={familyChildren} variant="mobile" /> : null}
+        {children}
+      </main>
 
       {quickSupport && (
         <Link className="floating-support-button" href={quickSupport} aria-label="Abrir suporte do CURIÓ" title="Suporte">
