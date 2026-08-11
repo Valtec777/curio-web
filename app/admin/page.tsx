@@ -15,6 +15,8 @@ export default async function AdminPage() {
     { count: audit },
     { data: newLeads },
     { data: enrollmentAttention },
+    { count: contractsAwaitingSignature },
+    { count: receiptsAwaitingReview },
   ] = await Promise.all([
     supabase.from("students").select("id", { count: "exact", head: true }).eq("status", "active").is("deleted_at", null),
     supabase.from("guardians").select("id", { count: "exact", head: true }).eq("active", true),
@@ -26,6 +28,8 @@ export default async function AdminPage() {
     supabase.from("system_audit_logs").select("id", { count: "exact", head: true }),
     supabase.from("enrollment_requests").select("id,guardian_name,child_name,created_at").eq("status", "new").is("deleted_at", null).order("created_at", { ascending: false }).limit(4),
     supabase.from("access_invitations").select("id,full_name,status,student_id,created_at,students(preferred_name,full_name)").eq("role", "guardian").is("deleted_at", null).in("status", ["pending", "error"]).order("created_at", { ascending: false }).limit(4),
+    supabase.from("contracts").select("id", { count: "exact", head: true }).eq("status", "sent"),
+    supabase.from("payment_receipts").select("id", { count: "exact", head: true }).eq("status", "pending"),
   ]);
 
   const kpis = [
@@ -36,10 +40,14 @@ export default async function AdminPage() {
     { label: "Planos", value: plans ?? 0, href: "/admin/planos" },
     { label: "Contratos", value: contracts ?? 0, href: "/admin/documentos" },
     { label: "Novos interesses", value: leads ?? 0, href: "/admin/matriculas#novos-interesses" },
-    { label: "Auditoria", value: audit ?? 0, href: "/admin/auditoria" },
+    { label: "Registros de atividade", value: audit ?? 0, href: "/admin/auditoria" },
   ];
 
-  const attentionCount = (newLeads?.length ?? 0) + (enrollmentAttention?.length ?? 0);
+  const attentionCount =
+    (newLeads?.length ?? 0)
+    + (enrollmentAttention?.length ?? 0)
+    + (contractsAwaitingSignature ?? 0)
+    + (receiptsAwaitingReview ?? 0);
 
   return (
     <>
@@ -66,7 +74,7 @@ export default async function AdminPage() {
 
         <section className="admin-attention-panel">
           <h2>Precisa de atenção</h2>
-          <p>{attentionCount ? `${attentionCount} item(ns) recente(s) para conferir.` : "Nada urgente por aqui agora."}</p>
+          <p>{attentionCount ? `${attentionCount} item(ns) para conferir.` : "Nada urgente por aqui agora."}</p>
           <div className="attention-list">
             {(newLeads ?? []).map((lead: any) => (
               <div className="attention-item" key={`lead-${lead.id}`}>
@@ -86,7 +94,25 @@ export default async function AdminPage() {
                 <Link href="/admin/matriculas">Abrir</Link>
               </div>
             ))}
-            {!attentionCount && <div className="attention-item"><div><strong>Operação em dia</strong><small>Novos interesses e matrículas pendentes aparecerão aqui.</small></div></div>}
+            {(contractsAwaitingSignature ?? 0) > 0 && (
+              <div className="attention-item">
+                <div>
+                  <strong>{contractsAwaitingSignature} contrato(s) aguardando assinatura</strong>
+                  <small>A família recebeu o documento, mas a assinatura ainda não foi registrada.</small>
+                </div>
+                <Link href="/admin/documentos">Abrir</Link>
+              </div>
+            )}
+            {(receiptsAwaitingReview ?? 0) > 0 && (
+              <div className="attention-item">
+                <div>
+                  <strong>{receiptsAwaitingReview} comprovante(s) aguardando conferência</strong>
+                  <small>Revise o arquivo antes de aprovar ou rejeitar o pagamento.</small>
+                </div>
+                <Link href="/admin/financeiro">Abrir</Link>
+              </div>
+            )}
+            {!attentionCount && <div className="attention-item"><div><strong>Operação em dia</strong><small>Novos interesses, matrículas, contratos e comprovantes pendentes aparecerão aqui.</small></div></div>}
           </div>
         </section>
       </div>
