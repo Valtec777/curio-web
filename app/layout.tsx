@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     default: "CURIÓ | Acompanhamento escolar personalizado",
     template: "%s | CURIÓ",
   },
-  description: "Acompanhamento escolar personalizado para estudantes do 1º ao 9º ano, com Missões Cuca, Caderno Curió, trilhas extras, preparação para provas e acompanhamento humano.",
+  description: "Acompanhamento escolar personalizado para estudantes do 1º ao 8º ano, com Missões Cuca, Caderno Curió, trilhas extras, preparação para provas e acompanhamento humano.",
   applicationName: "CURIÓ",
   authors: [{ name: "CURIÓ", url: siteUrl }],
   creator: "CURIÓ",
@@ -59,12 +59,12 @@ export const metadata: Metadata = {
     url: "/",
     siteName: "CURIÓ",
     title: "CURIÓ | Acompanhamento escolar que descobre como seu filho aprende",
-    description: "Missões personalizadas, atividades no caderno, trilhas extras e acompanhamento humano do 1º ao 9º ano.",
+    description: "Missões personalizadas, atividades no caderno, trilhas extras e acompanhamento humano do 1º ao 8º ano.",
   },
   twitter: {
     card: "summary",
     title: "CURIÓ | Acompanhamento escolar personalizado",
-    description: "Missões personalizadas, Caderno Curió, trilhas extras e acompanhamento humano do 1º ao 9º ano.",
+    description: "Missões personalizadas, Caderno Curió, trilhas extras e acompanhamento humano do 1º ao 8º ano.",
   },
   robots: {
     index: true,
