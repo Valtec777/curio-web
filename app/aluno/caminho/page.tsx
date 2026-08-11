@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
+import { CurioIcon } from "@/components/nav-icon";
 import { getCurrentStudent } from "@/lib/student";
 
 function pct(value: number) { return `${Math.max(0, Math.min(100, Math.round(value)))}%`; }
@@ -50,7 +51,6 @@ export default async function StudentPathPage() {
   const avatars=(characters??[]).map((c:any)=>({name:c.name,url:c.assets?.avatar||c.assets?.principal||null})).filter((c:any)=>c.url);
   const dayIndex=Math.floor((Date.now()/86400000));
   const tip=(tips??[]).length ? (tips??[])[dayIndex%(tips??[]).length]?.text : "Pequenos passos todos os dias levam a grandes descobertas.";
-
   const recentAchievements=(achievements??[]).map((a:any)=>({earned_at:a.earned_at, achievement:relation(a.achievements)})).filter((a:any)=>a.achievement);
 
   return <>
@@ -58,10 +58,10 @@ export default async function StudentPathPage() {
 
     <section className="student-path-hero">
       <div><span className="student-kicker">Seu progresso geral</span><h2>{totalAssigned ? pct(overall) : "Começando"}</h2><p>{totalAssigned ? `Você já concluiu ${totalDone} de ${totalAssigned} desafios registrados.` : "Sua trilha vai ganhar forma conforme você fizer as primeiras atividades."}</p><div className="student-big-progress"><span style={{width:pct(overall)}} /></div></div>
-      <div className="student-streak-orb"><span>🔥</span><strong>{game?.streak_days??0}</strong><small>dias seguidos</small></div>
+      <div className="student-streak-orb"><span className="student-streak-icon"><CurioIcon name="fire" /></span><strong>{game?.streak_days??0}</strong><small>dias seguidos</small></div>
     </section>
 
-    <section className="panel"><div className="panel-head"><div><h2>Evolução por matéria</h2><p>Cada matéria mostra o que foi concluído e, quando já existe nota, o aproveitamento observado.</p></div></div>{subjects.length ? <div className="student-subject-grid">{subjects.map((subject,index)=>{const avatar=avatars.length?avatars[index%avatars.length]:null;return <article className="student-subject-card" key={subject.name}>{avatar?<Image src={avatar.url} alt="" width={72} height={72}/>:<div className="student-subject-emoji">🌱</div>}<div><h3>{subject.name}</h3><div className="student-progress-line"><span style={{width:pct(subject.progress)}} /></div><p>{pct(subject.progress)} da trilha · {subject.done} concluída(s)</p>{subject.performance!=null?<Badge tone="blue">Aproveitamento {pct(subject.performance)}</Badge>:<Badge tone="neutral">Aguardando resultados</Badge>}</div></article>})}</div>:<EmptyState title="A jornada ainda está começando" description="Quando você receber missões e atividades, as matérias aparecerão aqui." />}</section>
+    <section className="panel"><div className="panel-head"><div><h2>Evolução por matéria</h2><p>Cada matéria mostra o que foi concluído e, quando já existe nota, o aproveitamento observado.</p></div></div>{subjects.length ? <div className="student-subject-grid">{subjects.map((subject,index)=>{const avatar=avatars.length?avatars[index%avatars.length]:null;return <article className="student-subject-card" key={subject.name}>{avatar?<Image className="student-subject-character" src={avatar.url} alt="" width={72} height={72}/>:<div className="student-subject-icon"><CurioIcon name="book" /></div>}<div><h3>{subject.name}</h3><div className="student-progress-line"><span style={{width:pct(subject.progress)}} /></div><p>{pct(subject.progress)} da trilha · {subject.done} concluída(s)</p>{subject.performance!=null?<Badge tone="blue">Aproveitamento {pct(subject.performance)}</Badge>:<Badge tone="neutral">Aguardando resultados</Badge>}</div></article>})}</div>:<EmptyState title="A jornada ainda está começando" description="Quando você receber missões e atividades, as matérias aparecerão aqui." />}</section>
 
     <div className="grid-2">
       <section className="panel"><div className="panel-head"><div><h2>Sua semana de estudos</h2><p>Estrelas ganhas por dia nesta semana.</p></div></div><div className="student-week-chart" aria-label="Gráfico de estrelas por dia">{dayPoints.map((value,index)=><div className="student-week-column" key={weekNames[index]}><strong>{value}</strong><div className="student-week-bar"><span style={{height:`${Math.max(value?10:2,value/maxDay*100)}%`}} /></div><small>{weekNames[index]}</small></div>)}</div></section>
@@ -69,13 +69,13 @@ export default async function StudentPathPage() {
     </div>
 
     <div className="grid-2">
-      <section className="panel student-mastered"><div className="panel-head"><div><h2>Você já domina ✨</h2><p>Temas com evidências suficientes de domínio.</p></div></div>{mastered.length?<div className="student-skill-cloud">{mastered.slice(0,12).map((s:any,i:number)=><Badge tone="green" key={`${s.skills?.name}-${i}`}>{s.skills?.name||"Habilidade"}</Badge>)}</div>:<p className="muted">Ainda estamos reunindo evidências. Continue explorando.</p>}</section>
-      <section className="panel student-reinforce"><div className="panel-head"><div><h2>Vamos praticar mais 🌱</h2><p>Temas que podem ganhar um pouco mais de treino.</p></div></div>{reinforce.length?<div className="student-skill-cloud">{reinforce.slice(0,12).map((s:any,i:number)=><Badge tone="yellow" key={`${s.skills?.name}-${i}`}>{s.skills?.name||"Habilidade"}</Badge>)}</div>:<p className="muted">Tudo em dia por aqui. Que tal explorar uma nova descoberta?</p>}</section>
+      <section className="panel student-mastered"><div className="panel-head"><div><h2 className="student-heading-with-icon"><span className="student-ui-icon"><CurioIcon name="check" /></span>Você já domina</h2><p>Temas com evidências suficientes de domínio.</p></div></div>{mastered.length?<div className="student-skill-cloud">{mastered.slice(0,12).map((s:any,i:number)=><Badge tone="green" key={`${s.skills?.name}-${i}`}>{s.skills?.name||"Habilidade"}</Badge>)}</div>:<p className="muted">Ainda estamos reunindo evidências. Continue explorando.</p>}</section>
+      <section className="panel student-reinforce"><div className="panel-head"><div><h2 className="student-heading-with-icon"><span className="student-ui-icon"><CurioIcon name="refresh" /></span>Vamos praticar mais</h2><p>Temas que podem ganhar um pouco mais de treino.</p></div></div>{reinforce.length?<div className="student-skill-cloud">{reinforce.slice(0,12).map((s:any,i:number)=><Badge tone="yellow" key={`${s.skills?.name}-${i}`}>{s.skills?.name||"Habilidade"}</Badge>)}</div>:<p className="muted">Tudo em dia por aqui. Que tal explorar uma nova descoberta?</p>}</section>
     </div>
 
     <div className="grid-2">
-      <section className="panel"><div className="panel-head"><div><h2>Conquistas recentes</h2><p>Selos desbloqueados na sua jornada.</p></div><Link href="/aluno/conquistas">Ver todas →</Link></div>{recentAchievements.length?<div className="student-achievement-mini-list">{recentAchievements.map((row:any)=><article key={row.achievement.id}><span>🏅</span><div><strong>{row.achievement.name}</strong><p>{row.achievement.description}</p></div></article>)}</div>:<p className="muted">Sua primeira conquista está chegando.</p>}</section>
-      <section className="panel student-tip-panel"><span className="student-tip-emoji">💡</span><div><span className="student-kicker">Dica do dia</span><h2>Um pequeno passo por vez</h2><p>{tip}</p></div></section>
+      <section className="panel"><div className="panel-head"><div><h2>Conquistas recentes</h2><p>Selos desbloqueados na sua jornada.</p></div><Link href="/aluno/conquistas">Ver todas</Link></div>{recentAchievements.length?<div className="student-achievement-mini-list">{recentAchievements.map((row:any)=><article key={row.achievement.id}><span className="student-achievement-symbol"><CurioIcon name="trophy" /></span><div><strong>{row.achievement.name}</strong><p>{row.achievement.description}</p></div></article>)}</div>:<p className="muted">Sua primeira conquista está chegando.</p>}</section>
+      <section className="panel student-tip-panel"><span className="student-tip-icon"><CurioIcon name="brain" /></span><div><span className="student-kicker">Dica do dia</span><h2>Um pequeno passo por vez</h2><p>{tip}</p></div></section>
     </div>
   </>;
 }
