@@ -99,17 +99,37 @@ export default async function AdminEnrollmentsPage({
   const studentIds = [...new Set((invitations ?? []).map((item: any) => item.student_id).filter(Boolean))];
   const profileIds = [...new Set((invitations ?? []).map((item: any) => item.auth_user_id).filter(Boolean))];
 
-  const [{ data: enrollmentStudents }, { data: enrollmentProfiles }] = await Promise.all([
+  const [{ data: enrollmentStudents }, { data: enrollmentProfiles }, { data: enrollmentGuardians }] = await Promise.all([
     studentIds.length
       ? supabase.from("students").select("id,full_name,preferred_name,grade_id,school_name,deleted_at").in("id", studentIds).is("deleted_at", null)
       : Promise.resolve({ data: [] as any[] }),
     profileIds.length
       ? supabase.from("profiles").select("id,full_name,preferred_name,phone_whatsapp").in("id", profileIds)
       : Promise.resolve({ data: [] as any[] }),
+    profileIds.length
+      ? supabase.from("guardians").select("id,profile_id,active").in("profile_id", profileIds).eq("active", true)
+      : Promise.resolve({ data: [] as any[] }),
+  ]);
+
+  const guardianIds = (enrollmentGuardians ?? []).map((item: any) => item.id);
+  const [{ data: studentPrivateRows }, { data: learningProfileRows }, { data: guardianPrivateRows }] = await Promise.all([
+    studentIds.length
+      ? supabase.from("student_private_details").select("student_id,birth_date,cpf").in("student_id", studentIds)
+      : Promise.resolve({ data: [] as any[] }),
+    studentIds.length
+      ? supabase.from("student_learning_profiles").select("student_id,tracked_subjects,pedagogical_notes").in("student_id", studentIds)
+      : Promise.resolve({ data: [] as any[] }),
+    guardianIds.length
+      ? supabase.from("guardian_private_details").select("guardian_id,cpf,address").in("guardian_id", guardianIds)
+      : Promise.resolve({ data: [] as any[] }),
   ]);
 
   const studentById = new Map((enrollmentStudents ?? []).map((item: any) => [item.id, item]));
   const profileById = new Map((enrollmentProfiles ?? []).map((item: any) => [item.id, item]));
+  const guardianByProfileId = new Map((enrollmentGuardians ?? []).map((item: any) => [item.profile_id, item]));
+  const studentPrivateById = new Map((studentPrivateRows ?? []).map((item: any) => [item.student_id, item]));
+  const learningProfileById = new Map((learningProfileRows ?? []).map((item: any) => [item.student_id, item]));
+  const guardianPrivateById = new Map((guardianPrivateRows ?? []).map((item: any) => [item.guardian_id, item]));
   const openLeads = (requests ?? []).filter((item: any) => ["new", "contacted", "qualified"].includes(item.status));
 
   return (
@@ -284,6 +304,11 @@ export default async function AdminEnrollmentsPage({
             {invitations.map((invite: any) => {
               const student: any = invite.student_id ? studentById.get(invite.student_id) : null;
               const guardianProfile: any = invite.auth_user_id ? profileById.get(invite.auth_user_id) : null;
+              const guardian: any = invite.auth_user_id ? guardianByProfileId.get(invite.auth_user_id) : null;
+              const studentPrivate: any = invite.student_id ? studentPrivateById.get(invite.student_id) : null;
+              const learningProfile: any = invite.student_id ? learningProfileById.get(invite.student_id) : null;
+              const guardianPrivate: any = guardian?.id ? guardianPrivateById.get(guardian.id) : null;
+              const trackedSubjects = new Set<string>(learningProfile?.tracked_subjects || []);
               return (
                 <article className="enrollment-record-card" key={invite.id}>
                   <div className="enrollment-record-main">
@@ -310,10 +335,39 @@ export default async function AdminEnrollmentsPage({
                         <summary>Editar dados</summary>
                         <form action={updateEnrollmentDetails} className="form-stack compact-form">
                           <input type="hidden" name="invitationId" value={invite.id} />
-                          <div className="form-row"><div className="field"><label>Nome da criança</label><input className="input" name="studentFullName" defaultValue={student.full_name || ""} required /></div><div className="field"><label>Nome preferido</label><input className="input" name="studentPreferredName" defaultValue={student.preferred_name || ""} /></div></div>
-                          <div className="form-row"><div className="field"><label>Ano escolar</label><select className="select" name="gradeId" defaultValue={student.grade_id || ""}><option value="">Não informado</option>{(grades ?? []).map((grade: any) => <option key={grade.id} value={grade.id}>{grade.name}</option>)}</select></div><div className="field"><label>Escola</label><input className="input" name="schoolName" defaultValue={student.school_name || ""} /></div></div>
-                          <div className="form-row"><div className="field"><label>Responsável</label><input className="input" name="guardianFullName" defaultValue={guardianProfile?.full_name || invite.full_name || ""} required /></div><div className="field"><label>Nome preferido</label><input className="input" name="guardianPreferredName" defaultValue={guardianProfile?.preferred_name || invite.preferred_name || ""} /></div></div>
-                          <div className="form-row"><div className="field"><label>WhatsApp</label><input className="input" name="phone" defaultValue={guardianProfile?.phone_whatsapp || invite.phone_whatsapp || ""} /></div><div className="field"><label>Vínculo</label><input className="input" name="relationship" defaultValue={invite.relationship || "Responsável legal"} required /></div></div>
+                          <div className="form-row">
+                            <div className="field"><label>Nome da criança</label><input className="input" name="studentFullName" defaultValue={student.full_name || ""} required /></div>
+                            <div className="field"><label>Nome preferido</label><input className="input" name="studentPreferredName" defaultValue={student.preferred_name || ""} /></div>
+                          </div>
+                          <div className="form-row">
+                            <div className="field"><label>Data de nascimento</label><input className="input" type="date" name="birthDate" defaultValue={studentPrivate?.birth_date || ""} /></div>
+                            <div className="field"><label>Ano escolar</label><select className="select" name="gradeId" defaultValue={student.grade_id || ""}><option value="">Não informado</option>{(grades ?? []).map((grade: any) => <option key={grade.id} value={grade.id}>{grade.name}</option>)}</select></div>
+                          </div>
+                          <div className="form-row">
+                            <div className="field"><label>Escola</label><input className="input" name="schoolName" defaultValue={student.school_name || ""} /></div>
+                            <div className="field"><label>CPF da criança <span className="field-optional">opcional</span></label><input className="input" name="childCpf" inputMode="numeric" autoComplete="off" defaultValue={studentPrivate?.cpf || ""} /></div>
+                          </div>
+                          <div className="field">
+                            <label>Matérias acompanhadas</label>
+                            <div className="choice-chip-grid">
+                              {(subjects ?? []).map((subject: any) => <label className="choice-chip" key={`${invite.id}-${subject.id}`}><input type="checkbox" name="subjects" value={subject.name} defaultChecked={trackedSubjects.has(subject.name)} /><span>{subject.name}</span></label>)}
+                            </div>
+                          </div>
+                          <div className="field"><label>Observações pedagógicas necessárias</label><textarea className="textarea textarea-compact" name="pedagogicalNotes" defaultValue={learningProfile?.pedagogical_notes || ""} /></div>
+                          <div className="form-row">
+                            <div className="field"><label>Responsável</label><input className="input" name="guardianFullName" defaultValue={guardianProfile?.full_name || invite.full_name || ""} required /></div>
+                            <div className="field"><label>Nome preferido</label><input className="input" name="guardianPreferredName" defaultValue={guardianProfile?.preferred_name || invite.preferred_name || ""} /></div>
+                          </div>
+                          <div className="form-row">
+                            <div className="field"><label>E-mail de acesso</label><input className="input" type="email" name="email" defaultValue={invite.email || ""} required /></div>
+                            <div className="field"><label>WhatsApp</label><input className="input" name="phone" defaultValue={guardianProfile?.phone_whatsapp || invite.phone_whatsapp || ""} /></div>
+                          </div>
+                          <div className="form-row">
+                            <div className="field"><label>CPF do responsável <span className="field-optional">opcional</span></label><input className="input" name="guardianCpf" inputMode="numeric" autoComplete="off" defaultValue={guardianPrivate?.cpf || ""} /></div>
+                            <div className="field"><label>Vínculo</label><input className="input" name="relationship" defaultValue={invite.relationship || "Responsável legal"} required /></div>
+                          </div>
+                          <div className="field"><label>Endereço do responsável <span className="field-optional">quando necessário</span></label><textarea className="textarea textarea-compact" name="guardianAddress" defaultValue={guardianPrivate?.address || ""} /></div>
+                          <small className="muted">Alterar o e-mail atualiza também o login do responsável; não cria outra conta.</small>
                           <button className="button button-secondary button-small" type="submit">Salvar mantendo os mesmos registros</button>
                         </form>
                       </details>
