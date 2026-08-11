@@ -1,0 +1,67 @@
+.student-mission-celebration {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+  margin-bottom: 18px;
+  padding: 20px 24px;
+  border: 1px solid #e2ead5;
+  border-radius: 26px;
+  background: linear-gradient(135deg, #f7ffec 0%, #f6f8ff 100%);
+  box-shadow: 0 12px 30px rgba(47, 67, 70, .06);
+}
+
+.student-mission-celebration h2 {
+  margin: 5px 0 7px;
+  font-size: clamp(22px, 3vw, 30px);
+}
+
+.student-mission-celebration p {
+  margin: 0;
+  color: #5f6879;
+  line-height: 1.6;
+}
+
+.student-mission-celebration-character {
+  display: grid;
+  place-items: center;
+  width: 126px;
+  height: 126px;
+  overflow: hidden;
+  border-radius: 36px;
+  background: rgba(255, 255, 255, .86);
+}
+
+.student-mission-celebration-character img {
+  width: 116px !important;
+  height: 116px !important;
+  object-fit: contain !important;
+}
+
+html[data-theme="dark"] .student-mission-celebration {
+  border-color: #414b60;
+  background: #252c3b;
+}
+
+html[data-theme="dark"] .student-mission-celebration p {
+  color: #c7cfdd;
+}
+
+html[data-theme="dark"] .student-mission-celebration-character {
+  background: #30394a;
+}
+
+@media (max-width: 620px) {
+  .student-mission-celebration {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .student-mission-celebration-character {
+    margin: 0 auto;
+  }
+
+  .student-mission-celebration .flex {
+    justify-content: center;
+  }
+}
