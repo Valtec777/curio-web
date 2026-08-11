@@ -95,6 +95,7 @@ const menus: Record<AppRole, NavItem[]> = {
     { href: "/familia/plano", label: "Plano" },
     { href: "/familia/contrato", label: "Contrato" },
     { href: "/familia/pagamentos", label: "Pagamentos" },
+    { href: "/familia/privacidade", label: "Privacidade e autorizações" },
     { href: "/familia/suporte", label: "Suporte" },
     { href: "/familia/perfil", label: "Perfil" },
     { href: "/familia/configuracoes", label: "Configurações" },
