@@ -47,10 +47,27 @@ export default async function ProfessorAgendaPage({ searchParams }: { searchPara
 
   const students = (links ?? []).filter((link: any) => link.students && !link.students.deleted_at);
   const guardiansByStudent = new Map<string, string[]>();
+  const guardianNameById = new Map<string, string>();
   for (const row of guardianRows ?? []) {
     const current = guardiansByStudent.get(row.student_id) ?? [];
     current.push(`${row.guardian_name} (${row.relationship})`);
     guardiansByStudent.set(row.student_id, current);
+    guardianNameById.set(row.guardian_id, row.guardian_name);
+  }
+
+  const eventIds = (events ?? []).map((event: any) => event.id);
+  const { data: responseRows } = eventIds.length
+    ? await supabase
+        .from("agenda_event_guardian_responses")
+        .select("event_id,student_id,guardian_id,response,note,responded_at")
+        .in("event_id", eventIds)
+        .order("responded_at", { ascending: false })
+    : { data: [] as any[] };
+  const responsesByEvent = new Map<string, any[]>();
+  for (const row of responseRows ?? []) {
+    const current = responsesByEvent.get(row.event_id) ?? [];
+    current.push(row);
+    responsesByEvent.set(row.event_id, current);
   }
 
   const upcoming = (events ?? []).filter((event: any) => new Date(event.starts_at) >= new Date() && event.status !== "cancelled");
@@ -93,21 +110,26 @@ export default async function ProfessorAgendaPage({ searchParams }: { searchPara
           <div className="panel-head"><div><h2>Próximos encontros</h2><p>O link aparece aqui e também no painel Hoje.</p></div></div>
           {upcoming.length ? <div className="teacher-agenda-list">{upcoming.slice(0, 8).map((event: any) => {
             const student = event.agenda_event_students?.[0]?.students;
-            return <article className="teacher-agenda-item" key={event.id}><div><strong>{event.title}</strong><small>{typeLabel(event.event_type)} · {student?.preferred_name || student?.full_name || "Aluno"} · {dt(event.starts_at)}</small></div>{event.meeting_url ? <a className="button button-primary button-small" href={event.meeting_url} target="_blank" rel="noreferrer">Entrar ↗</a> : <Badge tone={tone(event.status)}>{statusLabel(event.status)}</Badge>}</article>;
+            const attendance = responsesByEvent.get(event.id) ?? [];
+            const hasUnavailable = attendance.some((row: any) => row.response === "unavailable");
+            const hasConfirmed = attendance.some((row: any) => row.response === "confirmed");
+            return <article className="teacher-agenda-item" key={event.id}><div><strong>{event.title}</strong><small>{typeLabel(event.event_type)} · {student?.preferred_name || student?.full_name || "Aluno"} · {dt(event.starts_at)}</small>{hasUnavailable ? <small className="muted">Família avisou que não poderá comparecer.</small> : hasConfirmed ? <small className="muted">Presença da família confirmada.</small> : null}</div>{event.meeting_url ? <a className="button button-primary button-small" href={event.meeting_url} target="_blank" rel="noreferrer">Entrar ↗</a> : <Badge tone={tone(event.status)}>{statusLabel(event.status)}</Badge>}</article>;
           })}</div> : <EmptyState title="Agenda livre" description="Nenhum encontro futuro cadastrado." />}
         </section>
       </div>
 
       <section className="panel">
-        <div className="panel-head"><div><h2>Compromissos cadastrados</h2><p>Histórico e próximos eventos sem perder participantes, horário ou link.</p></div></div>
+        <div className="panel-head"><div><h2>Compromissos cadastrados</h2><p>Histórico e próximos eventos sem perder participantes, horário, link ou resposta da família.</p></div></div>
         {events?.length ? <div className="teacher-resource-list">{events.map((event: any) => {
           const participantLink = event.agenda_event_students?.[0];
           const participant = participantLink?.students;
           const guardianNames = participantLink?.student_id ? guardiansByStudent.get(participantLink.student_id) ?? [] : [];
+          const attendanceResponses = responsesByEvent.get(event.id) ?? [];
           return <article className="teacher-resource-card" key={event.id}>
             <div className="teacher-resource-top"><div><div className="flex gap-8 wrap"><Badge tone={tone(event.status)}>{statusLabel(event.status)}</Badge><Badge tone="purple">{typeLabel(event.event_type)}</Badge></div><h3>{event.title}</h3><p>{participant?.preferred_name || participant?.full_name || "Aluno"}{event.description ? ` · ${event.description}` : ""}</p></div>{event.meeting_url && <a className="button button-secondary button-small" href={event.meeting_url} target="_blank" rel="noreferrer">Abrir link ↗</a>}</div>
             <div className="teacher-resource-meta"><span>{dt(event.starts_at)}{event.ends_at ? ` → ${dt(event.ends_at)}` : ""}</span>{event.location && <span>• {event.location}</span>}</div>
             {(event.event_type === "family_meeting" || event.event_type === "meeting") && guardianNames.length > 0 && <small className="muted">Responsável(is): {guardianNames.join(", ")}</small>}
+            {attendanceResponses.length > 0 ? <div className="family-highlight mt-12"><strong>Resposta da família</strong>{attendanceResponses.map((response: any) => <p key={`${response.guardian_id}-${response.responded_at}`}><Badge tone={response.response === "confirmed" ? "green" : "pink"}>{response.response === "confirmed" ? "Presença confirmada" : "Não poderá comparecer"}</Badge> <span>{guardianNameById.get(response.guardian_id) || "Responsável"}</span>{response.note ? <span> · {response.note}</span> : null}</p>)}</div> : null}
             <div className="teacher-resource-actions">
               {event.status === "scheduled" && <form action={setAgendaEventStatus}><input type="hidden" name="eventId" value={event.id}/><input type="hidden" name="status" value="confirmed"/><button className="button button-secondary button-small" type="submit">Confirmar</button></form>}
               {event.status !== "completed" && event.status !== "cancelled" && <form action={setAgendaEventStatus}><input type="hidden" name="eventId" value={event.id}/><input type="hidden" name="status" value="completed"/><button className="button button-secondary button-small" type="submit">Marcar realizado</button></form>}
