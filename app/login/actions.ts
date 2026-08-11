@@ -59,15 +59,8 @@ function siteOrigin() {
   const deploymentUrl = normalizedOrigin(process.env.VERCEL_URL);
   const runningOnVercel = process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV);
 
-  // Se a URL oficial foi configurada explicitamente, ela sempre vence.
   if (configured && !isLocalOrigin(configured)) return configured;
-
-  // Em qualquer deploy Vercel, e-mails de acesso devem voltar ao endereço estável
-  // usado pelas famílias/professores, e não ao hostname temporário do Preview.
   if (runningOnVercel) return OFFICIAL_SITE_ORIGIN;
-
-  // Desenvolvimento local continua funcionando sem transformar localhost em
-  // destino de e-mails enviados a usuários reais.
   if (configured) return configured;
   if (branchUrl && !isLocalOrigin(branchUrl)) return branchUrl;
   if (deploymentUrl && !isLocalOrigin(deploymentUrl)) return deploymentUrl;
@@ -97,6 +90,14 @@ export async function login(formData: FormData) {
     redirect(queryError("Não foi possível entrar. Confira e-mail e senha."));
   }
 
+  // Convites criados para contas que já existiam podem ter sido enviados depois
+  // de a pessoa definir a senha. Um login válido é evidência suficiente de que
+  // esse acesso institucional já está ativo; sincronizamos o painel do Admin.
+  const { error: invitationSyncError } = await supabase.rpc("mark_access_invitation_accepted");
+  if (invitationSyncError) {
+    console.error("Falha ao sincronizar situação do convite após login", invitationSyncError.code);
+  }
+
   const { data: roleRows } = await supabase
     .from("user_roles")
     .select("role")
@@ -116,7 +117,6 @@ async function sendPasswordLink(email: string, successPath: string) {
     redirectTo: `${origin}/auth/confirm?next=/definir-senha`,
   });
 
-  // Não revelamos se o e-mail existe ou não.
   if (error) {
     console.error("Falha no envio do link de acesso/recuperação", error.code);
     redirect(`${successPath}?erro=${encodeURIComponent("Não foi possível enviar o e-mail agora. Aguarde um pouco e tente novamente.")}`);
