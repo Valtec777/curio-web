@@ -46,7 +46,7 @@ export async function createTeacherReport(formData: FormData) {
 
   const { data: link, error: linkError } = await supabase
     .from("teacher_students")
-    .select("student_id,students(id,deleted_at)")
+    .select("student_id,students(id,preferred_name,full_name,deleted_at)")
     .eq("teacher_id", teacher.id)
     .eq("student_id", parsed.data.studentId)
     .eq("active", true)
@@ -76,7 +76,7 @@ export async function createTeacherReport(formData: FormData) {
     }
   }
 
-  const { error } = await supabase.from("generated_reports").insert({
+  const { data: report, error } = await supabase.from("generated_reports").insert({
     student_id: parsed.data.studentId,
     generated_by_user_id: viewer.user.id,
     report_type: parsed.data.reportType,
@@ -89,16 +89,45 @@ export async function createTeacherReport(formData: FormData) {
       teacher_id: teacher.id,
       published_by_role: "teacher",
     },
-  });
+  }).select("id").single();
 
-  if (error) {
+  if (error || !report) {
     if (filePath) await supabase.storage.from("generated-documents").remove([filePath]);
-    console.error("Falha ao publicar relatório pedagógico", error.code);
+    console.error("Falha ao publicar relatório pedagógico", error?.code);
     redirect(`/professor/relatorios?erro=${encodeURIComponent("Não foi possível publicar o relatório. Nenhum anexo órfão foi mantido.")}`);
+  }
+
+  const { data: guardianRows, error: guardianError } = await supabase.rpc("teacher_linked_guardian_names");
+  let noticeFailed = 0;
+  if (guardianError) {
+    noticeFailed = 1;
+    console.error("Falha ao localizar família para aviso de relatório", guardianError.code);
+  } else {
+    const guardians = (guardianRows ?? []).filter((row: any) => row.student_id === parsed.data.studentId && row.guardian_id);
+    const studentName = linkedStudent.preferred_name || linkedStudent.full_name || "o aluno";
+    for (const guardian of guardians) {
+      const { error: noticeError } = await supabase.rpc("send_curio_family_message", {
+        p_student_id: parsed.data.studentId,
+        p_guardian_id: guardian.guardian_id,
+        p_subject: `Novo relatório de ${studentName}`,
+        p_body: `Olá, ${guardian.guardian_name || "responsável"}! Um novo relatório de acompanhamento de ${studentName} foi publicado no CURIÓ. Você pode ler a devolutiva e abrir o PDF, quando houver, na área de Relatórios.`,
+        p_action_label: "Ver relatório",
+        p_action_url: `/familia/relatorios?aluno=${parsed.data.studentId}`,
+        p_request_key: `report:${report.id}:${guardian.guardian_id}`,
+      });
+      if (noticeError) {
+        noticeFailed += 1;
+        console.error("Falha ao enviar aviso de relatório", noticeError.code);
+      }
+    }
   }
 
   revalidatePath("/professor/relatorios");
   revalidatePath("/familia/relatorios");
+  revalidatePath("/familia/mensagens");
   revalidatePath("/familia");
-  redirect(`/professor/relatorios?sucesso=${encodeURIComponent("Relatório publicado para a família vinculada.")}`);
+  const success = noticeFailed
+    ? "Relatório publicado. A área da Família já foi atualizada, mas um aviso interno não pôde ser entregue."
+    : "Relatório publicado e família vinculada avisada no portal.";
+  redirect(`/professor/relatorios?sucesso=${encodeURIComponent(success)}`);
 }
