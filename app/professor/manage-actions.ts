@@ -22,7 +22,7 @@ function parseBase(formData: FormData) {
   return resourceSchema.safeParse({ kind: formData.get("kind"), id: formData.get("id") });
 }
 
-function invalidResource() {
+function invalidResource(): never {
   redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível identificar o conteúdo selecionado. Atualize a página e tente novamente.")}`);
 }
 
