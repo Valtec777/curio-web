@@ -16,11 +16,27 @@ function decisionLabel(decision?: string | null) {
   return decision || "—";
 }
 
+function contractStatusLabel(status?: string | null) {
+  if (status === "draft") return "Em preparação";
+  if (status === "sent") return "Aguardando assinatura";
+  if (status === "signed") return "Assinado";
+  if (status === "cancelled") return "Cancelado";
+  if (status === "expired") return "Expirado";
+  return status || "—";
+}
+
+function contractStatusTone(status?: string | null): "green" | "yellow" | "pink" | "neutral" | "blue" {
+  if (status === "signed") return "green";
+  if (status === "sent") return "yellow";
+  if (status === "cancelled" || status === "expired") return "neutral";
+  return "blue";
+}
+
 export default async function AdminDocumentsPage({ searchParams }: { searchParams: Promise<{ erro?: string; sucesso?: string }> }) {
   const query = await searchParams;
   await requireRole("admin");
   const supabase = await createClient();
-  const [{ data: legal }, { data: operational }, { data: acceptanceEvents }] = await Promise.all([
+  const [{ data: legal }, { data: operational }, { data: acceptanceEvents }, { data: contracts }] = await Promise.all([
     supabase.from("legal_documents").select("id,title,public_slug,document_type,version,status,is_current,body,file_path,published_at,created_at").order("public_slug").order("version", { ascending: false }),
     supabase
       .from("documents")
@@ -33,7 +49,27 @@ export default async function AdminDocumentsPage({ searchParams }: { searchParam
       .select("id,decision,document_slug,document_version,document_title,student_id,occurred_at,guardians(profiles(full_name,preferred_name)),students(preferred_name,full_name)")
       .order("occurred_at", { ascending: false })
       .limit(120),
+    supabase
+      .from("contracts")
+      .select("id,subscription_id,status,document_path,signed_at,created_at,updated_at")
+      .order("created_at", { ascending: false })
+      .limit(120),
   ]);
+
+  const subscriptionIds = [...new Set((contracts ?? []).map((contract: any) => contract.subscription_id).filter(Boolean))];
+  const { data: contractSubscriptions } = subscriptionIds.length
+    ? await supabase
+      .from("subscriptions")
+      .select("id,student_id,guardian_id,plan_id,students(preferred_name,full_name),guardians(profiles(full_name,preferred_name)),plans(name)")
+      .in("id", subscriptionIds)
+    : { data: [] as any[] };
+  const subscriptionById = new Map((contractSubscriptions ?? []).map((subscription: any) => [subscription.id, subscription]));
+  const contractUrls = new Map<string, string>();
+  for (const contract of contracts ?? []) {
+    if (!contract.document_path) continue;
+    const { data } = await supabase.storage.from("generated-documents").createSignedUrl(contract.document_path, 60 * 20);
+    if (data?.signedUrl) contractUrls.set(contract.id, data.signedUrl);
+  }
 
   const currentLegal = (legal ?? []).filter((doc: any) => doc.is_current);
   const publishedCount = currentLegal.filter((doc: any) => doc.status === "published").length;
@@ -43,10 +79,12 @@ export default async function AdminDocumentsPage({ searchParams }: { searchParam
   const acceptedCount = (acceptanceEvents ?? []).filter((event: any) => event.decision === "accepted").length;
   const declinedCount = (acceptanceEvents ?? []).filter((event: any) => event.decision === "declined").length;
   const revokedCount = (acceptanceEvents ?? []).filter((event: any) => event.decision === "revoked").length;
+  const contractsAwaiting = (contracts ?? []).filter((contract: any) => contract.status === "sent").length;
+  const contractsSigned = (contracts ?? []).filter((contract: any) => contract.status === "signed").length;
 
   return (
     <>
-      <PageHeader eyebrow="Admin • Operação" title="Documentos" description="Textos legais versionados, evidências de aceite e documentos operacionais. Apenas uma versão publicada e atual pode aparecer para o público." />
+      <PageHeader eyebrow="Admin • Operação" title="Documentos" description="Textos legais versionados, contratos, evidências de aceite e documentos operacionais em um só lugar." />
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
       {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
 
@@ -78,6 +116,36 @@ export default async function AdminDocumentsPage({ searchParams }: { searchParam
       </section>
 
       <section className="panel">
+        <div className="panel-head"><div><h2>Contratos das matrículas</h2><p>Acompanhe preparação, envio e assinatura dos contratos sem confundir o contrato individual com os Termos gerais do portal.</p></div></div>
+        <div className="student-home-stats student-home-stats-secondary">
+          <article><strong>{contracts?.length ?? 0}</strong><small>Contratos</small></article>
+          <article><strong>{contractsAwaiting}</strong><small>Aguardando assinatura</small></article>
+          <article><strong>{contractsSigned}</strong><small>Assinados</small></article>
+          <article><strong>{(contracts ?? []).filter((contract: any) => contract.status === "draft").length}</strong><small>Em preparação</small></article>
+        </div>
+        {contracts?.length ? <div className="form-stack mt-16">{contracts.map((contract: any) => {
+          const subscription: any = subscriptionById.get(contract.subscription_id);
+          const student = Array.isArray(subscription?.students) ? subscription.students[0] : subscription?.students;
+          const guardian = Array.isArray(subscription?.guardians) ? subscription.guardians[0] : subscription?.guardians;
+          const guardianProfile = Array.isArray(guardian?.profiles) ? guardian.profiles[0] : guardian?.profiles;
+          const plan = Array.isArray(subscription?.plans) ? subscription.plans[0] : subscription?.plans;
+          return <article className="mission-card" key={contract.id}>
+            <div className="flex space-between gap-8 wrap">
+              <div>
+                <div className="flex gap-8 wrap"><Badge tone={contractStatusTone(contract.status)}>{contractStatusLabel(contract.status)}</Badge>{plan?.name && <Badge tone="blue">{plan.name}</Badge>}</div>
+                <h3>{student?.preferred_name || student?.full_name || "Aluno da matrícula"}</h3>
+                <p>Responsável: {guardianProfile?.preferred_name || guardianProfile?.full_name || "—"}</p>
+              </div>
+              <small className="muted">{contract.signed_at ? `Assinado ${dt(contract.signed_at)}` : `Criado ${dt(contract.created_at)}`}</small>
+            </div>
+            <div className="flex gap-8 wrap mt-12">
+              {contractUrls.get(contract.id) ? <a className="button button-secondary button-small" href={contractUrls.get(contract.id)} target="_blank" rel="noreferrer">Abrir contrato</a> : <span className="muted">Documento ainda não anexado.</span>}
+            </div>
+          </article>;
+        })}</div> : <EmptyState title="Nenhum contrato gerado ainda" description="Os contratos vinculados às matrículas aparecerão aqui quando forem preparados." />}
+      </section>
+
+      <section className="panel">
         <div className="panel-head"><div><h2>Evidências de aceite e autorização</h2><p>Histórico imutável das decisões registradas no Ninho da Família. A versão do documento permanece preservada mesmo quando uma nova versão for publicada.</p></div></div>
         <div className="student-home-stats student-home-stats-secondary">
           <article><strong>{acceptanceEvents?.length ?? 0}</strong><small>Eventos registrados</small></article>
@@ -102,7 +170,7 @@ export default async function AdminDocumentsPage({ searchParams }: { searchParam
       </section>
 
       <section className="panel">
-        <div className="panel-head"><div><h2>Documentos operacionais</h2><p>Contratos individuais, relatórios, anexos e outros arquivos vinculados a famílias ou alunos.</p></div></div>
+        <div className="panel-head"><div><h2>Documentos operacionais</h2><p>Relatórios, anexos e outros arquivos vinculados a famílias, alunos ou assinaturas.</p></div></div>
         <div className="notice">Excluir um documento operacional não apaga o arquivo nem rompe o vínculo com aluno, responsável ou assinatura. Ele vai para a Lixeira com o mesmo ID e pode ser restaurado.</div>
         {operational?.length ? <div className="form-stack">{operational.map((doc: any) => <article className="mission-card" key={doc.id}>
           <div className="flex space-between gap-8 wrap">
@@ -122,7 +190,7 @@ export default async function AdminDocumentsPage({ searchParams }: { searchParam
               <button className="button button-danger button-small" type="submit">Enviar para a Lixeira</button>
             </form>
           </details>
-        </article>)}</div> : <EmptyState title="Nenhum documento operacional" description="Contratos e arquivos vinculados aparecerão aqui." />}
+        </article>)}</div> : <EmptyState title="Nenhum documento operacional" description="Relatórios e arquivos vinculados aparecerão aqui." />}
       </section>
     </>
   );
