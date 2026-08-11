@@ -22,7 +22,7 @@ function dt(value?: string | null) {
 }
 
 function decisionLabel(decision?: string | null) {
-  if (decision === "accepted") return "Aceito";
+  if (decision === "accepted") return "Registrado";
   if (decision === "declined") return "Não autorizado";
   if (decision === "revoked") return "Autorização revogada";
   return "Sem decisão registrada";
@@ -95,7 +95,7 @@ export default async function FamilyPrivacyPage({
       <PageHeader
         eyebrow="Ninho da Família"
         title="Privacidade e autorizações"
-        description="Leia os documentos publicados e acompanhe, por versão, as escolhas registradas pela sua conta. Autorizações opcionais ficam separadas dos Termos e da Política de Privacidade."
+        description="Leia os documentos publicados e acompanhe, por versão, os registros feitos pela sua conta. Autorizações opcionais ficam separadas dos Termos e da Política de Privacidade."
       />
 
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
@@ -105,7 +105,7 @@ export default async function FamilyPrivacyPage({
         <div className="panel-head">
           <div>
             <h2>Como o registro funciona</h2>
-            <p>O portal guarda o documento e a versão publicados, o usuário autenticado e a data/hora do servidor. Um novo documento publicado gera uma nova decisão, sem apagar o histórico anterior.</p>
+            <p>O portal guarda o documento e a versão publicados, o usuário autenticado e a data/hora do servidor. Um novo documento publicado gera um novo registro, sem apagar o histórico anterior.</p>
           </div>
         </div>
         <div className="notice">O contrato de prestação de serviços continua sendo assinado na área <Link href="/familia/contrato">Contrato</Link>. Esta tela não duplica a assinatura contratual.</div>
@@ -124,7 +124,7 @@ export default async function FamilyPrivacyPage({
         <div className="panel-head">
           <div>
             <h2>Documentos gerais da conta</h2>
-            <p>Termos e Política de Privacidade são registrados pela conta autenticada do responsável.</p>
+            <p>Os Termos registram concordância. A Política de Privacidade registra ciência da versão apresentada, sem transformar a própria política em um consentimento genérico para todos os tratamentos.</p>
           </div>
         </div>
         <div className="form-stack">
@@ -132,6 +132,7 @@ export default async function FamilyPrivacyPage({
             const doc: any = docBySlug.get(slug);
             if (!doc) return null;
             const event = latest.get(`${doc.id}:general`);
+            const isPrivacyNotice = slug === "politica-de-privacidade";
             return (
               <article className="mission-card" key={doc.id}>
                 <div className="flex space-between gap-8 wrap">
@@ -140,7 +141,7 @@ export default async function FamilyPrivacyPage({
                     <h3>{doc.title}</h3>
                     <p>{doc.document_type}</p>
                   </div>
-                  <Badge tone={decisionTone(event?.decision)}>{decisionLabel(event?.decision)}</Badge>
+                  <Badge tone={decisionTone(event?.decision)}>{event?.decision === "accepted" ? (isPrivacyNotice ? "Ciência registrada" : "Concordância registrada") : decisionLabel(event?.decision)}</Badge>
                 </div>
                 {event ? <small className="muted">Registrado em {dt(event.occurred_at)} · versão {event.document_version}</small> : null}
                 <div className="flex gap-8 wrap mt-12">
@@ -149,7 +150,7 @@ export default async function FamilyPrivacyPage({
                     <form action={recordFamilyLegalDecision}>
                       <input type="hidden" name="documentId" value={doc.id} />
                       <input type="hidden" name="decision" value="accepted" />
-                      <button className="button button-primary button-small" type="submit">Li e concordo</button>
+                      <button className="button button-primary button-small" type="submit">{isPrivacyNotice ? "Li e estou ciente" : "Li e concordo"}</button>
                     </form>
                   ) : null}
                 </div>
