@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { FaqAccordion } from "@/components/faq-accordion";
+import { PublicTrustSection } from "@/components/public-trust-section";
 import { createEnrollmentRequest } from "@/app/actions";
 import { createClient } from "@/lib/supabase/server";
 
@@ -123,9 +124,9 @@ export default async function Home({
                 <a className="button button-pink" href="#como-funciona">Ver como funciona</a>
               </div>
               <div className="hero-chips">
-                <span>Aprender é uma aventura</span>
-                <span>Pensar antes de responder</span>
-                <span>Escrita também importa</span>
+                <span>Acompanhamento humano</span>
+                <span>Progresso visível</span>
+                <span>Aprendizagem além da tela</span>
               </div>
             </div>
 
@@ -144,6 +145,8 @@ export default async function Home({
             </div>
           </div>
         </section>
+
+        <PublicTrustSection />
 
         <section className="section" id="como-funciona">
           <div className="site-shell">
@@ -240,7 +243,6 @@ export default async function Home({
             </div>
           </div>
         </section>
-
 
         <section className="section course-public-section" id="cursos">
           <div className="site-shell course-public-grid">
