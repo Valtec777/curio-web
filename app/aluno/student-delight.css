@@ -1,0 +1,355 @@
+/* CURIÓ · camada de encanto do Portal do Aluno
+   Visual vivo, confortável e sem emojis. */
+
+.kid-dashboard h1,
+.kid-dashboard h2,
+.kid-dashboard h3,
+.kid-dashboard .student-home-stats strong {
+  font-family: var(--font-curio-display), var(--font-curio-body), sans-serif;
+}
+
+.student-hero-refresh {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(230px, .75fr);
+  align-items: center;
+  gap: 24px;
+  min-height: 330px;
+  overflow: hidden;
+  padding: clamp(24px, 4vw, 42px);
+  border: 0;
+  border-radius: 36px;
+  background:
+    radial-gradient(circle at 78% 22%, rgba(201,255,85,.25), transparent 19rem),
+    radial-gradient(circle at 14% 100%, rgba(255,255,255,.10), transparent 18rem),
+    linear-gradient(135deg,#315efb 0%,#5944d8 58%,#7246d7 100%);
+  box-shadow: 0 24px 60px rgba(48,53,150,.20);
+}
+
+.student-hero-refresh::before {
+  content: "";
+  position: absolute;
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  left: -85px;
+  top: -90px;
+  background: rgba(255,255,255,.08);
+}
+
+.student-hero-refresh .kid-hero-copy {
+  position: relative;
+  z-index: 2;
+}
+
+.student-hero-refresh h1 {
+  margin: 7px 0 10px;
+  color: #fff;
+  font-size: clamp(38px,5vw,64px);
+  letter-spacing: -.04em;
+  line-height: 1;
+}
+
+.student-hero-refresh .kid-hero-copy > p {
+  max-width: 660px;
+  color: rgba(255,255,255,.88);
+  font-size: 16px;
+}
+
+.student-hero-stage {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 300px);
+  aspect-ratio: 1 / 1;
+  justify-self: center;
+  display: grid;
+  place-items: center;
+  border-radius: 46% 54% 48% 52% / 52% 43% 57% 48%;
+  background: linear-gradient(145deg,rgba(255,255,255,.95),rgba(245,255,218,.92));
+  box-shadow: 0 18px 48px rgba(29,33,104,.22), inset 0 0 0 1px rgba(255,255,255,.7);
+}
+
+.student-hero-character {
+  position: relative;
+  z-index: 3;
+  width: 88% !important;
+  height: 88% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+.student-hero-orbit {
+  position: absolute;
+  border-radius: 999px;
+  background: #c9ff55;
+}
+.student-hero-orbit-one { width: 28px; height: 28px; top: 20px; right: 18px; }
+.student-hero-orbit-two { width: 14px; height: 14px; bottom: 35px; left: 20px; background: #ff75bb; }
+
+.student-today-pills span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.12);
+  backdrop-filter: blur(8px);
+}
+
+.student-ui-icon,
+.student-achievement-symbol,
+.student-streak-icon,
+.student-tip-icon,
+.student-course-hero-icon,
+.student-test-intro-icon,
+.student-achievement-hero-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.student-ui-icon { width: 22px; height: 22px; }
+.student-ui-icon .nav-icon-svg { width: 16px; height: 16px; }
+.student-today-pills .student-ui-icon { color: #dfff9e; }
+
+.student-heading-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.student-heading-with-icon .student-ui-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+  background: #eef1ff;
+  color: #4e56d9;
+}
+
+.student-home-stats article {
+  position: relative;
+  overflow: hidden;
+  min-height: 92px;
+  border: 0;
+  box-shadow: 0 12px 32px rgba(48,53,95,.07);
+}
+.student-home-stats article::after {
+  content: "";
+  position: absolute;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  right: -23px;
+  top: -24px;
+  background: rgba(255,255,255,.45);
+}
+.student-home-stats article:nth-child(1) { background: #f2edff; }
+.student-home-stats article:nth-child(2) { background: #fff0f6; }
+.student-home-stats article:nth-child(3) { background: #edf7ff; }
+.student-home-stats article:nth-child(4) { background: #f2ffdf; }
+.student-home-stats .student-ui-icon {
+  grid-row: 1 / 3;
+  width: 42px;
+  height: 42px;
+  border-radius: 15px;
+  background: rgba(255,255,255,.72);
+  color: #4a50cb;
+}
+.student-home-stats .student-ui-icon .nav-icon-svg { width: 21px; height: 21px; }
+
+.student-home-stats-secondary article {
+  border: 1px solid rgba(53,64,112,.06);
+}
+
+.kid-dashboard .panel,
+.kid-dashboard .mission-card,
+.student-notebook-mini,
+.student-notebook-card,
+.student-test-card,
+.student-library-card,
+.student-course-card,
+.student-agenda-card {
+  border-radius: 26px;
+}
+
+.kid-dashboard .panel {
+  box-shadow: 0 12px 36px rgba(46,50,92,.055);
+}
+
+.student-next-event { background: linear-gradient(145deg,#fff,#f4f7ff); }
+.student-tip-card-refresh { background: linear-gradient(135deg,#eef8ff,#f8fff0); }
+.student-tip-character {
+  width: 120px !important;
+  height: 120px !important;
+  object-fit: contain !important;
+}
+
+.student-achievement-symbol {
+  width: 42px;
+  height: 42px;
+  border-radius: 15px;
+  background: #f1f5ff;
+  color: #5d54d7;
+}
+.student-achievement-symbol .nav-icon-svg { width: 22px; height: 22px; }
+
+.student-streak-orb {
+  border: 0;
+  background: linear-gradient(145deg,#fff3df,#fff9ed);
+  box-shadow: inset 0 0 0 1px #f0dec4, 0 12px 26px rgba(133,76,35,.08);
+}
+.student-streak-icon {
+  width: 38px;
+  height: 38px;
+  margin-bottom: 4px;
+  border-radius: 15px;
+  background: #fff;
+  color: #dd6b36;
+}
+.student-streak-icon .nav-icon-svg { width: 22px; height: 22px; }
+
+.student-subject-character,
+.student-profile-character,
+.student-avatar-image {
+  object-fit: contain !important;
+  object-position: center !important;
+}
+.student-subject-character { width: 72px !important; height: 72px !important; }
+.student-subject-icon {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  background: #eef4ff;
+  color: #4b5ed0;
+}
+.student-subject-icon .nav-icon-svg { width: 30px; height: 30px; }
+
+.student-achievement-mini-list article > span {
+  font-size: inherit;
+}
+.student-tip-icon {
+  width: 62px;
+  height: 62px;
+  border-radius: 22px;
+  background: #fff;
+  color: #6d55da;
+  box-shadow: 0 10px 28px rgba(61,70,120,.08);
+}
+.student-tip-icon .nav-icon-svg { width: 31px; height: 31px; }
+
+.student-achievement-hero-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background: #f3f0ff;
+  color: #6653db;
+}
+.student-achievement-hero-icon .nav-icon-svg { width: 28px; height: 28px; }
+
+.student-achievement-medal {
+  font-size: inherit;
+  color: #667085;
+}
+.student-achievement-medal .nav-icon-svg { width: 25px; height: 25px; }
+.student-achievement-card.is-earned .student-achievement-medal { color: #4f6c25; }
+
+.student-profile-character-frame,
+.student-avatar-image-frame {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  background: linear-gradient(145deg,#f7f8ff,#f2ffe4);
+  border: 1px solid #e2e6ef;
+}
+.student-profile-character-frame {
+  width: 142px;
+  border-radius: 34px;
+}
+.student-profile-character { width: 90% !important; height: 90% !important; }
+.student-avatar-image-frame {
+  width: 100%;
+  max-width: 148px;
+  margin: 0 auto;
+  border-radius: 28px;
+}
+.student-avatar-image { width: 90% !important; height: 90% !important; }
+.badge-inline-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+}
+.badge-inline-icon .nav-icon-svg { width: 14px; height: 14px; }
+
+.student-course-hero-icon,
+.student-test-intro-icon {
+  width: 74px;
+  height: 74px;
+  border-radius: 26px;
+  background: rgba(255,255,255,.78);
+  color: #604ed8;
+  box-shadow: 0 12px 30px rgba(50,57,120,.08);
+}
+.student-course-hero-icon .nav-icon-svg,
+.student-test-intro-icon .nav-icon-svg { width: 38px; height: 38px; }
+
+.student-course-card:nth-child(3n+1) { border-top: 5px solid #7156e8; }
+.student-course-card:nth-child(3n+2) { border-top: 5px solid #ff76b1; }
+.student-course-card:nth-child(3n+3) { border-top: 5px solid #b6ea42; }
+
+.teacher-create-launch-grid-clean .teacher-create-launch {
+  position: relative;
+  overflow: hidden;
+}
+.teacher-create-format-mark {
+  width: 42px;
+  height: 10px;
+  border-radius: 999px;
+  background: #6c55df;
+}
+.teacher-create-launch.is-notebook .teacher-create-format-mark { background: #e764a5; }
+.teacher-create-launch.is-material .teacher-create-format-mark { background: #7ab53d; }
+.teacher-create-launch.is-assessment .teacher-create-format-mark { background: #315efb; }
+.teacher-create-launch small { margin-top: auto; color: #5061c7; font-weight: 900; }
+.teacher-create-steps { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; }
+.teacher-create-steps article { display: grid; grid-template-columns: auto 1fr; gap: 11px; padding: 15px; border: 1px solid #e5e7ef; border-radius: 20px; background: #fff; }
+.teacher-create-steps article > strong { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 12px; background: #eef1ff; color: #4c56ce; }
+.teacher-create-steps h3 { margin: 2px 0 4px; font-size: 14px; }
+.teacher-create-steps p { margin: 0; color: #737d92; font-size: 12px; }
+
+html[data-theme="dark"] .student-home-stats article,
+html[data-theme="dark"] .student-next-event,
+html[data-theme="dark"] .student-tip-card-refresh,
+html[data-theme="dark"] .student-profile-character-frame,
+html[data-theme="dark"] .student-avatar-image-frame,
+html[data-theme="dark"] .student-subject-icon,
+html[data-theme="dark"] .student-tip-icon,
+html[data-theme="dark"] .student-course-hero-icon,
+html[data-theme="dark"] .student-test-intro-icon {
+  background: #252c3b;
+  color: #e8edff;
+  border-color: #414b60;
+}
+
+@media (max-width: 900px) {
+  .student-hero-refresh { grid-template-columns: 1fr minmax(190px,.55fr); }
+  .teacher-create-steps { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+
+@media (max-width: 680px) {
+  .student-hero-refresh { grid-template-columns: 1fr; min-height: 0; }
+  .student-hero-stage { width: min(72vw,260px); }
+  .student-hero-refresh h1 { font-size: clamp(36px,11vw,52px); }
+  .teacher-create-steps { grid-template-columns: 1fr; }
+}
+
+html[data-motion="reduced"] .student-hero-stage,
+html[data-motion="reduced"] .student-home-stats article,
+html[data-motion="reduced"] .student-course-card {
+  transition: none !important;
+  animation: none !important;
+}
