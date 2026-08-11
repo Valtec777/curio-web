@@ -22,14 +22,15 @@ function dt(value?: string | null) {
 }
 
 function decisionLabel(decision?: string | null) {
-  if (decision === "accepted") return "Registrado";
+  if (decision === "accepted") return "Autorizado";
+  if (decision === "acknowledged") return "Ciência registrada";
   if (decision === "declined") return "Não autorizado";
   if (decision === "revoked") return "Autorização revogada";
   return "Sem decisão registrada";
 }
 
 function decisionTone(decision?: string | null): "green" | "yellow" | "pink" | "neutral" {
-  if (decision === "accepted") return "green";
+  if (decision === "accepted" || decision === "acknowledged") return "green";
   if (decision === "declined" || decision === "revoked") return "pink";
   return "yellow";
 }
@@ -133,6 +134,8 @@ export default async function FamilyPrivacyPage({
             if (!doc) return null;
             const event = latest.get(`${doc.id}:general`);
             const isPrivacyNotice = slug === "politica-de-privacidade";
+            const requiredDecision = isPrivacyNotice ? "acknowledged" : "accepted";
+            const isRegistered = event?.decision === requiredDecision;
             return (
               <article className="mission-card" key={doc.id}>
                 <div className="flex space-between gap-8 wrap">
@@ -141,15 +144,15 @@ export default async function FamilyPrivacyPage({
                     <h3>{doc.title}</h3>
                     <p>{doc.document_type}</p>
                   </div>
-                  <Badge tone={decisionTone(event?.decision)}>{event?.decision === "accepted" ? (isPrivacyNotice ? "Ciência registrada" : "Concordância registrada") : decisionLabel(event?.decision)}</Badge>
+                  <Badge tone={decisionTone(event?.decision)}>{isRegistered ? (isPrivacyNotice ? "Ciência registrada" : "Concordância registrada") : decisionLabel(event?.decision)}</Badge>
                 </div>
                 {event ? <small className="muted">Registrado em {dt(event.occurred_at)} · versão {event.document_version}</small> : null}
                 <div className="flex gap-8 wrap mt-12">
                   <Link className="button button-secondary button-small" href={`/legal/${doc.public_slug}`} target="_blank">Ler documento</Link>
-                  {event?.decision !== "accepted" ? (
+                  {!isRegistered ? (
                     <form action={recordFamilyLegalDecision}>
                       <input type="hidden" name="documentId" value={doc.id} />
-                      <input type="hidden" name="decision" value="accepted" />
+                      <input type="hidden" name="decision" value={requiredDecision} />
                       <button className="button button-primary button-small" type="submit">{isPrivacyNotice ? "Li e estou ciente" : "Li e concordo"}</button>
                     </form>
                   ) : null}
