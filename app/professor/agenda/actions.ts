@@ -16,6 +16,14 @@ const agendaSchema = z.object({
   endsAt: z.string().optional(),
   meetingUrl: z.string().trim().max(1200).optional(),
   location: z.string().trim().max(300).optional(),
+}).superRefine((value, ctx) => {
+  if (!value.meetingUrl) return;
+  try {
+    const url = new URL(value.meetingUrl);
+    if (url.protocol !== "https:") throw new Error("https only");
+  } catch {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["meetingUrl"], message: "Use um link HTTPS válido para a reunião." });
+  }
 });
 
 function bahiaDateTime(value?: string) {
@@ -78,10 +86,11 @@ async function sendAgendaFamilyNotice({
   let failed = 0;
 
   for (const guardian of guardians) {
+    const feminine = kind === "reunião" || kind === "aula" || kind === "avaliação" || kind === "revisão";
     const statusText = status === "cancelled"
-      ? `foi cancelad${kind === "reunião" || kind === "aula" || kind === "avaliação" || kind === "revisão" ? "a" : "o"}`
+      ? `foi cancelad${feminine ? "a" : "o"}`
       : status === "confirmed"
-        ? `foi confirmad${kind === "reunião" || kind === "aula" || kind === "avaliação" || kind === "revisão" ? "a" : "o"}`
+        ? `foi confirmad${feminine ? "a" : "o"}`
         : "foi agendado";
     const subject = status === "scheduled"
       ? `${kind.charAt(0).toUpperCase()}${kind.slice(1)} de ${studentName} em ${when}`
@@ -123,7 +132,7 @@ export async function createAgendaEvent(formData: FormData) {
   });
 
   if (!parsed.success) {
-    redirect(`/professor/agenda?erro=${encodeURIComponent("Confira os dados do encontro.")}`);
+    redirect(`/professor/agenda?erro=${encodeURIComponent(parsed.error.issues[0]?.message || "Confira os dados do encontro.")}`);
   }
 
   const startsAt = bahiaDateTime(parsed.data.startsAt);
@@ -136,15 +145,17 @@ export async function createAgendaEvent(formData: FormData) {
   const { teacher, supabase } = await getCurrentTeacher();
   if (!teacher) redirect(`/professor/agenda?erro=${encodeURIComponent("Seu perfil de professor ainda não está vinculado.")}`);
 
-  const { data: linkedStudent } = await supabase
+  const { data: linkedStudent, error: linkError } = await supabase
     .from("teacher_students")
-    .select("student_id,students(preferred_name,full_name)")
+    .select("student_id,students(preferred_name,full_name,deleted_at)")
     .eq("teacher_id", teacher.id)
     .eq("student_id", parsed.data.studentId)
     .eq("active", true)
     .maybeSingle();
-  if (!linkedStudent) {
-    redirect(`/professor/agenda?erro=${encodeURIComponent("Este aluno não está vinculado a você.")}`);
+  const studentRelation: any = (linkedStudent as any)?.students;
+  const linkedStudentData = Array.isArray(studentRelation) ? studentRelation[0] : studentRelation;
+  if (linkError || !linkedStudent || !linkedStudentData || linkedStudentData.deleted_at) {
+    redirect(`/professor/agenda?erro=${encodeURIComponent("Este aluno não está vinculado ao seu acompanhamento ativo.")}`);
   }
 
   const visibleToGuardian = formData.get("visibleToGuardian") === "on";
@@ -178,9 +189,7 @@ export async function createAgendaEvent(formData: FormData) {
 
   let noticeFailed = 0;
   if (visibleToGuardian && parsed.data.status !== "completed") {
-    const studentRelation: any = (linkedStudent as any).students;
-    const student = Array.isArray(studentRelation) ? studentRelation[0] : studentRelation;
-    const studentName = student?.preferred_name || student?.full_name || "Aluno";
+    const studentName = linkedStudentData.preferred_name || linkedStudentData.full_name || "Aluno";
     const notice = await sendAgendaFamilyNotice({
       supabase,
       studentId: parsed.data.studentId,
@@ -219,18 +228,20 @@ export async function setAgendaEventStatus(formData: FormData) {
     eventId: formData.get("eventId"),
     status: formData.get("status"),
   });
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    redirect(`/professor/agenda?erro=${encodeURIComponent("Não foi possível identificar o encontro ou a situação escolhida.")}`);
+  }
 
   const { teacher, supabase } = await getCurrentTeacher();
-  if (!teacher) return;
+  if (!teacher) redirect(`/professor/agenda?erro=${encodeURIComponent("Seu perfil de professor ainda não está vinculado.")}`);
 
-  const { data: event } = await supabase
+  const { data: event, error: eventError } = await supabase
     .from("agenda_events")
     .select("id,title,event_type,starts_at,visible_to_guardian")
     .eq("id", parsed.data.eventId)
     .eq("created_by_teacher_id", teacher.id)
     .maybeSingle();
-  if (!event) redirect(`/professor/agenda?erro=${encodeURIComponent("Encontro não encontrado.")}`);
+  if (eventError || !event) redirect(`/professor/agenda?erro=${encodeURIComponent("Encontro não encontrado ou sem permissão para edição.")}`);
 
   const { error } = await supabase
     .from("agenda_events")
@@ -242,26 +253,31 @@ export async function setAgendaEventStatus(formData: FormData) {
 
   let noticeFailed = 0;
   if (event.visible_to_guardian && ["confirmed", "cancelled"].includes(parsed.data.status)) {
-    const { data: assignments } = await supabase
+    const { data: assignments, error: assignmentsError } = await supabase
       .from("agenda_event_students")
       .select("student_id,students(preferred_name,full_name)")
       .eq("event_id", parsed.data.eventId);
 
-    for (const assignment of assignments ?? []) {
-      const studentRelation: any = (assignment as any).students;
-      const student = Array.isArray(studentRelation) ? studentRelation[0] : studentRelation;
-      const studentName = student?.preferred_name || student?.full_name || "Aluno";
-      const notice = await sendAgendaFamilyNotice({
-        supabase,
-        studentId: assignment.student_id,
-        studentName,
-        title: event.title,
-        eventType: event.event_type,
-        startsAt: event.starts_at,
-        eventId: event.id,
-        status: parsed.data.status,
-      });
-      noticeFailed += notice.failed;
+    if (assignmentsError) {
+      noticeFailed += 1;
+      console.error("Falha ao localizar participantes do encontro", assignmentsError.code);
+    } else {
+      for (const assignment of assignments ?? []) {
+        const studentValue: any = (assignment as any).students;
+        const student = Array.isArray(studentValue) ? studentValue[0] : studentValue;
+        const studentName = student?.preferred_name || student?.full_name || "Aluno";
+        const notice = await sendAgendaFamilyNotice({
+          supabase,
+          studentId: assignment.student_id,
+          studentName,
+          title: event.title,
+          eventType: event.event_type,
+          startsAt: event.starts_at,
+          eventId: event.id,
+          status: parsed.data.status,
+        });
+        noticeFailed += notice.failed;
+      }
     }
   }
 
