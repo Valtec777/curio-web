@@ -6,20 +6,32 @@ import { moveDocumentToTrash } from "./actions";
 
 function dt(value?: string | null) {
   if (!value) return "—";
-  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeZone: "America/Bahia" }).format(new Date(value));
+  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Bahia" }).format(new Date(value));
+}
+
+function decisionLabel(decision?: string | null) {
+  if (decision === "accepted") return "Aceito";
+  if (decision === "declined") return "Não autorizado";
+  if (decision === "revoked") return "Revogado";
+  return decision || "—";
 }
 
 export default async function AdminDocumentsPage({ searchParams }: { searchParams: Promise<{ erro?: string; sucesso?: string }> }) {
   const query = await searchParams;
   await requireRole("admin");
   const supabase = await createClient();
-  const [{ data: legal }, { data: operational }] = await Promise.all([
+  const [{ data: legal }, { data: operational }, { data: acceptanceEvents }] = await Promise.all([
     supabase.from("legal_documents").select("id,title,public_slug,document_type,version,status,is_current,body,file_path,published_at,created_at").order("public_slug").order("version", { ascending: false }),
     supabase
       .from("documents")
       .select("id,title,document_type,file_path,student_id,guardian_id,subscription_id,visible_to_guardian,created_at,students(preferred_name,full_name),guardians(profiles(full_name,preferred_name))")
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
+      .limit(120),
+    supabase
+      .from("legal_acceptance_events")
+      .select("id,decision,document_slug,document_version,document_title,student_id,occurred_at,guardians(profiles(full_name,preferred_name)),students(preferred_name,full_name)")
+      .order("occurred_at", { ascending: false })
       .limit(120),
   ]);
 
@@ -28,10 +40,13 @@ export default async function AdminDocumentsPage({ searchParams }: { searchParam
   const draftCount = currentLegal.filter((doc: any) => doc.status === "draft").length;
   const placeholderCount = currentLegal.filter((doc: any) => String(doc.body || "").includes("PREENCHER")).length;
   const legalReady = currentLegal.length > 0 && publishedCount === currentLegal.length && placeholderCount === 0;
+  const acceptedCount = (acceptanceEvents ?? []).filter((event: any) => event.decision === "accepted").length;
+  const declinedCount = (acceptanceEvents ?? []).filter((event: any) => event.decision === "declined").length;
+  const revokedCount = (acceptanceEvents ?? []).filter((event: any) => event.decision === "revoked").length;
 
   return (
     <>
-      <PageHeader eyebrow="Admin • Operação" title="Documentos" description="Textos legais versionados e documentos operacionais. Apenas uma versão publicada e atual pode aparecer para o público." />
+      <PageHeader eyebrow="Admin • Operação" title="Documentos" description="Textos legais versionados, evidências de aceite e documentos operacionais. Apenas uma versão publicada e atual pode aparecer para o público." />
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
       {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
 
@@ -44,7 +59,7 @@ export default async function AdminDocumentsPage({ searchParams }: { searchParam
           <article><strong>{placeholderCount}</strong><small>Com campos a preencher</small></article>
         </div>
         <div className="notice">
-          <strong>Antes de publicar:</strong> confirmar identificação da prestadora (nome/razão social, CPF/CNPJ e endereço), regras comerciais reais, cancelamento/reagendamento, pagamento/inadimplência, fornecedores que tratam dados, política de IA e a forma de registrar o aceite da família por versão. Faça revisão jurídica/contábil dos textos finais antes de colocá-los em produção.
+          <strong>Aceite versionado: implementado.</strong> O Ninho da Família registra a versão exata, o usuário autenticado e o horário do servidor para Termos, Privacidade e autorizações específicas. Antes de publicar os textos, ainda é necessário confirmar identificação da prestadora, regras comerciais reais, fornecedores que tratam dados e fazer a revisão jurídica/contábil final.
         </div>
       </section>
 
@@ -60,6 +75,30 @@ export default async function AdminDocumentsPage({ searchParams }: { searchParam
             {doc.status !== "archived" && <form action={archiveLegalDocument}><input type="hidden" name="documentId" value={doc.id} /><button className="button button-danger button-small" type="submit">Arquivar</button></form>}
           </div>
         </article>)}</div> : <EmptyState title="Nenhum texto legal" description="O catálogo jurídico aparecerá aqui." />}
+      </section>
+
+      <section className="panel">
+        <div className="panel-head"><div><h2>Evidências de aceite e autorização</h2><p>Histórico imutável das decisões registradas no Ninho da Família. A versão do documento permanece preservada mesmo quando uma nova versão for publicada.</p></div></div>
+        <div className="student-home-stats student-home-stats-secondary">
+          <article><strong>{acceptanceEvents?.length ?? 0}</strong><small>Eventos registrados</small></article>
+          <article><strong>{acceptedCount}</strong><small>Aceites</small></article>
+          <article><strong>{declinedCount}</strong><small>Não autorizações</small></article>
+          <article><strong>{revokedCount}</strong><small>Revogações</small></article>
+        </div>
+        {acceptanceEvents?.length ? <div className="form-stack mt-16">{acceptanceEvents.map((event: any) => {
+          const guardianProfile = Array.isArray(event.guardians?.profiles) ? event.guardians.profiles[0] : event.guardians?.profiles;
+          const student = Array.isArray(event.students) ? event.students[0] : event.students;
+          return <article className="mission-card" key={event.id}>
+            <div className="flex space-between gap-8 wrap">
+              <div>
+                <div className="flex gap-8 wrap"><Badge tone={event.decision === "accepted" ? "green" : "pink"}>{decisionLabel(event.decision)}</Badge><Badge tone="blue">v{event.document_version}</Badge></div>
+                <h3>{event.document_title}</h3>
+                <p>{guardianProfile?.preferred_name || guardianProfile?.full_name || "Responsável"}{student ? ` · ${student.preferred_name || student.full_name}` : " · decisão da conta"}</p>
+              </div>
+              <small className="muted">{dt(event.occurred_at)}</small>
+            </div>
+          </article>;
+        })}</div> : <EmptyState title="Nenhum aceite registrado ainda" description="Isso é esperado enquanto os documentos jurídicos permanecem em rascunho. Após a publicação, as decisões da Família aparecerão aqui." />}
       </section>
 
       <section className="panel">
