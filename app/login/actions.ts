@@ -6,6 +6,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
+const OFFICIAL_SITE_ORIGIN = "https://curioeducacao.vercel.app";
+
 const loginSchema = z.object({
   email: z.string().email("Informe um e-mail válido."),
   password: z.string().min(6, "Informe sua senha."),
@@ -57,18 +59,19 @@ function siteOrigin() {
   const deploymentUrl = normalizedOrigin(process.env.VERCEL_URL);
   const runningOnVercel = process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV);
 
-  // Em Vercel, nunca gere e-mail apontando para localhost. O URL estável da
-  // branch é preferível para convites/recuperação em Preview.
-  if (runningOnVercel) {
-    if (configured && !isLocalOrigin(configured)) return configured;
-    if (branchUrl) return branchUrl;
-    if (deploymentUrl) return deploymentUrl;
-  }
+  // Se a URL oficial foi configurada explicitamente, ela sempre vence.
+  if (configured && !isLocalOrigin(configured)) return configured;
 
+  // Em qualquer deploy Vercel, e-mails de acesso devem voltar ao endereço estável
+  // usado pelas famílias/professores, e não ao hostname temporário do Preview.
+  if (runningOnVercel) return OFFICIAL_SITE_ORIGIN;
+
+  // Desenvolvimento local continua funcionando sem transformar localhost em
+  // destino de e-mails enviados a usuários reais.
   if (configured) return configured;
-  if (branchUrl) return branchUrl;
-  if (deploymentUrl) return deploymentUrl;
-  return "http://localhost:3000";
+  if (branchUrl && !isLocalOrigin(branchUrl)) return branchUrl;
+  if (deploymentUrl && !isLocalOrigin(deploymentUrl)) return deploymentUrl;
+  return process.env.NODE_ENV === "development" ? "http://localhost:3000" : OFFICIAL_SITE_ORIGIN;
 }
 
 function portalFor(roles: string[]) {
