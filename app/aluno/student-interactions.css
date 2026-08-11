@@ -1,0 +1,119 @@
+.student-mascot-moment {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  align-items: center;
+  gap: 24px;
+  margin: 18px 0 26px;
+  padding: 22px 24px;
+  border: 1px solid #e4e8f3;
+  border-radius: 28px;
+  background: linear-gradient(135deg, #ffffff 0%, #f7f9ff 58%, #f2ffe5 100%);
+  box-shadow: 0 14px 36px rgba(46, 50, 92, .07);
+}
+
+.student-mascot-moment-character {
+  display: grid;
+  place-items: center;
+  min-height: 150px;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #eef2ff, #fbfff1);
+  overflow: hidden;
+}
+
+.student-mascot-moment-character img {
+  width: 150px !important;
+  height: 150px !important;
+  object-fit: contain !important;
+  transition: transform .25s ease;
+}
+
+.student-mascot-moment:hover .student-mascot-moment-character img {
+  transform: translateY(-3px) rotate(-1deg);
+}
+
+.student-mascot-moment-copy h2 {
+  margin: 4px 0 7px;
+  font-size: clamp(22px, 3vw, 30px);
+  line-height: 1.08;
+}
+
+.student-mascot-encouragement {
+  margin: 0 0 14px;
+  color: #59657a;
+}
+
+.student-mascot-speech {
+  position: relative;
+  padding: 15px 17px;
+  border: 1px solid #dce3f2;
+  border-radius: 18px;
+  background: #fff;
+  color: #28324a;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.student-mascot-speech::before {
+  content: "";
+  position: absolute;
+  left: 18px;
+  top: -7px;
+  width: 12px;
+  height: 12px;
+  border-left: 1px solid #dce3f2;
+  border-top: 1px solid #dce3f2;
+  background: #fff;
+  transform: rotate(45deg);
+}
+
+.student-mascot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+html[data-theme="dark"] .student-mascot-moment {
+  border-color: #414b60;
+  background: linear-gradient(135deg, #202735, #252d3d);
+}
+
+html[data-theme="dark"] .student-mascot-moment-character,
+html[data-theme="dark"] .student-mascot-speech {
+  background: #2a3344;
+  border-color: #465269;
+}
+
+html[data-theme="dark"] .student-mascot-speech {
+  color: #eef2ff;
+}
+
+html[data-theme="dark"] .student-mascot-speech::before {
+  background: #2a3344;
+  border-color: #465269;
+}
+
+html[data-theme="dark"] .student-mascot-encouragement {
+  color: #b8c2d6;
+}
+
+@media (max-width: 680px) {
+  .student-mascot-moment {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .student-mascot-moment-character {
+    min-height: 120px;
+  }
+
+  .student-mascot-moment-character img {
+    width: 125px !important;
+    height: 125px !important;
+  }
+}
+
+html[data-motion="reduced"] .student-mascot-moment-character img {
+  transition: none !important;
+  transform: none !important;
+}
