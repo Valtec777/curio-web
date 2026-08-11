@@ -8,6 +8,7 @@ import "./student-profile-extra.css";
 import "./student-delight.css";
 import "./student-extra-icons.css";
 import "./student-interactions.css";
+import "./student-celebrations.css";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
