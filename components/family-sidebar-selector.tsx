@@ -10,12 +10,19 @@ type Child = {
   teacher?: string | null;
 };
 
-export function FamilySidebarSelector({ children }: { children: Child[] }) {
+export function FamilySidebarSelector({
+  children,
+  variant = "sidebar",
+}: {
+  children: Child[];
+  variant?: "sidebar" | "mobile";
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const selectedFromUrl = searchParams.get("aluno");
   const selected = children.find((child) => child.id === selectedFromUrl) || children[0];
+  const selectId = variant === "mobile" ? "family-child-select-mobile" : "family-child-select-sidebar";
 
   if (!selected) return null;
 
@@ -29,10 +36,10 @@ export function FamilySidebarSelector({ children }: { children: Child[] }) {
   }
 
   return (
-    <div className="family-sidebar-child">
-      <label htmlFor="family-child-select">Acompanhando</label>
+    <div className={`family-sidebar-child family-sidebar-child-${variant}`}>
+      <label htmlFor={selectId}>Acompanhando</label>
       <select
-        id="family-child-select"
+        id={selectId}
         value={selected.id}
         onChange={(event) => changeStudent(event.target.value)}
         aria-label="Escolher criança acompanhada"
@@ -45,7 +52,7 @@ export function FamilySidebarSelector({ children }: { children: Child[] }) {
       </div>
       <form action={enterStudentSpace}>
         <input type="hidden" name="studentId" value={selected.id} />
-        <button className="family-enter-student" type="submit">Entrar no espaço da criança →</button>
+        <button className="family-enter-student" type="submit">Entrar no espaço da criança</button>
       </form>
     </div>
   );
