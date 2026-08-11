@@ -8,7 +8,6 @@ import { createClient } from "@/lib/supabase/server";
 
 const accessStatuses = new Set(["pending", "sent", "accepted", "cancelled", "error"]);
 const requestStatuses = new Set(["new", "contacted", "qualified", "enrolled", "closed"]);
-const studentStatuses = new Set(["active", "paused", "inactive", "pilot"]);
 const contentStatuses = new Set(["draft", "published", "archived"]);
 const contentEntityTypes = new Set(["missions", "materials", "notebook_activities", "assessments"]);
 
@@ -28,6 +27,7 @@ function refreshOperationalPaths() {
   revalidatePath("/admin/atividades");
   revalidatePath("/admin/documentos");
   revalidatePath("/professor");
+  revalidatePath("/professor/alunos");
   revalidatePath("/professor/mensagens");
   revalidatePath("/professor/missoes");
   revalidatePath("/professor/materiais");
@@ -41,7 +41,9 @@ function refreshOperationalPaths() {
 export async function restoreTrashItem(formData: FormData) {
   await requireRole("admin");
   const trashId = z.string().uuid().safeParse(formData.get("trashId"));
-  if (!trashId.success) return;
+  if (!trashId.success) {
+    redirect(`/admin/lixeira?erro=${encodeURIComponent("Não foi possível identificar o item da Lixeira.")}`);
+  }
 
   const supabase = await createClient();
   const { data: item, error: itemError } = await supabase
@@ -60,6 +62,7 @@ export async function restoreTrashItem(formData: FormData) {
   const snapshot = (item.entity_snapshot || {}) as Record<string, unknown>;
   let restoreError: { message: string } | null = null;
   let successMessage = "Item restaurado.";
+  let trashAlreadyUpdated = false;
 
   if (item.entity_type === "plans") {
     const { error } = await supabase.from("plans").update({
@@ -93,15 +96,10 @@ export async function restoreTrashItem(formData: FormData) {
     restoreError = error;
     successMessage = "Solicitação de matrícula restaurada.";
   } else if (item.entity_type === "students") {
-    const { error } = await supabase.from("students").update({
-      deleted_at: null,
-      deleted_by_user_id: null,
-      delete_reason: null,
-      status: previousStatus(snapshot, studentStatuses, "inactive"),
-      updated_at: new Date().toISOString(),
-    }).eq("id", item.entity_id);
+    const { error } = await supabase.rpc("restore_admin_student_from_trash", { p_trash_id: item.id });
     restoreError = error;
-    successMessage = "Aluno restaurado com o mesmo ID e histórico.";
+    trashAlreadyUpdated = !error;
+    successMessage = "Aluno restaurado com o mesmo ID, histórico e vínculos de professor que estavam ativos antes da exclusão.";
   } else if (item.entity_type === "teachers") {
     const profileId = z.string().uuid().safeParse(snapshot.profile_id);
     if (!profileId.success) redirect(`/admin/lixeira?erro=${encodeURIComponent("O registro do professor não possui um perfil válido para restauração.")}`);
@@ -152,10 +150,15 @@ export async function restoreTrashItem(formData: FormData) {
     redirect(`/admin/lixeira?erro=${encodeURIComponent("Este tipo de registro ainda não possui restauração segura implementada.")}`);
   }
 
-  if (restoreError) redirect(`/admin/lixeira?erro=${encodeURIComponent("Não foi possível restaurar o registro.")}`);
+  if (restoreError) {
+    console.error("Falha ao restaurar item da Lixeira", restoreError.message);
+    redirect(`/admin/lixeira?erro=${encodeURIComponent("Não foi possível restaurar o registro. Nenhum novo cadastro foi criado.")}`);
+  }
 
-  const { error: trashError } = await supabase.from("trash_items").update({ restored_at: new Date().toISOString() }).eq("id", item.id).is("restored_at", null);
-  if (trashError) redirect(`/admin/lixeira?erro=${encodeURIComponent("O registro foi restaurado, mas a Lixeira não conseguiu atualizar o status. Revise o item antes de repetir a ação.")}`);
+  if (!trashAlreadyUpdated) {
+    const { error: trashError } = await supabase.from("trash_items").update({ restored_at: new Date().toISOString() }).eq("id", item.id).is("restored_at", null);
+    if (trashError) redirect(`/admin/lixeira?erro=${encodeURIComponent("O registro foi restaurado, mas a Lixeira não conseguiu atualizar o status. Revise o item antes de repetir a ação.")}`);
+  }
 
   refreshOperationalPaths();
   redirect(`/admin/lixeira?sucesso=${encodeURIComponent(successMessage)}`);
@@ -164,7 +167,9 @@ export async function restoreTrashItem(formData: FormData) {
 export async function permanentlyDeleteTrashItem(formData: FormData) {
   await requireRole("admin");
   const trashId = z.string().uuid().safeParse(formData.get("trashId"));
-  if (!trashId.success) return;
+  if (!trashId.success) {
+    redirect(`/admin/lixeira?erro=${encodeURIComponent("Não foi possível identificar o item da Lixeira.")}`);
+  }
 
   const supabase = await createClient();
   const { data: item } = await supabase.from("trash_items").select("id,entity_type,entity_id,entity_snapshot,restored_at").eq("id", trashId.data).maybeSingle();
@@ -176,7 +181,7 @@ export async function permanentlyDeleteTrashItem(formData: FormData) {
   } else if (item.entity_type === "access_invitations") {
     const { data: invitation } = await supabase.from("access_invitations").select("id,status,auth_user_id,deleted_at").eq("id", item.entity_id).maybeSingle();
     if (!invitation) {
-      // A entrada órfã da Lixeira pode ser removida.
+      // Entrada órfã: pode ser removida da Lixeira.
     } else if (!invitation.deleted_at || invitation.auth_user_id || !["error", "cancelled"].includes(invitation.status)) {
       redirect(`/admin/lixeira?erro=${encodeURIComponent("Este convite possui acesso ou histórico que deve ser preservado. Use restauração ou mantenha-o na Lixeira.")}`);
     } else {
