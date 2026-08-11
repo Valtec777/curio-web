@@ -15,9 +15,16 @@ const emailSchema = z.object({
   email: z.string().email("Informe um e-mail válido."),
 });
 
+const strongPassword = z.string()
+  .min(10, "A nova senha precisa ter pelo menos 10 caracteres.")
+  .refine((value) => /[a-z]/.test(value), "Inclua pelo menos uma letra minúscula.")
+  .refine((value) => /[A-Z]/.test(value), "Inclua pelo menos uma letra maiúscula.")
+  .refine((value) => /\d/.test(value), "Inclua pelo menos um número.")
+  .refine((value) => /[^A-Za-z0-9]/.test(value), "Inclua pelo menos um símbolo.");
+
 const passwordSchema = z
   .object({
-    password: z.string().min(8, "A nova senha precisa ter pelo menos 8 caracteres."),
+    password: strongPassword,
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
