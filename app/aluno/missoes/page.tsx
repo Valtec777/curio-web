@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
+import { StudentMissionCelebration } from "@/components/student-mission-celebration";
 import { getCurrentStudent } from "@/lib/student";
 
 function relation<T=any>(value:any):T|null{return (Array.isArray(value)?value[0]:value)||null;}
@@ -39,7 +40,8 @@ export default async function StudentMissionsPage({ searchParams }: { searchPara
 
   return <>
     <PageHeader eyebrow="Explorador Curió" title="Minhas missões" description="Cada missão é uma jornada: descubra, entenda, pratique e mostre o que aprendeu." />
-    {query.erro&&<div className="form-message form-error">{query.erro}</div>}{query.sucesso&&<div className="form-message form-success">{query.sucesso}</div>}
+    {query.erro&&<div className="form-message form-error">{query.erro}</div>}
+    {query.sucesso&&<StudentMissionCelebration message={query.sucesso} />}
     <div className="student-metric-row"><div><strong>{open}</strong><span>Para fazer</span></div><div><strong>{completed}</strong><span>Concluídas</span></div><div><strong>{late}</strong><span>Atrasadas</span></div></div>
     <div className="student-filter-tabs"><Link href="/aluno/missoes">Todas</Link><Link href={periodHref("hoje")}>Hoje</Link><Link href={periodHref("semana")}>Esta semana</Link><Link href={periodHref("pendentes")}>Pendentes</Link><Link href={periodHref("concluidas")}>Concluídas</Link></div>
     <section className="panel student-filter-panel"><form method="get" className="student-mission-filters"><div className="field"><label>Buscar missão</label><input className="input" name="q" defaultValue={query.q||""} placeholder="Digite o nome da missão" /></div><div className="field"><label>Matéria</label><select className="select" name="materia" defaultValue={query.materia||"todas"}><option value="todas">Todas as matérias</option>{subjects.map(subject=><option key={subject} value={subject}>{subject}</option>)}</select></div><div className="field"><label>Status</label><select className="select" name="status" defaultValue={query.status||"todos"}><option value="todos">Todos os status</option><option value="assigned">Não iniciada</option><option value="in_progress">Em andamento</option><option value="submitted">Enviada</option><option value="completed">Concluída</option><option value="late">Atrasada</option></select></div>{query.periodo?<input type="hidden" name="periodo" value={query.periodo}/>:null}<button className="button button-primary" type="submit">Filtrar</button></form></section>
