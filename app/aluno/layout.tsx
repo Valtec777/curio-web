@@ -6,6 +6,7 @@ import { shouldShowMonthlyInterest } from "@/lib/monthly-interest";
 import "./student-workspace.css";
 import "./student-profile-extra.css";
 import "./student-delight.css";
+import "./student-extra-icons.css";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
