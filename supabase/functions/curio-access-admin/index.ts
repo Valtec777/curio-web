@@ -2,21 +2,23 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const jsonHeaders = { "Content-Type": "application/json" };
-const fallbackAppOrigin = "https://curio-web-crcv-git-codex-estabilizacao-curio-pri-2a2b5b-curio16.vercel.app";
+const fallbackAppOrigin = "https://curioeducacao.vercel.app";
 
 function reply(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), { status, headers: jsonHeaders });
 }
 
 function cleanOrigin(value: unknown) {
+  const configured = String(Deno.env.get("CURIO_APP_URL") || "").trim().replace(/\/$/, "");
+  if (configured.startsWith("https://")) return configured;
+
   const candidate = String(value || "").trim().replace(/\/$/, "");
   try {
     const url = new URL(candidate);
-    if (url.protocol === "https:") return url.origin;
     if ((url.hostname === "localhost" || url.hostname === "127.0.0.1") && Deno.env.get("CURIO_ALLOW_LOCAL_REDIRECTS") === "true") return url.origin;
+    if (url.protocol === "https:" && url.origin === fallbackAppOrigin) return url.origin;
   } catch {}
-  const configured = String(Deno.env.get("CURIO_APP_URL") || "").trim().replace(/\/$/, "");
-  if (configured.startsWith("https://")) return configured;
+
   return fallbackAppOrigin;
 }
 
