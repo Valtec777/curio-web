@@ -49,7 +49,7 @@ function safeFileName(name: string) {
     .slice(0, 110) || "recurso";
 }
 
-function feedback(key: "erro" | "sucesso", message: string) {
+function feedback(key: "erro" | "sucesso", message: string): never {
   redirect(`/admin/cursos?${key}=${encodeURIComponent(message)}`);
 }
 
