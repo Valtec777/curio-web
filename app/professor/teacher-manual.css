@@ -1,0 +1,26 @@
+/* CURIÓ · criação pedagógica manual */
+.teacher-create-launch-grid-clean .teacher-create-launch {
+  position: relative;
+  overflow: hidden;
+  min-height: 190px;
+  align-content: start;
+}
+.teacher-create-format-mark {
+  width: 44px;
+  height: 10px;
+  border-radius: 999px;
+  background: #6c55df;
+  box-shadow: 0 5px 12px rgba(108,85,223,.16);
+}
+.teacher-create-launch.is-notebook .teacher-create-format-mark { background: #e764a5; }
+.teacher-create-launch.is-material .teacher-create-format-mark { background: #7ab53d; }
+.teacher-create-launch.is-assessment .teacher-create-format-mark { background: #315efb; }
+.teacher-create-launch small { margin-top: auto; color: #5061c7; font-weight: 900; }
+.teacher-create-steps { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; }
+.teacher-create-steps article { display: grid; grid-template-columns: auto 1fr; gap: 11px; padding: 15px; border: 1px solid #e5e7ef; border-radius: 20px; background: #fff; }
+.teacher-create-steps article > strong { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 12px; background: #eef1ff; color: #4c56ce; }
+.teacher-create-steps h3 { margin: 2px 0 4px; font-size: 14px; }
+.teacher-create-steps p { margin: 0; color: #737d92; font-size: 12px; }
+html[data-theme="dark"] .teacher-create-steps article { background:#202633; border-color:#3c465b; }
+@media (max-width:900px){ .teacher-create-steps{grid-template-columns:repeat(2,minmax(0,1fr));} }
+@media (max-width:620px){ .teacher-create-steps{grid-template-columns:1fr;} }
