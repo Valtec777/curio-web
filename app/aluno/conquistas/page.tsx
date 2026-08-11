@@ -1,5 +1,11 @@
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
+import { CurioIcon, type CurioIconName } from "@/components/nav-icon";
 import { getCurrentStudent } from "@/lib/student";
+
+const achievementIcons = new Set<CurioIconName>(["heart","message","sparkles","pencil","search","shield","trophy","star","notebook","fire","refresh","check","map","book","calendar"]);
+function iconName(value?: string | null): CurioIconName {
+  return achievementIcons.has(value as CurioIconName) ? value as CurioIconName : "trophy";
+}
 
 export default async function StudentAchievementsPage() {
   const { student, supabase } = await getCurrentStudent();
@@ -15,7 +21,7 @@ export default async function StudentAchievementsPage() {
 
   return <>
     <PageHeader eyebrow="Explorador Curió" title="Suas conquistas" description={`Você já desbloqueou ${unlocked} de ${total} selos. Continue explorando: cada selo marca um tipo diferente de avanço.`} />
-    <section className="student-achievement-hero"><div><span>🏆</span><strong>{unlocked}</strong><small>conquistas desbloqueadas</small></div><div className="student-big-progress"><span style={{width:total?`${Math.round(unlocked/total*100)}%`:"0%"}} /></div><p>{total ? `${Math.round(unlocked/total*100)}% do catálogo já está no seu mural.` : "O catálogo está sendo preparado."}</p></section>
-    {catalog?.length ? <div className="student-achievement-grid">{catalog.map((item:any)=>{const isEarned=earned.has(item.id);return <article className={`student-achievement-card${isEarned?" is-earned":" is-locked"}`} key={item.id}><div className="student-achievement-medal">{isEarned?"🏅":"○"}</div><div><div className="flex gap-8 wrap"><Badge tone={isEarned?"green":"neutral"}>{isEarned?"Desbloqueada":"Ainda bloqueada"}</Badge></div><h3>{item.name}</h3><p>{item.description}</p><small>{isEarned ? "Conquista registrada na sua jornada." : item.unlock_hint || "Continue aprendendo para desbloquear."}</small></div></article>})}</div> : <EmptyState title="Catálogo em preparação" description="As conquistas Curió aparecerão aqui." />}
+    <section className="student-achievement-hero"><div><span className="student-achievement-hero-icon"><CurioIcon name="trophy" /></span><strong>{unlocked}</strong><small>conquistas desbloqueadas</small></div><div className="student-big-progress"><span style={{width:total?`${Math.round(unlocked/total*100)}%`:"0%"}} /></div><p>{total ? `${Math.round(unlocked/total*100)}% do catálogo já está no seu mural.` : "O catálogo está sendo preparado."}</p></section>
+    {catalog?.length ? <div className="student-achievement-grid">{catalog.map((item:any)=>{const isEarned=earned.has(item.id);return <article className={`student-achievement-card${isEarned?" is-earned":" is-locked"}`} key={item.id}><div className="student-achievement-medal"><CurioIcon name={iconName(item.icon)} /></div><div><div className="flex gap-8 wrap"><Badge tone={isEarned?"green":"neutral"}>{isEarned?"Desbloqueada":"Ainda bloqueada"}</Badge></div><h3>{item.name}</h3><p>{item.description}</p><small>{isEarned ? "Conquista registrada na sua jornada." : item.unlock_hint || "Continue aprendendo para desbloquear."}</small></div></article>})}</div> : <EmptyState title="Catálogo em preparação" description="As conquistas Curió aparecerão aqui." />}
   </>;
 }
