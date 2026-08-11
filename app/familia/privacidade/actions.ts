@@ -25,7 +25,7 @@ export async function recordFamilyLegalDecision(formData: FormData) {
   const parsed = z.object({
     documentId: z.string().uuid(),
     studentId: z.string().uuid().optional().or(z.literal("")),
-    decision: z.enum(["accepted", "declined", "revoked"]),
+    decision: z.enum(["accepted", "acknowledged", "declined", "revoked"]),
   }).safeParse({
     documentId: formData.get("documentId"),
     studentId: String(formData.get("studentId") || ""),
@@ -64,7 +64,7 @@ export async function recordFamilyLegalDecision(formData: FormData) {
   }
 
   if (!childScoped && studentId) {
-    redirect(destination("erro", "Este documento é aceito pela conta do responsável, não por criança."));
+    redirect(destination("erro", "Este documento é registrado pela conta do responsável, não por criança."));
   }
 
   if (studentId) {
@@ -79,8 +79,20 @@ export async function recordFamilyLegalDecision(formData: FormData) {
     }
   }
 
-  if (!optionalDecisionSlugs.has(document.public_slug) && parsed.data.decision !== "accepted") {
-    redirect(destination("erro", "Para este documento, o portal registra apenas a confirmação de leitura e concordância."));
+  if (document.public_slug === "politica-de-privacidade" && parsed.data.decision !== "acknowledged") {
+    redirect(destination("erro", "A Política de Privacidade registra ciência da versão apresentada, não consentimento genérico."));
+  }
+
+  if (document.public_slug === "termos-de-uso" && parsed.data.decision !== "accepted") {
+    redirect(destination("erro", "Os Termos de Uso registram concordância com a versão apresentada."));
+  }
+
+  if (optionalDecisionSlugs.has(document.public_slug) && !["accepted", "declined", "revoked"].includes(parsed.data.decision)) {
+    redirect(destination("erro", "Escolha autorizar, não autorizar ou revogar a autorização."));
+  }
+
+  if (!["politica-de-privacidade", "termos-de-uso"].includes(document.public_slug) && !optionalDecisionSlugs.has(document.public_slug)) {
+    redirect(destination("erro", "Este documento é apenas informativo e não exige registro nesta tela."));
   }
 
   const { error } = await supabase.from("legal_acceptance_events").insert({
@@ -91,7 +103,8 @@ export async function recordFamilyLegalDecision(formData: FormData) {
 
   if (error) redirect(destination("erro", "Não foi possível registrar agora. Tente novamente."));
 
+  revalidatePath("/familia");
   revalidatePath("/familia/privacidade");
   revalidatePath("/admin/documentos");
-  redirect(destination("sucesso", "Sua escolha foi registrada com a versão e o horário do documento."));
+  redirect(destination("sucesso", "O registro foi salvo com a versão exata e o horário do servidor."));
 }
