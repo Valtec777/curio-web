@@ -5,6 +5,7 @@ import { getCurrentTeacher } from "@/lib/teacher";
 import { shouldShowMonthlyInterest } from "@/lib/monthly-interest";
 import "./teacher-workspace.css";
 import "./teacher-fixes.css";
+import "./teacher-manual.css";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
