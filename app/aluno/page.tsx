@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentStudent } from "@/lib/student";
 import { EmptyState, Badge } from "@/components/ui";
 import { NavIcon } from "@/components/nav-icon";
+import { StudentMascotMoment } from "@/components/student-mascot-moment";
 
 function relation<T=any>(value:any):T|null{return (Array.isArray(value)?value[0]:value)||null;}
 function dt(value?:string|null){if(!value)return"—";return new Intl.DateTimeFormat("pt-BR",{dateStyle:"short",timeStyle:"short",timeZone:"America/Bahia"}).format(new Date(value));}
@@ -62,6 +63,13 @@ export default async function StudentHome() {
         <Image className="student-hero-character" src="/mascotes/curio_capivara_principal_acolhendo.png" alt="" width={290} height={290} priority />
       </div>
     </section>
+
+    <StudentMascotMoment
+      name={student.preferred_name || student.full_name || "Curioso"}
+      stars={game?.stars ?? 0}
+      streakDays={game?.streak_days ?? 0}
+      pendingMissions={pendingMissions.length}
+    />
 
     <div className="student-home-stats">
       <article><UiIcon label="Missões"/><strong>{game?.stars??0}</strong><small>Estrelas</small></article>
