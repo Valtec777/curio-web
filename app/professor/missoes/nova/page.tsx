@@ -18,14 +18,16 @@ export default async function NewMissionPage({
     supabase.from("grades").select("id,name,sort_order").eq("active", true).order("sort_order"),
     supabase.from("skills").select("id,name").eq("active", true).order("name").limit(180),
     supabase.from("characters").select("id,name").eq("active", true).order("sort_order"),
-    supabase.from("teacher_students").select("student_id,students(preferred_name,full_name,school_name,grades(name))").eq("teacher_id", teacher.id).eq("active", true),
+    supabase.from("teacher_students").select("student_id,students(preferred_name,full_name,school_name,deleted_at,grades(name))").eq("teacher_id", teacher.id).eq("active", true),
   ]);
 
-  const students = (studentLinks ?? []).filter((link: any) => link.students).map((link: any) => ({
-    id: link.student_id,
-    name: link.students.preferred_name || link.students.full_name || "Aluno",
-    detail: link.students.grades?.name || link.students.school_name || "",
-  }));
+  const students = (studentLinks ?? [])
+    .filter((link: any) => link.students && !link.students.deleted_at)
+    .map((link: any) => ({
+      id: link.student_id,
+      name: link.students.preferred_name || link.students.full_name || "Aluno",
+      detail: link.students.grades?.name || link.students.school_name || "",
+    }));
 
   return (
     <>
