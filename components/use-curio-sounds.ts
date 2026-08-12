@@ -63,12 +63,14 @@ function createTone(context: AudioContext, baseTime: number, note: Note) {
 }
 
 export function useCurioSounds(viewerId: string) {
-  const [enabled, setEnabledState] = useState(true);
+  const [enabled, setEnabledState] = useState(false);
+  const [ready, setReady] = useState(false);
   const contextRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     setEnabledState(window.localStorage.getItem(preferenceKey(viewerId)) !== "off");
+    setReady(true);
 
     const onPreference = (event: Event) => {
       const detail = (event as CustomEvent<SoundPreferenceEvent>).detail;
@@ -100,7 +102,7 @@ export function useCurioSounds(viewerId: string) {
   }, []);
 
   const play = useCallback((sound: CurioSoundName) => {
-    if (!enabled || typeof document === "undefined") return;
+    if (!ready || !enabled || typeof document === "undefined") return;
     if (document.documentElement.dataset.accessEpilepsy === "true") return;
 
     const context = getContext();
@@ -109,7 +111,7 @@ export function useCurioSounds(viewerId: string) {
     if (context.state === "suspended") void context.resume();
     const baseTime = context.currentTime + 0.005;
     SOUND_PATTERNS[sound].forEach((note) => createTone(context, baseTime, note));
-  }, [enabled, getContext]);
+  }, [enabled, getContext, ready]);
 
   const setEnabled = useCallback((next: boolean) => {
     if (typeof window !== "undefined") {
@@ -117,11 +119,12 @@ export function useCurioSounds(viewerId: string) {
       window.dispatchEvent(new CustomEvent<SoundPreferenceEvent>(SOUND_EVENT, { detail: { viewerId, enabled: next } }));
     }
     setEnabledState(next);
+    setReady(true);
   }, [viewerId]);
 
   const toggle = useCallback(() => {
     setEnabled(!enabled);
   }, [enabled, setEnabled]);
 
-  return { enabled, play, setEnabled, toggle };
+  return { enabled, ready, play, setEnabled, toggle };
 }
