@@ -128,3 +128,104 @@ export async function reviewNotebookAssignment(formData: FormData) {
   revalidatePath("/aluno/caderno");
   redirect(`/professor/correcoes?sucesso=${encodeURIComponent(wantsRedo ? "Correção salva e atividade devolvida para refazer." : "Caderno Curió corrigido.")}`);
 }
+
+async function notifyFamilyAboutAssessmentResult({
+  supabase,
+  studentId,
+  assessmentId,
+  assessmentTitle,
+  score,
+}: {
+  supabase: any;
+  studentId: string;
+  assessmentId: string;
+  assessmentTitle: string;
+  score: number;
+}) {
+  const { data: targets, error: targetError } = await supabase.rpc("teacher_chat_targets");
+  if (targetError) {
+    console.error("Falha ao localizar família para resultado da avaliação", targetError.code);
+    return 1;
+  }
+  const families = (targets ?? []).filter((target: any) => target.target_kind === "family" && target.guardian_id && target.student_id === studentId);
+  let failed = 0;
+  for (const family of families) {
+    const { error } = await supabase.rpc("send_curio_family_message", {
+      p_student_id: studentId,
+      p_guardian_id: family.guardian_id,
+      p_subject: `Resultado de avaliação de ${family.student_name}`,
+      p_body: `Olá, ${family.target_name || "responsável"}! O resultado da avaliação “${assessmentTitle}” de ${family.student_name} foi registrado: ${score}/100. A devolutiva completa está na área de Avaliações da Família.`,
+      p_action_label: "Ver resultado",
+      p_action_url: "/familia/avaliacoes",
+      p_request_key: `assessment-result:${assessmentId}:${studentId}:${family.guardian_id}:${score}`,
+    });
+    if (error) {
+      failed += 1;
+      console.error("Falha ao enviar resultado da avaliação para família", error.code);
+    }
+  }
+  return failed;
+}
+
+export async function reviewAssessmentAssignment(formData: FormData) {
+  const parsed = z.object({
+    assignmentId: z.string().uuid(),
+    studentId: z.string().uuid(),
+    score: z.coerce.number().min(0).max(100),
+    note: z.string().trim().max(2500).optional(),
+  }).safeParse({
+    assignmentId: formData.get("assignmentId"),
+    studentId: formData.get("studentId"),
+    score: formData.get("score"),
+    note: String(formData.get("note") || ""),
+  });
+  if (!parsed.success) redirect(`/professor/correcoes?erro=${encodeURIComponent("Revise a nota e a devolutiva da avaliação.")}`);
+
+  const { teacher, supabase } = await getCurrentTeacher();
+  if (!teacher) redirect("/professor/correcoes");
+
+  const [{ data: linked, error: linkError }, { data: assignment, error: assignmentError }] = await Promise.all([
+    supabase.from("teacher_students").select("student_id").eq("teacher_id", teacher.id).eq("student_id", parsed.data.studentId).eq("active", true).maybeSingle(),
+    supabase.from("assessment_students").select("id,assessment_id,student_id,status,assessments(id,title,created_by_teacher_id)").eq("id", parsed.data.assignmentId).eq("student_id", parsed.data.studentId).maybeSingle(),
+  ]);
+
+  if (linkError || !linked) redirect(`/professor/correcoes?erro=${encodeURIComponent("Este aluno não está mais vinculado a você.")}`);
+  if (assignmentError || !assignment) redirect(`/professor/correcoes?erro=${encodeURIComponent("A avaliação não foi encontrada para este aluno.")}`);
+
+  const relation: any = (assignment as any).assessments;
+  const assessment = Array.isArray(relation) ? relation[0] : relation;
+  if (!assessment || assessment.created_by_teacher_id !== teacher.id) {
+    redirect(`/professor/correcoes?erro=${encodeURIComponent("Somente o professor que criou esta avaliação pode registrar o resultado.")}`);
+  }
+  if (assignment.status === "cancelled") redirect(`/professor/correcoes?erro=${encodeURIComponent("Esta avaliação foi cancelada e não pode receber nota.")}`);
+
+  const now = new Date().toISOString();
+  const { data: updated, error } = await supabase.from("assessment_students").update({
+    status: "reviewed",
+    score: parsed.data.score,
+    teacher_note: parsed.data.note || null,
+    reviewed_at: now,
+  }).eq("id", parsed.data.assignmentId).eq("assessment_id", assignment.assessment_id).eq("student_id", parsed.data.studentId).select("id").maybeSingle();
+  if (error || !updated) redirect(`/professor/correcoes?erro=${encodeURIComponent("Não foi possível registrar o resultado da avaliação.")}`);
+
+  const failedNotices = await notifyFamilyAboutAssessmentResult({
+    supabase,
+    studentId: parsed.data.studentId,
+    assessmentId: assignment.assessment_id,
+    assessmentTitle: assessment.title || "Avaliação",
+    score: parsed.data.score,
+  });
+
+  revalidatePath("/professor");
+  revalidatePath("/professor/correcoes");
+  revalidatePath("/professor/avaliacoes");
+  revalidatePath(`/professor/alunos/${parsed.data.studentId}`);
+  revalidatePath("/familia/avaliacoes");
+  revalidatePath("/familia/progresso");
+  revalidatePath("/familia/mensagens");
+  revalidatePath("/aluno");
+  const message = failedNotices
+    ? "Resultado salvo. Um aviso interno da família não pôde ser entregue, mas a nota já aparece em Avaliações."
+    : "Resultado da avaliação salvo e família vinculada avisada no portal.";
+  redirect(`/professor/correcoes?sucesso=${encodeURIComponent(message)}`);
+}
