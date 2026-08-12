@@ -29,11 +29,41 @@ function queryError(message: string) {
   return `/login?erro=${encodeURIComponent(message)}`;
 }
 
+function normalizePublicOrigin(value: string | null | undefined) {
+  if (!value) return null;
+  const raw = value.trim().replace(/\/$/, "");
+  if (!raw) return null;
+
+  try {
+    const url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+    const local = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+    if (process.env.NODE_ENV === "production" && local) return null;
+    if (!local && url.protocol !== "https:") return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
 async function siteOrigin() {
+  // Em produção, prefira sempre a URL estável do projeto na Vercel. Isso evita
+  // gerar e-mails de acesso apontando para localhost ou para um preview efêmero.
+  const vercelProduction = normalizePublicOrigin(process.env.VERCEL_PROJECT_PRODUCTION_URL);
+  if (process.env.NODE_ENV === "production" && vercelProduction) return vercelProduction;
+
+  const configured = normalizePublicOrigin(process.env.NEXT_PUBLIC_SITE_URL);
+  if (configured) return configured;
+
   const requestHeaders = await headers();
-  const origin = requestHeaders.get("origin");
-  if (origin) return origin.replace(/\/$/, "");
-  return (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+  const origin = normalizePublicOrigin(requestHeaders.get("origin"));
+  if (origin) return origin;
+
+  const host = requestHeaders.get("x-forwarded-host") || requestHeaders.get("host");
+  const protocol = requestHeaders.get("x-forwarded-proto") || (host?.includes("localhost") ? "http" : "https");
+  const forwarded = normalizePublicOrigin(host ? `${protocol}://${host}` : null);
+  if (forwarded) return forwarded;
+
+  return process.env.NODE_ENV === "production" ? "https://curio-web-nu.vercel.app" : "http://localhost:3000";
 }
 
 function portalFor(roles: string[]) {
@@ -75,7 +105,9 @@ async function sendPasswordLink(email: string, successPath: string) {
   const supabase = await createClient();
   const origin = await siteOrigin();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/definir-senha`,
+    // Mantemos toda recuperação/primeiro acesso no mesmo callback. Ele sabe
+    // tratar PKCE, token_hash e também o fluxo legado com sessão no fragmento.
+    redirectTo: `${origin}/auth/confirm?next=/definir-senha`,
   });
 
   // Não revelamos se o e-mail existe ou não.
