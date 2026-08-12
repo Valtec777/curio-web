@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/app-shell";
+import { CurioOnboardingTour } from "@/components/curio-onboarding-tour";
 import { MonthlyInterestPrompt } from "@/components/monthly-interest-prompt";
 import { getCurrentStudent } from "@/lib/student";
 import { shouldShowMonthlyInterest } from "@/lib/monthly-interest";
@@ -39,6 +40,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
         avatarUrl={avatarUrl}
       >
         {children}
+        <CurioOnboardingTour role="student" />
         {showInterest ? <MonthlyInterestPrompt role="student" /> : null}
       </AppShell>
     </div>
