@@ -23,15 +23,38 @@ function bahiaDateTime(value?: string | null, endOfDay = false) {
 async function validateStudents(supabase: any, teacherId: string, rawIds: string[]) {
   const ids = [...new Set(rawIds.filter((value) => z.string().uuid().safeParse(value).success))];
   if (!ids.length) return [];
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("teacher_students")
     .select("student_id")
     .eq("teacher_id", teacherId)
     .eq("active", true)
     .in("student_id", ids);
+  if (error) throw new Error("student lookup failed");
   const allowed = new Set((data ?? []).map((item: any) => item.student_id));
   if (ids.some((id) => !allowed.has(id))) throw new Error("Aluno sem vínculo com este professor.");
   return ids;
+}
+
+function invalidResource() {
+  redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível identificar o material selecionado. Atualize a página e tente novamente.")}`);
+}
+
+async function rollbackCreatedResource({
+  supabase,
+  teacherId,
+  kind,
+  itemId,
+  filePath,
+}: {
+  supabase: any;
+  teacherId: string;
+  kind: "material" | "notebook";
+  itemId: string;
+  filePath: string;
+}) {
+  const table = kind === "notebook" ? "notebook_activities" : "materials";
+  await supabase.from(table).delete().eq("id", itemId).eq("created_by_teacher_id", teacherId);
+  await supabase.storage.from("teacher-materials").remove([filePath]);
 }
 
 export async function createTeacherMaterial(formData: FormData) {
@@ -136,16 +159,18 @@ export async function createTeacherMaterial(formData: FormData) {
         studentIds.map((studentId) => ({ activity_id: itemId, student_id: studentId, assigned_by_teacher_id: teacher.id, due_at: dueAt, status: "assigned" })),
         { onConflict: "activity_id,student_id" },
       );
-      if (error) redirect(`/professor/materiais?erro=${encodeURIComponent("O material foi criado, mas não foi possível atribuí-lo a todos os alunos.")}`);
+      if (error) {
+        await rollbackCreatedResource({ supabase, teacherId: teacher.id, kind: parsed.data.kind, itemId, filePath: path });
+        redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível atribuir o Caderno Curió. O registro e o arquivo recém-criados foram revertidos para evitar conteúdo órfão.")}`);
+      }
     } else {
-      for (const studentId of studentIds) {
-        const { data: existing } = await supabase.from("material_assignments").select("id").eq("material_id", itemId).eq("student_id", studentId).maybeSingle();
-        if (existing) {
-          await supabase.from("material_assignments").update({ due_at: dueAt, status: "assigned" }).eq("id", existing.id);
-        } else {
-          const { error } = await supabase.from("material_assignments").insert({ material_id: itemId, student_id: studentId, assigned_by_teacher_id: teacher.id, due_at: dueAt, status: "assigned" });
-          if (error) redirect(`/professor/materiais?erro=${encodeURIComponent("O material foi criado, mas não foi possível atribuí-lo a todos os alunos.")}`);
-        }
+      const { error } = await supabase.from("material_assignments").upsert(
+        studentIds.map((studentId) => ({ material_id: itemId, student_id: studentId, assigned_by_teacher_id: teacher.id, due_at: dueAt, status: "assigned" })),
+        { onConflict: "material_id,student_id" },
+      );
+      if (error) {
+        await rollbackCreatedResource({ supabase, teacherId: teacher.id, kind: parsed.data.kind, itemId, filePath: path });
+        redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível atribuir o material. O registro e o arquivo recém-criados foram revertidos para evitar conteúdo órfão.")}`);
       }
     }
   }
@@ -163,12 +188,25 @@ export async function assignTeacherResource(formData: FormData) {
   const parsed = z.object({ kind: z.enum(["material", "notebook"]), id: z.string().uuid(), dueAt: z.string().optional() }).safeParse({
     kind: formData.get("kind"), id: formData.get("id"), dueAt: String(formData.get("dueAt") || ""),
   });
-  if (!parsed.success) return;
+  if (!parsed.success) invalidResource();
   const { teacher, supabase } = await getCurrentTeacher();
   if (!teacher) redirect("/professor/materiais");
+
+  const resourceTable = parsed.data.kind === "notebook" ? "notebook_activities" : "materials";
+  const { data: resource, error: resourceError } = await supabase
+    .from(resourceTable)
+    .select("id")
+    .eq("id", parsed.data.id)
+    .eq("created_by_teacher_id", teacher.id)
+    .maybeSingle();
+  if (resourceError || !resource) redirect(`/professor/materiais?erro=${encodeURIComponent("Material não encontrado ou sem permissão para esta ação.")}`);
+
   let studentIds: string[] = [];
-  try { studentIds = await validateStudents(supabase, teacher.id, formData.getAll("studentIds").map(String)); }
-  catch { redirect(`/professor/materiais?erro=${encodeURIComponent("Revise os alunos selecionados.")}`); }
+  try {
+    studentIds = await validateStudents(supabase, teacher.id, formData.getAll("studentIds").map(String));
+  } catch {
+    redirect(`/professor/materiais?erro=${encodeURIComponent("Revise os alunos selecionados.")}`);
+  }
   if (!studentIds.length) redirect(`/professor/materiais?erro=${encodeURIComponent("Escolha pelo menos um aluno.")}`);
   const dueAt = bahiaDateTime(parsed.data.dueAt, true);
 
@@ -179,11 +217,11 @@ export async function assignTeacherResource(formData: FormData) {
     );
     if (error) redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível enviar o Caderno Curió.")}`);
   } else {
-    for (const studentId of studentIds) {
-      const { data: existing } = await supabase.from("material_assignments").select("id").eq("material_id", parsed.data.id).eq("student_id", studentId).maybeSingle();
-      if (existing) await supabase.from("material_assignments").update({ due_at: dueAt, status: "assigned" }).eq("id", existing.id);
-      else await supabase.from("material_assignments").insert({ material_id: parsed.data.id, student_id: studentId, assigned_by_teacher_id: teacher.id, due_at: dueAt, status: "assigned" });
-    }
+    const { error } = await supabase.from("material_assignments").upsert(
+      studentIds.map((studentId) => ({ material_id: parsed.data.id, student_id: studentId, assigned_by_teacher_id: teacher.id, due_at: dueAt, status: "assigned" })),
+      { onConflict: "material_id,student_id" },
+    );
+    if (error) redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível enviar o material para todos os alunos selecionados.")}`);
   }
 
   revalidatePath("/professor/materiais");
@@ -193,18 +231,18 @@ export async function assignTeacherResource(formData: FormData) {
 
 export async function duplicateTeacherResource(formData: FormData) {
   const parsed = z.object({ kind: z.enum(["material", "notebook"]), id: z.string().uuid() }).safeParse({ kind: formData.get("kind"), id: formData.get("id") });
-  if (!parsed.success) return;
+  if (!parsed.success) invalidResource();
   const { teacher, supabase } = await getCurrentTeacher();
   if (!teacher) redirect("/professor/materiais");
 
   if (parsed.data.kind === "notebook") {
-    const { data: item } = await supabase.from("notebook_activities").select("title,description,subject_id,content_id,grade_id,worksheet_path").eq("id", parsed.data.id).eq("created_by_teacher_id", teacher.id).maybeSingle();
-    if (!item) redirect(`/professor/materiais?erro=${encodeURIComponent("Caderno não encontrado.")}`);
+    const { data: item, error: readError } = await supabase.from("notebook_activities").select("title,description,subject_id,content_id,grade_id,worksheet_path").eq("id", parsed.data.id).eq("created_by_teacher_id", teacher.id).maybeSingle();
+    if (readError || !item) redirect(`/professor/materiais?erro=${encodeURIComponent("Caderno não encontrado.")}`);
     const { error } = await supabase.from("notebook_activities").insert({ ...item, title: `${item.title} — cópia`, created_by_teacher_id: teacher.id, status: "draft", publish_at: null });
     if (error) redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível duplicar o Caderno Curió.")}`);
   } else {
-    const { data: item } = await supabase.from("materials").select("title,description,subject_id,content_id,grade_id,material_type,file_path,external_url").eq("id", parsed.data.id).eq("created_by_teacher_id", teacher.id).maybeSingle();
-    if (!item) redirect(`/professor/materiais?erro=${encodeURIComponent("Material não encontrado.")}`);
+    const { data: item, error: readError } = await supabase.from("materials").select("title,description,subject_id,content_id,grade_id,material_type,file_path,external_url").eq("id", parsed.data.id).eq("created_by_teacher_id", teacher.id).maybeSingle();
+    if (readError || !item) redirect(`/professor/materiais?erro=${encodeURIComponent("Material não encontrado.")}`);
     const { error } = await supabase.from("materials").insert({ ...item, title: `${item.title} — cópia`, created_by_teacher_id: teacher.id, status: "draft", publish_at: null });
     if (error) redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível duplicar o material.")}`);
   }
