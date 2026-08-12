@@ -7,19 +7,8 @@ import { SidebarCollapseButton } from "@/components/sidebar-collapse-button";
 import { FamilySidebarSelector } from "@/components/family-sidebar-selector";
 import type { AppRole } from "@/lib/auth";
 
-type NavItem = {
-  href: string;
-  label: string;
-  requiresRole?: AppRole;
-  group?: string;
-};
-
-type FamilyChild = {
-  id: string;
-  name: string;
-  grade?: string | null;
-  teacher?: string | null;
-};
+type NavItem = { href: string; label: string; requiresRole?: AppRole; group?: string };
+type FamilyChild = { id: string; name: string; grade?: string | null; teacher?: string | null };
 
 const menus: Record<AppRole, NavItem[]> = {
   admin: [
@@ -40,6 +29,7 @@ const menus: Record<AppRole, NavItem[]> = {
     { href: "/admin/calendario", label: "Calendário", group: "Operação" },
     { href: "/admin/financeiro", label: "Financeiro", group: "Operação" },
     { href: "/admin/planos", label: "Planos", group: "Operação" },
+    { href: "/admin/indicacoes", label: "Indicações", group: "Operação" },
     { href: "/admin/mensagens", label: "Mensagens", group: "Operação" },
     { href: "/admin/comunicacao", label: "Comunicação", group: "Operação" },
     { href: "/admin/documentos", label: "Documentos", group: "Operação" },
@@ -67,21 +57,15 @@ const menus: Record<AppRole, NavItem[]> = {
     { href: "/professor/correcoes", label: "Correções", group: "Revisar" },
     { href: "/professor/mensagens", label: "Mensagens", group: "Revisar" },
     { href: "/professor/relatorios", label: "Relatórios", group: "Revisar" },
+    { href: "/professor/indicacoes", label: "Indicações", group: "Conta" },
     { href: "/professor/perfil", label: "Perfil", group: "Conta" },
     { href: "/professor/suporte", label: "Suporte", group: "Conta" },
     { href: "/admin", label: "Área Administrativa", requiresRole: "admin", group: "Conta" },
   ],
   student: [
-    { href: "/aluno", label: "Hoje" },
-    { href: "/aluno/missoes", label: "Missões" },
-    { href: "/aluno/agenda", label: "Agenda" },
-    { href: "/aluno/caminho", label: "Caminho" },
-    { href: "/aluno/perfil", label: "Perfil" },
-    { href: "/aluno/caderno", label: "Meu Caderno" },
-    { href: "/aluno/conquistas", label: "Conquistas" },
-    { href: "/aluno/descobertas", label: "Descobertas" },
-    { href: "/aluno/modo-pensar", label: "Modo Pensar" },
-    { href: "/aluno/modo-prova", label: "Modo Prova" },
+    { href: "/aluno", label: "Hoje" }, { href: "/aluno/missoes", label: "Missões" }, { href: "/aluno/agenda", label: "Agenda" },
+    { href: "/aluno/caminho", label: "Caminho" }, { href: "/aluno/perfil", label: "Perfil" }, { href: "/aluno/caderno", label: "Meu Caderno" },
+    { href: "/aluno/conquistas", label: "Conquistas" }, { href: "/aluno/descobertas", label: "Descobertas" }, { href: "/aluno/modo-pensar", label: "Modo Pensar" }, { href: "/aluno/modo-prova", label: "Modo Prova" },
   ],
   guardian: [
     { href: "/familia", label: "Visão geral" },
@@ -94,6 +78,7 @@ const menus: Record<AppRole, NavItem[]> = {
     { href: "/familia/mensagens", label: "Mensagens" },
     { href: "/familia/relatorios", label: "Relatórios" },
     { href: "/familia/plano", label: "Plano" },
+    { href: "/familia/indicacoes", label: "Indique o CURIÓ" },
     { href: "/familia/contrato", label: "Contrato" },
     { href: "/familia/pagamentos", label: "Pagamentos" },
     { href: "/familia/privacidade", label: "Privacidade e autorizações" },
@@ -103,106 +88,37 @@ const menus: Record<AppRole, NavItem[]> = {
   ],
 };
 
-const titles: Record<AppRole, string> = {
-  admin: "Operação CURIÓ",
-  teacher: "Portal do Professor",
-  student: "Explorador Curió",
-  guardian: "Ninho da Família",
-};
+const titles: Record<AppRole, string> = { admin: "Operação CURIÓ", teacher: "Portal do Professor", student: "Explorador Curió", guardian: "Ninho da Família" };
+const supportHref: Partial<Record<AppRole, string>> = { admin: "/admin/suporte", teacher: "/professor/suporte", guardian: "/familia/suporte" };
 
-const supportHref: Partial<Record<AppRole, string>> = {
-  admin: "/admin/suporte",
-  teacher: "/professor/suporte",
-  guardian: "/familia/suporte",
-};
-
-export function AppShell({
-  role,
-  roles,
-  name,
-  subtitle,
-  metricLabel,
-  metricValue,
-  avatarUrl,
-  familyChildren,
-  children,
-}: {
-  role: AppRole;
-  roles?: AppRole[];
-  name?: string | null;
-  subtitle?: string | null;
-  metricLabel?: string | null;
-  metricValue?: string | number | null;
-  avatarUrl?: string | null;
-  familyChildren?: FamilyChild[];
-  children: ReactNode;
+export function AppShell({ role, roles, name, subtitle, metricLabel, metricValue, avatarUrl, familyChildren, children }: {
+  role: AppRole; roles?: AppRole[]; name?: string | null; subtitle?: string | null; metricLabel?: string | null; metricValue?: string | number | null; avatarUrl?: string | null; familyChildren?: FamilyChild[]; children: ReactNode;
 }) {
   const availableRoles = roles ?? [role];
   const items = menus[role].filter((item) => !item.requiresRole || availableRoles.includes(item.requiresRole));
-  const grouped = items.reduce<Record<string, NavItem[]>>((acc, item) => {
-    const key = item.group || "";
-    (acc[key] ||= []).push(item);
-    return acc;
-  }, {});
+  const grouped = items.reduce<Record<string, NavItem[]>>((acc, item) => { const key = item.group || ""; (acc[key] ||= []).push(item); return acc; }, {});
   const quickSupport = supportHref[role];
   const displayName = name || (role === "teacher" ? "Professor(a)" : "CURIÓ");
 
-  return (
-    <div className={`app-frame app-frame-${role}`}>
-      <aside className="sidebar">
-        <div className="sidebar-brand-row">
-          <Logo compact />
-          <SidebarCollapseButton />
+  return <div className={`app-frame app-frame-${role}`}>
+    <aside className="sidebar">
+      <div className="sidebar-brand-row"><Logo compact /><SidebarCollapseButton /></div>
+      <div className="sidebar-role">
+        {role === "student" && avatarUrl ? <img className="sidebar-profile-avatar" src={avatarUrl} alt="Seu avatar Curió" /> : null}
+        <span>{titles[role]}</span><strong>{role === "teacher" ? `Olá, ${displayName}` : role === "student" ? `Oi, ${displayName}` : displayName}</strong>
+        {subtitle && <small className="sidebar-subtitle">{subtitle}</small>}
+        {metricLabel && <div className="sidebar-metric"><span>{metricLabel}</span><strong>{metricValue ?? 0}</strong></div>}
+      </div>
+      {role === "guardian" && familyChildren?.length ? <FamilySidebarSelector children={familyChildren} variant="sidebar" /> : null}
+      <nav className="sidebar-nav" aria-label="Navegação principal">
+        {Object.entries(grouped).map(([group, groupItems]) => <div className="sidebar-nav-group" key={group || "principal"}>{group && <span className="sidebar-nav-title">{group}</span>}{groupItems.map((item) => <SidebarNavLink key={item.href} href={item.href} label={item.label} />)}</div>)}
+        <div className="sidebar-nav-group sidebar-nav-utility">
+          {role === "student" && availableRoles.includes("guardian") ? <SidebarNavLink href="/aluno/desbloquear-familia" label="Voltar à família" /> : role === "student" ? (availableRoles.length > 1 ? <SidebarNavLink href="/dashboard" label="Trocar ambiente" /> : null) : <SidebarNavLink href="/dashboard" label="Trocar ambiente" />}
         </div>
-        <div className="sidebar-role">
-          {role === "student" && avatarUrl ? <img className="sidebar-profile-avatar" src={avatarUrl} alt="Seu avatar Curió" /> : null}
-          <span>{titles[role]}</span>
-          <strong>{role === "teacher" ? `Olá, ${displayName}` : role === "student" ? `Oi, ${displayName}` : displayName}</strong>
-          {subtitle && <small className="sidebar-subtitle">{subtitle}</small>}
-          {metricLabel && (
-            <div className="sidebar-metric">
-              <span>{metricLabel}</span>
-              <strong>{metricValue ?? 0}</strong>
-            </div>
-          )}
-        </div>
-
-        {role === "guardian" && familyChildren?.length ? <FamilySidebarSelector children={familyChildren} variant="sidebar" /> : null}
-
-        <nav className="sidebar-nav" aria-label="Navegação principal">
-          {Object.entries(grouped).map(([group, groupItems]) => (
-            <div className="sidebar-nav-group" key={group || "principal"}>
-              {group && <span className="sidebar-nav-title">{group}</span>}
-              {groupItems.map((item) => <SidebarNavLink key={item.href} href={item.href} label={item.label} />)}
-            </div>
-          ))}
-          <div className="sidebar-nav-group sidebar-nav-utility">
-            {role === "student" && availableRoles.includes("guardian") ? (
-              <SidebarNavLink href="/aluno/desbloquear-familia" label="Voltar à família" />
-            ) : role === "student" ? (
-              availableRoles.length > 1 ? <SidebarNavLink href="/dashboard" label="Trocar ambiente" /> : null
-            ) : (
-              <SidebarNavLink href="/dashboard" label="Trocar ambiente" />
-            )}
-          </div>
-        </nav>
-
-        <form action={logout}>
-          <button className="button button-ghost sidebar-logout" type="submit">Sair do CURIÓ</button>
-        </form>
-      </aside>
-
-      <main className="app-main">
-        {role === "guardian" && familyChildren?.length ? <FamilySidebarSelector children={familyChildren} variant="mobile" /> : null}
-        {children}
-      </main>
-
-      {quickSupport && (
-        <Link className="floating-support-button" href={quickSupport} aria-label="Abrir suporte do CURIÓ" title="Suporte">
-          <span aria-hidden="true">?</span>
-          <strong>Suporte</strong>
-        </Link>
-      )}
-    </div>
-  );
+      </nav>
+      <form action={logout}><button className="button button-ghost sidebar-logout" type="submit">Sair do CURIÓ</button></form>
+    </aside>
+    <main className="app-main">{role === "guardian" && familyChildren?.length ? <FamilySidebarSelector children={familyChildren} variant="mobile" /> : null}{children}</main>
+    {quickSupport && <Link className="floating-support-button" href={quickSupport} aria-label="Abrir suporte do CURIÓ" title="Suporte"><span aria-hidden="true">?</span><strong>Suporte</strong></Link>}
+  </div>;
 }
