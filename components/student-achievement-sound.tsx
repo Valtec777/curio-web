@@ -10,15 +10,15 @@ export function StudentAchievementSound({
   viewerId: string;
   count: number;
 }) {
-  const { play } = useCurioSounds(viewerId);
+  const { ready, play } = useCurioSounds(viewerId);
   const playedRef = useRef(false);
 
   useEffect(() => {
-    if (count <= 0 || playedRef.current) return;
+    if (!ready || count <= 0 || playedRef.current) return;
     playedRef.current = true;
     const timer = window.setTimeout(() => play("achievement"), 180);
     return () => window.clearTimeout(timer);
-  }, [count, play]);
+  }, [count, play, ready]);
 
   if (count <= 0) return null;
 
