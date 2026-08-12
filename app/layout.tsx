@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { Fredoka, Nunito_Sans } from "next/font/google";
 import { ExperiencePreferences } from "@/components/experience-preferences";
@@ -45,5 +46,13 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="pt-BR" className={`${fredoka.variable} ${nunito.variable}`} suppressHydrationWarning><body><ExperiencePreferences /><ReferralTeacherPrefill />{children}</body></html>;
+  return (
+    <html lang="pt-BR" className={`${fredoka.variable} ${nunito.variable}`} suppressHydrationWarning>
+      <body>
+        <ExperiencePreferences />
+        <Suspense fallback={null}><ReferralTeacherPrefill /></Suspense>
+        {children}
+      </body>
+    </html>
+  );
 }
