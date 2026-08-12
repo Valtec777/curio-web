@@ -1,0 +1,307 @@
+/* CURIÓ · acabamento final visual e acessibilidade
+   Carregado por último para unificar a experiência sem reconstruir telas. */
+
+:root {
+  --curio-surface: #ffffff;
+  --curio-surface-raised: #ffffff;
+  --curio-surface-soft: #f7f8fc;
+  --curio-text: #1e2a44;
+  --curio-text-muted: #68738a;
+  --curio-border: #e2e6ef;
+  --curio-input-bg: #ffffff;
+  --curio-hover: #f4f6fb;
+  --curio-radius-sm: 14px;
+  --curio-radius-md: 20px;
+  --curio-radius-lg: 28px;
+  --curio-space-1: 8px;
+  --curio-space-2: 12px;
+  --curio-space-3: 16px;
+  --curio-space-4: 20px;
+  --curio-space-5: 24px;
+  --curio-space-6: 32px;
+}
+
+html[data-theme="dark"] {
+  --curio-surface: #1d2430;
+  --curio-surface-raised: #222a38;
+  --curio-surface-soft: #171d27;
+  --curio-text: #f3f6fb;
+  --curio-text-muted: #bdc6d7;
+  --curio-border: #3f4a60;
+  --curio-input-bg: #171d28;
+  --curio-hover: #2a3343;
+}
+
+/* Respiro e linguagem arredondada compartilhada. */
+.panel,
+.stat-card,
+.mission-card,
+.question-box,
+.resource-card,
+.role-card,
+.family-summary-card,
+.family-upload-card,
+.teacher-today-card,
+.teacher-side-card,
+.public-plan-card,
+.course-public-card,
+.map-mini-card,
+.step-card,
+.experience-card,
+.auth-card,
+.notice,
+.form-message {
+  border-radius: var(--curio-radius-md);
+}
+
+.panel,
+.mission-card,
+.resource-card,
+.family-summary-card,
+.family-upload-card,
+.teacher-today-card,
+.teacher-side-card {
+  color: var(--curio-text);
+}
+
+.app-main > * + * { margin-top: var(--curio-space-5); }
+.panel + .panel { margin-top: var(--curio-space-5); }
+.panel-head + * { margin-top: var(--curio-space-3); }
+.form-stack > * + * { margin-top: 0; }
+.family-summary-card,
+.family-upload-card,
+.teacher-today-card,
+.teacher-side-card { padding: clamp(20px, 2.2vw, 28px); }
+
+/* Inputs e controles seguem a mesma linguagem da Matrícula. */
+.input,
+.select,
+.textarea,
+.segmented-control,
+.segmented-control button,
+.preference-toggle input,
+.sound-preview button,
+.experience-close,
+.experience-trigger {
+  border-radius: var(--curio-radius-sm);
+}
+.segmented-control {
+  padding: 4px;
+  gap: 4px;
+  overflow: hidden;
+}
+.segmented-control button {
+  min-height: 40px;
+  border: 1px solid transparent;
+}
+.preference-toggle { padding-block: 14px; gap: 18px; }
+.preference-toggle span { display: grid; gap: 3px; }
+.experience-panel { border-radius: 24px; overflow: hidden; }
+.experience-trigger { width: 58px; height: 58px; }
+
+/* Tamanho de texto configurável sem quebrar o layout. */
+html[data-text-size="large"] { font-size: 108%; }
+html[data-text-size="extra"] { font-size: 116%; }
+html[data-text-size="large"] .app-frame,
+html[data-text-size="extra"] .app-frame { --sidebar-label-scale: 1; }
+
+/* Redução real de estímulos + preferência do sistema operacional. */
+html[data-access-epilepsy="true"] *,
+html[data-access-epilepsy="true"] *::before,
+html[data-access-epilepsy="true"] *::after {
+  animation-duration: .001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .001ms !important;
+  scroll-behavior: auto !important;
+}
+html[data-access-epilepsy="true"] .hero-sticker,
+html[data-access-epilepsy="true"] .student-hero-orbit,
+html[data-access-focus="true"] .hero-sticker,
+html[data-access-focus="true"] .student-hero-orbit {
+  display: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Hero público: nenhum traço/container deve atravessar os personagens. */
+.hero-mascot-stage,
+.mascot-orbit,
+.mascot-image-free,
+.mascot-character {
+  border: 0 !important;
+  outline: 0 !important;
+}
+.hero-mascot-stage::after,
+.mascot-orbit::before,
+.mascot-orbit::after,
+.mascot-image-free::before,
+.mascot-image-free::after,
+.mascot-character::before,
+.mascot-character::after {
+  content: none !important;
+  display: none !important;
+}
+.hero-mascot-stage { isolation: isolate; }
+.hero-mascot-stage::before {
+  z-index: -1;
+  pointer-events: none;
+}
+.mascot-orbit img,
+.mascot-image-free img {
+  object-fit: contain !important;
+  object-position: center bottom;
+  border: 0 !important;
+  outline: 0 !important;
+}
+.mascot-caption { margin-top: 14px; }
+.mascot-caption h3 { margin-top: 12px; }
+.mascot-caption p { margin-top: 7px; }
+
+/* Modo Pensar público: número e texto deixam de ficar colados. */
+.course-public-card {
+  border-radius: 28px;
+  padding: clamp(26px, 3vw, 38px);
+}
+.course-public-card h3 { color: #f7f9ff; margin: 16px 0 24px; line-height: 1.1; }
+.course-public-step {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  min-height: 50px;
+  margin-top: 10px;
+}
+.course-public-step b {
+  width: 42px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: #b8f238;
+  color: #18325f;
+  font-family: var(--font-curio-display), sans-serif;
+}
+.course-public-step:nth-of-type(2n) b { background: #ffd84d; }
+.course-public-step:nth-of-type(3n) b { background: #dcd3ff; }
+.course-public-step span { line-height: 1.35; }
+html[data-theme="dark"] .course-public-card {
+  background: #202838 !important;
+  border-color: #46536a !important;
+  color: #eef2f8;
+}
+html[data-theme="dark"] .course-public-card h3 { color: #f7f9ff !important; }
+html[data-theme="dark"] .course-public-card small,
+html[data-theme="dark"] .course-public-card span { color: #e5eaf3; }
+html[data-theme="dark"] .course-public-step b { color: #172442; }
+
+/* Portal do Aluno: decoração fica contida no hero. */
+.student-hero-refresh,
+.kid-hero-rich {
+  position: relative;
+  overflow: hidden !important;
+  isolation: isolate;
+}
+.student-hero-stage { overflow: hidden !important; border-radius: inherit; }
+.student-hero-orbit { pointer-events: none; }
+.student-today-pills { position: relative; z-index: 2; }
+.student-hero-character { position: relative; z-index: 2; object-fit: contain; }
+
+/* Escolha de ambiente: seta sempre alinhada na lateral. */
+.role-grid .role-card {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center !important;
+  gap: 22px;
+  min-height: 164px;
+  padding: 26px;
+  border-radius: 24px;
+}
+.role-grid .role-card > div { min-width: 0; }
+.role-grid .role-card > strong {
+  align-self: center;
+  white-space: nowrap;
+  margin: 0;
+}
+
+/* Cobertura do modo escuro para superfícies que ainda escapavam brancas. */
+html[data-theme="dark"] .section-soft,
+html[data-theme="dark"] .plan-panel,
+html[data-theme="dark"] .lead-form,
+html[data-theme="dark"] .family-summary-card,
+html[data-theme="dark"] .family-upload-card,
+html[data-theme="dark"] .teacher-today-card,
+html[data-theme="dark"] .teacher-side-card,
+html[data-theme="dark"] .teacher-recent-item,
+html[data-theme="dark"] .teacher-agenda-item,
+html[data-theme="dark"] .student-notebook-mini,
+html[data-theme="dark"] .achievement-inline,
+html[data-theme="dark"] .map-mini-card,
+html[data-theme="dark"] .public-plan-card,
+html[data-theme="dark"] .lead-grid,
+html[data-theme="dark"] .about-grid {
+  background: var(--curio-surface) !important;
+  color: var(--curio-text) !important;
+  border-color: var(--curio-border) !important;
+}
+html[data-theme="dark"] .section-heading h2,
+html[data-theme="dark"] .section-heading h3,
+html[data-theme="dark"] .family-summary-card h2,
+html[data-theme="dark"] .family-summary-card h3,
+html[data-theme="dark"] .teacher-today-card h2,
+html[data-theme="dark"] .teacher-side-card h2,
+html[data-theme="dark"] .teacher-recent-item strong,
+html[data-theme="dark"] .student-notebook-mini h3,
+html[data-theme="dark"] .map-mini-card strong,
+html[data-theme="dark"] .public-plan-card h3 {
+  color: var(--curio-text) !important;
+}
+html[data-theme="dark"] .section-heading p,
+html[data-theme="dark"] .family-summary-card p,
+html[data-theme="dark"] .family-upload-card p,
+html[data-theme="dark"] .teacher-today-card p,
+html[data-theme="dark"] .teacher-side-card p,
+html[data-theme="dark"] .teacher-recent-item small,
+html[data-theme="dark"] .student-notebook-mini p,
+html[data-theme="dark"] .map-mini-card span,
+html[data-theme="dark"] .public-plan-card p {
+  color: var(--curio-text-muted) !important;
+}
+html[data-theme="dark"] .input,
+html[data-theme="dark"] .select,
+html[data-theme="dark"] .textarea {
+  background: var(--curio-input-bg) !important;
+  color: var(--curio-text) !important;
+  border-color: var(--curio-border) !important;
+}
+
+/* Tema claro também evita cards excessivamente grudados. */
+.teacher-section-grid,
+.teacher-today-grid,
+.family-dashboard-grid,
+.family-action-grid,
+.mission-list-grid,
+.student-notebook-strip,
+.public-plan-grid,
+.course-public-grid,
+.lead-grid,
+.about-grid {
+  gap: clamp(18px, 2.2vw, 28px) !important;
+}
+
+@media (max-width: 640px) {
+  .role-grid .role-card {
+    min-height: 0;
+    padding: 20px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+  }
+  .course-public-step { grid-template-columns: 38px minmax(0, 1fr); gap: 12px; }
+  .course-public-step b { width: 38px; height: 36px; }
+  html[data-text-size="extra"] { font-size: 112%; }
+}
