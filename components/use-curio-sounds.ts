@@ -61,7 +61,7 @@ async function resumeContext(context: AudioContext) {
 
   try {
     await context.resume();
-    return context.state === "running";
+    return true;
   } catch {
     return false;
   }
