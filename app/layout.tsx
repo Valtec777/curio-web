@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Fredoka, Nunito_Sans } from "next/font/google";
 import { ExperiencePreferences } from "@/components/experience-preferences";
+import { SeasonalDecor } from "@/components/seasonal-decor";
 import "./globals.css";
+import "./enhancements.css";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
@@ -84,6 +86,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="pt-BR" className={`${fredoka.variable} ${nunito.variable}`} suppressHydrationWarning>
       <body>
         <ExperiencePreferences />
+        <SeasonalDecor />
         {children}
       </body>
     </html>
