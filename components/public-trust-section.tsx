@@ -2,10 +2,10 @@ import styles from "./public-trust-section.module.css";
 
 export function PublicTrustSection() {
   const trustItems = [
-    ["Acompanhamento humano", "A tecnologia organiza informações e apoia a rotina, mas o acompanhamento continua sendo feito por pessoas."],
-    ["Evolução que a família entende", "O responsável acompanha progresso, agenda, atividades e próximos passos sem depender apenas de notas."],
-    ["Aprendizagem além da tela", "O Caderno Curió mantém escrita, raciocínio e produção manual como parte real do percurso."],
-    ["Cada perfil no seu espaço", "Aluno, família, professor e administração acessam áreas próprias, pensadas para o que cada pessoa precisa fazer."],
+    ["Acompanhamento humano", "A tecnologia apoia a organização, mas o acompanhamento continua sendo feito por pessoas."],
+    ["Evolução fácil de acompanhar", "A família acompanha progresso, agenda, atividades e próximos passos de forma clara."],
+    ["Aprendizagem além da tela", "O Caderno Curió mantém escrita, raciocínio e produção manual como parte do percurso."],
+    ["Cada perfil no seu espaço", "Aluno, família, professor e administração acessam áreas próprias para o que precisam fazer."],
   ] as const;
 
   return (
@@ -13,11 +13,11 @@ export function PublicTrustSection() {
       <div className="site-shell">
         <div className={styles.intro}>
           <div>
-            <div className="eyebrow eyebrow-blue">Para quem cuida, clareza importa</div>
-            <h2 id="public-trust-title">Um acompanhamento divertido para a criança e sério para a família.</h2>
+            <div className="eyebrow eyebrow-blue">Clareza para quem acompanha</div>
+            <h2 id="public-trust-title">Uma experiência acolhedora para a criança e organizada para a família.</h2>
           </div>
           <p>
-            O Curió foi pensado para estimular curiosidade sem transformar estudo em distração. A criança encontra missões, mascotes e conquistas; a família encontra rotina, contexto e acompanhamento objetivo.
+            O Curió combina atividades, acompanhamento e uma experiência visual leve para que estudar faça mais sentido no dia a dia.
           </p>
         </div>
 
@@ -32,8 +32,8 @@ export function PublicTrustSection() {
         </div>
 
         <div className={styles.note}>
-          <strong>Sem atalhos mágicos.</strong>
-          <span>O objetivo é ajudar a criança a entender, tentar, praticar, revisar e ganhar autonomia com acompanhamento de verdade.</span>
+          <strong>Aprender continua sendo o centro.</strong>
+          <span>A tecnologia apoia a rotina; a criança pensa, pratica, revisa e desenvolve autonomia com acompanhamento de verdade.</span>
         </div>
       </div>
     </section>
