@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export function ReferralTeacherPrefill() {
-  useEffect(() => {
-    if (window.location.pathname !== "/admin/matriculas") return;
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const leadId = searchParams.get("lead") || "";
 
-    const leadId = new URLSearchParams(window.location.search).get("lead");
+  useEffect(() => {
+    if (pathname !== "/admin/matriculas") return;
     if (!leadId || !/^[0-9a-f-]{36}$/i.test(leadId)) return;
 
     let cancelled = false;
@@ -41,7 +44,7 @@ export function ReferralTeacherPrefill() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [leadId, pathname]);
 
   return null;
 }
