@@ -3,6 +3,35 @@
 -- painel. E um código de professor registra a origem sem escolher automaticamente
 -- qual professor atenderá a nova matrícula.
 
+-- A landing pública precisa validar o código, não identificar a pessoa que o possui.
+create or replace function public.referral_landing(p_code text)
+returns table(owner_type text, owner_name text, program_active boolean, public_rules text)
+language plpgsql
+stable
+security definer
+set search_path=public,private,pg_temp
+as $$
+declare
+  v_settings public.referral_program_settings%rowtype;
+begin
+  select * into v_settings from public.referral_program_settings limit 1;
+
+  return query
+  select rc.owner_type,
+    case when rc.owner_type='teacher' then 'Um professor Curió'::text else 'Uma família Curió'::text end,
+    private.referral_program_is_active(v_settings),
+    v_settings.public_rules
+  from public.referral_codes rc
+  where rc.code=upper(trim(p_code))
+    and rc.active
+    and private.referral_program_is_active(v_settings)
+  limit 1;
+end
+$$;
+
+revoke all on function public.referral_landing(text) from public;
+grant execute on function public.referral_landing(text) to anon, authenticated;
+
 create or replace function private.capture_referral_lead()
 returns trigger
 language plpgsql
