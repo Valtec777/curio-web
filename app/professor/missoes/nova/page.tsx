@@ -46,11 +46,13 @@ export default async function NewMissionPage({ searchParams }: { searchParams: P
     detail: link.students.grades?.name || link.students.school_name || "",
   }));
 
+  const idempotencyKey = query.rascunho ? `content-draft:${query.rascunho}` : randomUUID();
+
   return <>
     <PageHeader eyebrow="Professor • Missões" title="Nova Missão Cuca" description="Monte a missão em uma página própria e adicione quantas questões precisar, até 20 por missão." action={<Link className="button button-secondary" href="/professor/missoes">Voltar às missões</Link>} />
     {query.erro && <div className="form-message form-error">{query.erro}</div>}
     <MissionBuilder
-      idempotencyKey={randomUUID()}
+      idempotencyKey={idempotencyKey}
       subjects={(subjects ?? []).map((item: any) => ({ id: item.id, name: item.name }))}
       grades={(grades ?? []).map((item: any) => ({ id: item.id, name: item.name }))}
       skills={(skills ?? []).map((item: any) => ({ id: item.id, name: item.name }))}
