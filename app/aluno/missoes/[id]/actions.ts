@@ -69,8 +69,17 @@ export async function submitMission(formData: FormData) {
   const needsTeacher = Number(result?.needs_teacher || 0) > 0 || Boolean(gradeError);
   const score = result?.score_percent == null ? null : Math.round(Number(result.score_percent));
 
+  const { data: achievementCount, error: achievementError } = await supabase.rpc("refresh_student_achievements", {
+    p_student_id: student.id,
+  });
+  if (achievementError) {
+    console.error("Falha ao atualizar conquistas após missão", achievementError.code);
+  }
+  const newAchievements = achievementError ? 0 : Math.max(0, Number(achievementCount || 0));
+
   revalidatePath("/aluno");
   revalidatePath("/aluno/missoes");
+  revalidatePath("/aluno/conquistas");
   revalidatePath("/professor");
   revalidatePath("/professor/correcoes");
 
@@ -79,5 +88,8 @@ export async function submitMission(formData: FormData) {
     : score == null
       ? "Missão enviada!"
       : `Missão enviada e corrigida automaticamente: ${score}% nas questões objetivas.`;
-  redirect("/aluno/missoes?sucesso=" + encodeURIComponent(message));
+
+  const query = new URLSearchParams({ sucesso: message });
+  if (newAchievements > 0) query.set("conquistas", String(newAchievements));
+  redirect(`/aluno/missoes?${query.toString()}`);
 }
