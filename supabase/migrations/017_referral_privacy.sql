@@ -1,6 +1,41 @@
--- CURIÓ — privacidade do acompanhamento de indicação.
--- Famílias veem somente o andamento da própria indicação; nomes da família/criança
--- indicada ficam disponíveis apenas no fluxo do professor, que já recebe a matrícula.
+-- CURIÓ — privacidade e separação entre indicação e atribuição pedagógica.
+-- Quem indicou acompanha o andamento, mas não recebe nomes/dados da família pelo
+-- painel. E um código de professor registra a origem sem escolher automaticamente
+-- qual professor atenderá a nova matrícula.
+
+create or replace function private.capture_referral_lead()
+returns trigger
+language plpgsql
+security definer
+set search_path=public,private,pg_temp
+as $$
+declare
+  v_code public.referral_codes%rowtype;
+  v_settings public.referral_program_settings%rowtype;
+begin
+  if new.referral_code is null or trim(new.referral_code)='' then return new; end if;
+
+  select * into v_settings from public.referral_program_settings limit 1;
+  if not coalesce(private.referral_program_is_active(v_settings),false) then return new; end if;
+
+  select * into v_code
+  from public.referral_codes
+  where code=upper(trim(new.referral_code)) and active
+  limit 1;
+
+  if v_code.id is null then return new; end if;
+
+  insert into public.referrals(referral_code_id,enrollment_request_id,status)
+  values(v_code.id,new.id,'lead')
+  on conflict(enrollment_request_id) do nothing;
+
+  -- A origem de marketing fica em referral_code_id. A atribuição pedagógica é uma
+  -- decisão operacional separada e continua no fluxo normal da equipe.
+  return new;
+end
+$$;
+
+revoke all on function private.capture_referral_lead() from public, anon, authenticated;
 
 create or replace function public.my_referral_activity(p_owner_type text)
 returns table(
@@ -35,15 +70,14 @@ begin
 
   return query
   select r.id,
-    case when p_owner_type='teacher' then er.guardian_name else null end,
-    case when p_owner_type='teacher' then er.child_name else null end,
+    null::text,
+    null::text,
     r.status,
     r.created_at,
     r.enrolled_at,
     r.confirmed_at
   from public.referrals r
   join public.referral_codes rc on rc.id=r.referral_code_id
-  join public.enrollment_requests er on er.id=r.enrollment_request_id
   where (p_owner_type='guardian' and rc.guardian_id=v_guardian)
      or (p_owner_type='teacher' and rc.teacher_id=v_teacher)
   order by r.created_at desc
