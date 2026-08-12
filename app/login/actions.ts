@@ -78,7 +78,7 @@ function portalFor(roles: string[]) {
 }
 
 function emailSendErrorMessage(code?: string) {
-  if (code === "over_email_send_rate_limit") {
+  if (code === "over_email_send_rate_limit" || code === "over_request_rate_limit") {
     return "Muitas tentativas de envio foram feitas em pouco tempo. Aguarde um instante e tente novamente.";
   }
   return "Não foi possível enviar o e-mail agora. Aguarde um pouco e tente novamente.";
@@ -116,7 +116,7 @@ export async function login(formData: FormData) {
   redirect(destination);
 }
 
-async function sendFirstAccessLink(email: string) {
+async function sendAccessLink(email: string, successPath: string, logLabel: string) {
   const supabase = await createClient();
   const origin = siteOrigin();
   const { error } = await supabase.auth.signInWithOtp({
@@ -128,21 +128,7 @@ async function sendFirstAccessLink(email: string) {
   });
 
   if (error) {
-    console.error("Falha no envio do primeiro acesso", error.code);
-    redirect(`/primeiro-acesso?erro=${encodeURIComponent(emailSendErrorMessage(error.code))}`);
-  }
-  redirect("/primeiro-acesso?sucesso=1");
-}
-
-async function sendPasswordLink(email: string, successPath: string) {
-  const supabase = await createClient();
-  const origin = siteOrigin();
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/confirm?next=/definir-senha`,
-  });
-
-  if (error) {
-    console.error("Falha no envio do link de recuperação", error.code);
+    console.error(`Falha no envio do ${logLabel}`, error.code);
     redirect(`${successPath}?erro=${encodeURIComponent(emailSendErrorMessage(error.code))}`);
   }
   redirect(`${successPath}?sucesso=1`);
@@ -153,7 +139,7 @@ export async function requestFirstAccess(formData: FormData) {
   if (!parsed.success) {
     redirect(`/primeiro-acesso?erro=${encodeURIComponent(parsed.error.issues[0].message)}`);
   }
-  await sendFirstAccessLink(parsed.data.email);
+  await sendAccessLink(parsed.data.email, "/primeiro-acesso", "primeiro acesso");
 }
 
 export async function requestPasswordReset(formData: FormData) {
@@ -161,7 +147,7 @@ export async function requestPasswordReset(formData: FormData) {
   if (!parsed.success) {
     redirect(`/esqueci-senha?erro=${encodeURIComponent(parsed.error.issues[0].message)}`);
   }
-  await sendPasswordLink(parsed.data.email, "/esqueci-senha");
+  await sendAccessLink(parsed.data.email, "/esqueci-senha", "link para redefinir senha");
 }
 
 export async function updatePassword(formData: FormData) {
