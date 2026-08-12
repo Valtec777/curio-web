@@ -13,6 +13,7 @@ import "./family-mobile-selector.css";
 import "./sidebar-final.css";
 import "./brand-slot.css";
 import "./site-polish.css";
+import "./final-polish.css";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
