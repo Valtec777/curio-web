@@ -35,7 +35,7 @@ async function validateStudents(supabase: any, teacherId: string, rawIds: string
   return ids;
 }
 
-function invalidResource() {
+function invalidResource(): never {
   redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível identificar o material selecionado. Atualize a página e tente novamente.")}`);
 }
 
