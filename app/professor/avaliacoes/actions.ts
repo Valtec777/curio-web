@@ -20,18 +20,78 @@ function bahiaDateTime(value?: string | null) {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
+function assessmentDateLabel(value?: string | null) {
+  if (!value) return "data a confirmar";
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeZone: "America/Bahia",
+  }).format(new Date(value));
+}
+
 async function linkedStudentIds(supabase: any, teacherId: string, raw: string[]) {
   const ids = [...new Set(raw.filter((id) => z.string().uuid().safeParse(id).success))];
   if (!ids.length) return [];
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("teacher_students")
     .select("student_id")
     .eq("teacher_id", teacherId)
     .eq("active", true)
     .in("student_id", ids);
+  if (error) throw new Error("student lookup failed");
   const valid = new Set((data ?? []).map((item: any) => item.student_id));
   if (ids.some((id) => !valid.has(id))) throw new Error("invalid student");
   return ids;
+}
+
+async function notifyFamiliesAboutAssessment({
+  supabase,
+  assessmentId,
+  title,
+  scheduledFor,
+  studentIds,
+}: {
+  supabase: any;
+  assessmentId: string;
+  title: string;
+  scheduledFor: string | null;
+  studentIds: string[];
+}) {
+  if (!studentIds.length) return { attempted: 0, failed: 0 };
+  const { data: targets, error: targetError } = await supabase.rpc("teacher_chat_targets");
+  if (targetError) {
+    console.error("Falha ao localizar famílias para aviso de avaliação", targetError.code);
+    return { attempted: 0, failed: studentIds.length };
+  }
+
+  const families = (targets ?? []).filter((target: any) =>
+    target.target_kind === "family"
+    && target.guardian_id
+    && studentIds.includes(target.student_id)
+  );
+  const when = assessmentDateLabel(scheduledFor);
+  let failed = 0;
+
+  for (const family of families) {
+    const { error } = await supabase.rpc("send_curio_family_message", {
+      p_student_id: family.student_id,
+      p_guardian_id: family.guardian_id,
+      p_subject: `Nova avaliação de ${family.student_name}`,
+      p_body: `Olá, ${family.target_name || "responsável"}! Foi registrada a avaliação “${title}” para ${family.student_name}, prevista para ${when}. Os detalhes ficam na área de Avaliações da Família.`,
+      p_action_label: "Ver avaliações",
+      p_action_url: "/familia/avaliacoes",
+      p_request_key: `assessment:${assessmentId}:${family.student_id}:${family.guardian_id}`,
+    });
+    if (error) {
+      failed += 1;
+      console.error("Falha ao enviar aviso interno de avaliação", error.code);
+    }
+  }
+
+  return { attempted: families.length, failed };
+}
+
+function invalidAssessment() {
+  redirect(`/professor/avaliacoes?erro=${encodeURIComponent("Não foi possível identificar a avaliação selecionada. Atualize a página e tente novamente.")}`);
 }
 
 export async function createTeacherAssessment(formData: FormData) {
@@ -99,54 +159,94 @@ export async function createTeacherAssessment(formData: FormData) {
     students.map((studentId) => ({ assessment_id: assessment.id, student_id: studentId, status: "assigned" })),
   );
   if (linkError) {
-    redirect(`/professor/avaliacoes?erro=${encodeURIComponent("A avaliação foi criada, mas não foi possível atribuí-la a todos os alunos.")}`);
+    await supabase.from("assessments").delete().eq("id", assessment.id).eq("created_by_teacher_id", teacher.id);
+    if (filePath) await supabase.storage.from("teacher-materials").remove([filePath]);
+    redirect(`/professor/avaliacoes?erro=${encodeURIComponent("Não foi possível atribuir a avaliação. O registro e o anexo recém-criados foram revertidos para evitar conteúdo órfão.")}`);
   }
+
+  const notices = await notifyFamiliesAboutAssessment({
+    supabase,
+    assessmentId: assessment.id,
+    title: parsed.data.title,
+    scheduledFor,
+    studentIds: students,
+  });
 
   revalidatePath("/professor");
   revalidatePath("/professor/avaliacoes");
   revalidatePath("/professor/conteudos");
   revalidatePath("/aluno");
   revalidatePath("/familia/avaliacoes");
-  redirect(`/professor/avaliacoes?sucesso=${encodeURIComponent(`Avaliação criada para ${students.length} aluno(s).`)}`);
+  revalidatePath("/familia/mensagens");
+  const message = notices.failed
+    ? `Avaliação criada para ${students.length} aluno(s). Um ou mais avisos internos da família não puderam ser enviados.`
+    : `Avaliação criada para ${students.length} aluno(s) e família vinculada avisada no portal.`;
+  redirect(`/professor/avaliacoes?sucesso=${encodeURIComponent(message)}`);
 }
 
 export async function assignTeacherAssessment(formData: FormData) {
   const assessmentId = String(formData.get("assessmentId") || "");
-  if (!z.string().uuid().safeParse(assessmentId).success) return;
+  if (!z.string().uuid().safeParse(assessmentId).success) invalidAssessment();
   const { teacher, supabase } = await getCurrentTeacher();
   if (!teacher) redirect("/professor/avaliacoes");
-  const { data: assessment } = await supabase.from("assessments").select("id").eq("id", assessmentId).eq("created_by_teacher_id", teacher.id).maybeSingle();
-  if (!assessment) redirect(`/professor/avaliacoes?erro=${encodeURIComponent("Avaliação não encontrada.")}`);
+  const { data: assessment, error: assessmentError } = await supabase
+    .from("assessments")
+    .select("id,title,scheduled_for")
+    .eq("id", assessmentId)
+    .eq("created_by_teacher_id", teacher.id)
+    .maybeSingle();
+  if (assessmentError || !assessment) redirect(`/professor/avaliacoes?erro=${encodeURIComponent("Avaliação não encontrada.")}`);
 
   let students: string[] = [];
-  try { students = await linkedStudentIds(supabase, teacher.id, formData.getAll("studentIds").map(String)); }
-  catch { redirect(`/professor/avaliacoes?erro=${encodeURIComponent("Revise os alunos selecionados.")}`); }
+  try {
+    students = await linkedStudentIds(supabase, teacher.id, formData.getAll("studentIds").map(String));
+  } catch {
+    redirect(`/professor/avaliacoes?erro=${encodeURIComponent("Revise os alunos selecionados.")}`);
+  }
   if (!students.length) redirect(`/professor/avaliacoes?erro=${encodeURIComponent("Escolha pelo menos um aluno.")}`);
 
-  for (const studentId of students) {
-    const { data: existing } = await supabase.from("assessment_students").select("id").eq("assessment_id", assessmentId).eq("student_id", studentId).maybeSingle();
-    if (!existing) await supabase.from("assessment_students").insert({ assessment_id: assessmentId, student_id: studentId, status: "assigned" });
-  }
-  await supabase.from("assessments").update({ status: "published", updated_at: new Date().toISOString() }).eq("id", assessmentId).eq("created_by_teacher_id", teacher.id);
+  const { error: assignmentError } = await supabase.from("assessment_students").upsert(
+    students.map((studentId) => ({ assessment_id: assessmentId, student_id: studentId, status: "assigned" })),
+    { onConflict: "assessment_id,student_id", ignoreDuplicates: true },
+  );
+  if (assignmentError) redirect(`/professor/avaliacoes?erro=${encodeURIComponent("Não foi possível atribuir a avaliação aos alunos selecionados.")}`);
+
+  const { error: publishError } = await supabase.from("assessments")
+    .update({ status: "published", updated_at: new Date().toISOString() })
+    .eq("id", assessmentId)
+    .eq("created_by_teacher_id", teacher.id);
+  if (publishError) redirect(`/professor/avaliacoes?erro=${encodeURIComponent("Os vínculos foram salvos, mas a avaliação não pôde ser publicada agora.")}`);
+
+  const notices = await notifyFamiliesAboutAssessment({
+    supabase,
+    assessmentId,
+    title: assessment.title,
+    scheduledFor: assessment.scheduled_for,
+    studentIds: students,
+  });
 
   revalidatePath("/professor/avaliacoes");
   revalidatePath("/aluno");
   revalidatePath("/familia/avaliacoes");
-  redirect(`/professor/avaliacoes?sucesso=${encodeURIComponent(`Avaliação enviada para ${students.length} aluno(s).`)}`);
+  revalidatePath("/familia/mensagens");
+  const message = notices.failed
+    ? `Avaliação enviada para ${students.length} aluno(s). Um ou mais avisos internos da família não puderam ser enviados.`
+    : `Avaliação enviada para ${students.length} aluno(s) e família vinculada avisada no portal.`;
+  redirect(`/professor/avaliacoes?sucesso=${encodeURIComponent(message)}`);
 }
 
 export async function duplicateTeacherAssessment(formData: FormData) {
   const assessmentId = String(formData.get("assessmentId") || "");
-  if (!z.string().uuid().safeParse(assessmentId).success) return;
+  if (!z.string().uuid().safeParse(assessmentId).success) invalidAssessment();
   const { teacher, supabase } = await getCurrentTeacher();
   if (!teacher) redirect("/professor/avaliacoes");
-  const { data: item } = await supabase
+  const { data: item, error: readError } = await supabase
     .from("assessments")
     .select("title,subject_id,grade_id,instructions,scheduled_for,grading_scheme_id,file_path")
     .eq("id", assessmentId)
     .eq("created_by_teacher_id", teacher.id)
     .maybeSingle();
-  if (!item) redirect(`/professor/avaliacoes?erro=${encodeURIComponent("Avaliação não encontrada.")}`);
+  if (readError || !item) redirect(`/professor/avaliacoes?erro=${encodeURIComponent("Avaliação não encontrada.")}`);
 
   const { error } = await supabase.from("assessments").insert({
     ...item,
