@@ -116,8 +116,8 @@ export function CurioFirstVisitGuide({
     const hasEnteredBefore = window.localStorage.getItem(userEntryKey) === "seen";
 
     if (!hasEnteredBefore && isHome) {
-      // A chave antiga não identificava o usuário. Limpamos somente no primeiro
-      // acesso deste usuário para que o convite inicial apareça uma única vez.
+      // A chave anterior do tour era por perfil. Esta camada acrescenta o ID do
+      // usuário para que duas contas no mesmo computador tenham onboarding próprio.
       window.localStorage.removeItem(legacyStorageKey(role));
       window.sessionStorage.removeItem(legacySessionKey(role));
       window.localStorage.setItem(userEntryKey, "seen");
@@ -135,8 +135,8 @@ export function CurioFirstVisitGuide({
     const currentPageKey = pageKey(role, viewerId, pathname);
     if (window.localStorage.getItem(currentPageKey) === "seen") return;
 
-    // Marcamos assim que a primeira ajuda é programada para que atualizar a
-    // página ou voltar depois não faça o cartão reaparecer automaticamente.
+    // A ajuda automática é exatamente uma vez por usuário + página. Atualizar,
+    // voltar ou entrar novamente não faz o cartão reaparecer.
     window.localStorage.setItem(currentPageKey, "seen");
 
     let attempts = 0;
