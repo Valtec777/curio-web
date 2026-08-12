@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useCurioSounds } from "@/components/use-curio-sounds";
 import styles from "./curio-playful-sound-effects.module.css";
@@ -11,11 +11,10 @@ function normalizedSuccess(params: URLSearchParams) {
 
 export function CurioPlayfulSoundEffects({ viewerId }: { viewerId: string }) {
   const pathname = usePathname();
-  const { enabled, play, toggle } = useCurioSounds(viewerId);
-  const playedLocationRef = useRef("");
+  const { enabled, ready, play, toggle } = useCurioSounds(viewerId);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (!ready || typeof window === "undefined") return;
     if (!pathname.startsWith("/aluno/missoes")) return;
 
     const params = new URLSearchParams(window.location.search);
@@ -23,9 +22,10 @@ export function CurioPlayfulSoundEffects({ viewerId }: { viewerId: string }) {
     const missionCompleted = success.includes("missão enviada") || success.includes("missão concluída");
     if (!missionCompleted) return;
 
-    const locationKey = `${window.location.pathname}${window.location.search}`;
-    if (playedLocationRef.current === locationKey) return;
-    playedLocationRef.current = locationKey;
+    const eventId = params.get("evento") || `${window.location.pathname}${window.location.search}`;
+    const consumedKey = `curio:mission-sound:v1:${viewerId}:${eventId}`;
+    if (window.sessionStorage.getItem(consumedKey) === "played") return;
+    window.sessionStorage.setItem(consumedKey, "played");
 
     play("mission-complete");
 
@@ -34,7 +34,7 @@ export function CurioPlayfulSoundEffects({ viewerId }: { viewerId: string }) {
       const timer = window.setTimeout(() => play("achievement"), 560);
       return () => window.clearTimeout(timer);
     }
-  }, [pathname, play]);
+  }, [pathname, play, ready, viewerId]);
 
   return (
     <button
