@@ -2,6 +2,7 @@ import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { inviteTeacherAccess, resendAccessInvitation, setInstitutionalAccess, updateTeacherAdmin } from "@/app/admin/actions";
+import { sendAdminAccessLink, updateAdminAccessContact } from "@/app/admin/access-actions";
 import { moveTeacherToTrash, updateTeacherTeachingProfile } from "./actions";
 import { TeacherInviteSubmitButton } from "./submit-button";
 
@@ -31,11 +32,11 @@ export default async function AdminTeachersPage({
       .limit(120),
     supabase
       .from("access_invitations")
-      .select("id,email,full_name,status,sent_at,accepted_at,last_error,auth_user_id")
+      .select("id,email,full_name,preferred_name,phone_whatsapp,status,sent_at,accepted_at,last_error,auth_user_id,created_at")
       .eq("role", "teacher")
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
-      .limit(80),
+      .limit(160),
     supabase
       .from("trash_items")
       .select("entity_id")
@@ -60,7 +61,7 @@ export default async function AdminTeachersPage({
       <PageHeader
         eyebrow="Admin • Pessoas"
         title="Professores"
-        description="Equipe, acesso, matérias e disponibilidade em uma única tela."
+        description="Equipe, acesso, contato, matérias e disponibilidade em uma única tela. O Admin pode corrigir o login e enviar um novo link a qualquer momento."
       />
 
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
@@ -138,13 +139,27 @@ export default async function AdminTeachersPage({
                   </div>
 
                   <div className="teacher-summary-block">
-                    <div><small>WhatsApp</small><strong>{teacher.phone_whatsapp || teacher.profiles?.phone_whatsapp || "Não informado"}</strong></div>
+                    <div><small>WhatsApp</small><strong>{teacher.phone_whatsapp || teacher.profiles?.phone_whatsapp || invite?.phone_whatsapp || "Não informado"}</strong></div>
                     <div><small>Matérias / especialidades</small><div className="plan-meta-chips">{teacherSubjects.length ? teacherSubjects.map((name) => <span key={String(name)}>{name}</span>) : <span>Nenhuma selecionada</span>}</div></div>
                     <div><small>Disponibilidade</small><div className="plan-meta-chips">{periods.length ? periods.map((period) => <span key={period}>{period}</span>) : <span>A confirmar</span>}</div></div>
                   </div>
 
                   {teacher.professional_description && <p>{teacher.professional_description}</p>}
                   {availability?.notes && <p className="muted text-small">Agenda: {availability.notes}</p>}
+
+                  <details className="plan-editor">
+                    <summary>Acesso e contato</summary>
+                    <form action={updateAdminAccessContact} className="form-stack compact-form">
+                      <input type="hidden" name="profileId" value={teacher.profile_id} />
+                      <input type="hidden" name="returnTo" value="/admin/professores" />
+                      <div className="field"><label>Nome completo</label><input className="input" name="fullName" defaultValue={teacher.profiles?.full_name || invite?.full_name || ""} required /></div>
+                      <div className="field"><label>Nome preferido</label><input className="input" name="preferredName" defaultValue={teacher.profiles?.preferred_name || invite?.preferred_name || ""} /></div>
+                      <div className="field"><label>E-mail de acesso</label><input className="input" type="email" name="email" defaultValue={invite?.email || ""} placeholder="email@exemplo.com" /></div>
+                      <div className="field"><label>WhatsApp</label><input className="input" name="phone" defaultValue={teacher.phone_whatsapp || teacher.profiles?.phone_whatsapp || invite?.phone_whatsapp || ""} /></div>
+                      <small className="muted">A alteração mantém a mesma conta, os alunos e todo o histórico.</small>
+                      <button className="button button-secondary button-small" type="submit">Salvar acesso e contato</button>
+                    </form>
+                  </details>
 
                   <details className="plan-editor">
                     <summary>Matérias e disponibilidade</summary>
@@ -178,7 +193,7 @@ export default async function AdminTeachersPage({
                   </details>
 
                   <details className="plan-editor">
-                    <summary>Editar dados do professor</summary>
+                    <summary>Dados profissionais</summary>
                     <form action={updateTeacherAdmin} className="form-stack">
                       <input type="hidden" name="teacherId" value={teacher.id} />
                       <input type="hidden" name="profileId" value={teacher.profile_id} />
@@ -186,11 +201,16 @@ export default async function AdminTeachersPage({
                       <div className="field"><label>Nome preferido</label><input className="input" name="preferredName" defaultValue={teacher.profiles?.preferred_name || ""} /></div>
                       <div className="field"><label>WhatsApp</label><input className="input" name="phone" defaultValue={teacher.phone_whatsapp || teacher.profiles?.phone_whatsapp || ""} /></div>
                       <div className="field"><label>Descrição profissional</label><textarea className="textarea" name="professionalDescription" defaultValue={teacher.professional_description || ""} /></div>
-                      <button className="button button-secondary button-small" type="submit">Salvar alterações</button>
+                      <button className="button button-secondary button-small" type="submit">Salvar dados profissionais</button>
                     </form>
                   </details>
 
                   <div className="plan-admin-actions">
+                    <form action={sendAdminAccessLink}>
+                      <input type="hidden" name="profileId" value={teacher.profile_id} />
+                      <input type="hidden" name="returnTo" value="/admin/professores" />
+                      <button className="button button-primary button-small" type="submit">Enviar novo link de acesso</button>
+                    </form>
                     <form action={setInstitutionalAccess}>
                       <input type="hidden" name="profileId" value={teacher.profile_id} />
                       <input type="hidden" name="role" value="teacher" />
