@@ -4,6 +4,11 @@ import { EmptyState, PageHeader } from "@/components/ui";
 import { getCurrentTeacher } from "@/lib/teacher";
 import { sendTeacherChatMessage } from "./actions";
 
+const THREAD_LIMIT = 80;
+const MESSAGE_PAGE_SIZE = 50;
+const PREVIEW_LIMIT = 160;
+const ADMIN_NOTICE_LIMIT = 40;
+
 function dt(value?: string | null) {
   if (!value) return "—";
   return new Intl.DateTimeFormat("pt-BR", {
@@ -29,33 +34,68 @@ export default async function ProfessorMessagesPage({
       .select("thread_id,last_read_at,message_threads(id,subject,thread_type,updated_at,context_student_id)")
       .eq("user_id", viewer.user.id)
       .order("joined_at", { ascending: false })
-      .limit(120),
-  ]);
-
-  const threadIds = (ownParticipantRows ?? []).map((item: any) => item.thread_id);
-  const [{ data: participantRows }, { data: messages }] = await Promise.all([
-    threadIds.length
-      ? supabase.from("message_thread_participants").select("thread_id,user_id").in("thread_id", threadIds)
-      : Promise.resolve({ data: [] as any[] }),
-    threadIds.length
-      ? supabase.from("messages").select("id,thread_id,sender_user_id,body,created_at,edited_at,action_label,action_url").in("thread_id", threadIds).is("deleted_at", null).order("created_at", { ascending: true }).limit(600)
-      : Promise.resolve({ data: [] as any[] }),
+      .limit(THREAD_LIMIT),
   ]);
 
   const threads = (ownParticipantRows ?? []).map((row: any) => ({ ...row.message_threads, participantMeta: row })).filter((thread: any) => thread?.id);
   const conversations = threads.filter((thread: any) => thread.thread_type === "family" || thread.thread_type === "student");
   const adminThreads = threads.filter((thread: any) => thread.thread_type !== "family" && thread.thread_type !== "student");
+  const threadIds = threads.map((thread: any) => thread.id);
   const conversationIds = new Set(conversations.map((thread: any) => thread.id));
   const selectedId = query.conversa && conversationIds.has(query.conversa) ? query.conversa : conversations[0]?.id || "";
   const selectedThread: any = conversations.find((thread: any) => thread.id === selectedId);
+  const conversationIdList = conversations.map((thread: any) => thread.id);
+  const adminThreadIds = adminThreads.map((thread: any) => thread.id);
+
+  const [
+    { data: participantRows },
+    { data: previewMessages },
+    { data: selectedMessagesDesc },
+    { data: adminMessagesDesc },
+  ] = await Promise.all([
+    threadIds.length
+      ? supabase.from("message_thread_participants").select("thread_id,user_id").in("thread_id", threadIds)
+      : Promise.resolve({ data: [] as any[] }),
+    conversationIdList.length
+      ? supabase
+        .from("messages")
+        .select("id,thread_id,body,created_at")
+        .in("thread_id", conversationIdList)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+        .limit(PREVIEW_LIMIT)
+      : Promise.resolve({ data: [] as any[] }),
+    selectedId
+      ? supabase
+        .from("messages")
+        .select("id,thread_id,sender_user_id,body,created_at,edited_at,action_label,action_url")
+        .eq("thread_id", selectedId)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+        .limit(MESSAGE_PAGE_SIZE)
+      : Promise.resolve({ data: [] as any[] }),
+    adminThreadIds.length
+      ? supabase
+        .from("messages")
+        .select("id,thread_id,sender_user_id,body,created_at,action_label,action_url")
+        .in("thread_id", adminThreadIds)
+        .neq("sender_user_id", viewer.user.id)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+        .limit(ADMIN_NOTICE_LIMIT)
+      : Promise.resolve({ data: [] as any[] }),
+  ]);
 
   const participantsByThread = new Map<string, string[]>();
   for (const row of participantRows ?? []) {
-    participantsByThread.set(row.thread_id, [...(participantsByThread.get(row.thread_id) || []), row.user_id]);
+    const current = participantsByThread.get(row.thread_id) ?? [];
+    current.push(row.user_id);
+    participantsByThread.set(row.thread_id, current);
   }
-  const messagesByThread = new Map<string, any[]>();
-  for (const message of messages ?? []) {
-    messagesByThread.set(message.thread_id, [...(messagesByThread.get(message.thread_id) || []), message]);
+
+  const latestMessageByThread = new Map<string, any>();
+  for (const message of previewMessages ?? []) {
+    if (!latestMessageByThread.has(message.thread_id)) latestMessageByThread.set(message.thread_id, message);
   }
 
   function targetForThread(thread: any) {
@@ -77,11 +117,12 @@ export default async function ProfessorMessagesPage({
     return thread.thread_type;
   }
 
-  const selectedMessages = selectedId ? messagesByThread.get(selectedId) || [] : [];
-  const adminMessages = adminThreads.flatMap((thread: any) => (messagesByThread.get(thread.id) || [])
-    .filter((message: any) => message.sender_user_id !== viewer.user.id)
-    .map((message: any) => ({ ...message, subject: thread.subject || "Recado da administração" })))
-    .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const selectedMessages = [...(selectedMessagesDesc ?? [])].reverse();
+  const adminThreadById = new Map(adminThreads.map((thread: any) => [thread.id, thread]));
+  const adminMessages = (adminMessagesDesc ?? []).map((message: any) => ({
+    ...message,
+    subject: adminThreadById.get(message.thread_id)?.subject || "Recado da administração",
+  }));
 
   return (
     <>
@@ -121,8 +162,7 @@ export default async function ProfessorMessagesPage({
           {conversations.length ? (
             <div className="teacher-chat-list">
               {conversations.map((thread: any) => {
-                const threadMessages = messagesByThread.get(thread.id) || [];
-                const last = threadMessages[threadMessages.length - 1];
+                const last = latestMessageByThread.get(thread.id);
                 return (
                   <Link className={`teacher-chat-thread${thread.id === selectedId ? " is-active" : ""}`} href={`/professor/mensagens?conversa=${thread.id}`} key={thread.id}>
                     <strong>{threadTitle(thread)}</strong>
@@ -152,6 +192,7 @@ export default async function ProfessorMessagesPage({
                   </div>
                 );
               }) : <p className="muted">Ainda não há mensagens nesta conversa.</p>}
+              {selectedMessages.length === MESSAGE_PAGE_SIZE && <small className="muted">Mostrando as {MESSAGE_PAGE_SIZE} mensagens mais recentes desta conversa.</small>}
             </div>
             <form action={sendTeacherChatMessage} className="teacher-chat-compose">
               <input type="hidden" name="threadId" value={selectedThread.id} />

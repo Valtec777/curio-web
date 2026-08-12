@@ -1,8 +1,11 @@
 import { randomUUID } from "node:crypto";
+import Link from "next/link";
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { getCurrentTeacher } from "@/lib/teacher";
 import { createAgendaEvent, setAgendaEventStatus } from "./actions";
 import { AgendaSubmitButton } from "./submit-button";
+
+const HISTORY_PAGE_SIZE = 30;
 
 function dt(value?: string | null) {
   if (!value) return "—";
@@ -34,14 +37,36 @@ function typeLabel(type?: string | null) {
   return "Outro";
 }
 
-export default async function ProfessorAgendaPage({ searchParams }: { searchParams: Promise<{ erro?: string; sucesso?: string }> }) {
+function pageNumber(value?: string) {
+  const parsed = Number(value || 1);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
+}
+
+export default async function ProfessorAgendaPage({ searchParams }: { searchParams: Promise<{ erro?: string; sucesso?: string; pagina?: string }> }) {
   const query = await searchParams;
+  const page = pageNumber(query.pagina);
+  const from = (page - 1) * HISTORY_PAGE_SIZE;
+  const to = from + HISTORY_PAGE_SIZE - 1;
   const { teacher, supabase } = await getCurrentTeacher();
   if (!teacher) return <EmptyState title="Perfil de professor ainda não vinculado" description="A administração precisa concluir seu perfil antes de criar encontros." />;
 
-  const [{ data: links }, { data: events }, { data: guardianRows }] = await Promise.all([
+  const nowIso = new Date().toISOString();
+  const [{ data: links }, { data: events, count }, { data: upcoming }, { data: guardianRows }] = await Promise.all([
     supabase.from("teacher_students").select("student_id,students(id,preferred_name,full_name,deleted_at)").eq("teacher_id", teacher.id).eq("active", true),
-    supabase.from("agenda_events").select("id,title,description,event_type,starts_at,ends_at,status,meeting_url,location,visible_to_student,visible_to_guardian,agenda_event_students(student_id,students(preferred_name,full_name))").eq("created_by_teacher_id", teacher.id).order("starts_at", { ascending: false }).limit(100),
+    supabase
+      .from("agenda_events")
+      .select("id,title,description,event_type,starts_at,ends_at,status,meeting_url,location,visible_to_student,visible_to_guardian,agenda_event_students(student_id,students(preferred_name,full_name))", { count: "exact" })
+      .eq("created_by_teacher_id", teacher.id)
+      .order("starts_at", { ascending: false })
+      .range(from, to),
+    supabase
+      .from("agenda_events")
+      .select("id,title,description,event_type,starts_at,ends_at,status,meeting_url,location,visible_to_student,visible_to_guardian,agenda_event_students(student_id,students(preferred_name,full_name))")
+      .eq("created_by_teacher_id", teacher.id)
+      .gte("starts_at", nowIso)
+      .neq("status", "cancelled")
+      .order("starts_at")
+      .limit(8),
     supabase.rpc("teacher_linked_guardian_names"),
   ]);
 
@@ -55,7 +80,7 @@ export default async function ProfessorAgendaPage({ searchParams }: { searchPara
     guardianNameById.set(row.guardian_id, row.guardian_name);
   }
 
-  const eventIds = (events ?? []).map((event: any) => event.id);
+  const eventIds = [...new Set([...(events ?? []).map((event: any) => event.id), ...(upcoming ?? []).map((event: any) => event.id)])];
   const { data: responseRows } = eventIds.length
     ? await supabase
         .from("agenda_event_guardian_responses")
@@ -70,7 +95,8 @@ export default async function ProfessorAgendaPage({ searchParams }: { searchPara
     responsesByEvent.set(row.event_id, current);
   }
 
-  const upcoming = (events ?? []).filter((event: any) => new Date(event.starts_at) >= new Date() && event.status !== "cancelled");
+  const total = count ?? events?.length ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / HISTORY_PAGE_SIZE));
 
   return (
     <>
@@ -83,7 +109,7 @@ export default async function ProfessorAgendaPage({ searchParams }: { searchPara
       {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
 
       <div className="teacher-library-filter">
-        <span>{upcoming.length} próximos</span><span>Aulas</span><span>Revisões</span><span>Reuniões com família</span><span>Outros</span>
+        <span>{upcoming?.length ?? 0} próximos</span><span>Aulas</span><span>Revisões</span><span>Reuniões com família</span><span>Outros</span>
       </div>
 
       <div className="grid-2">
@@ -108,7 +134,7 @@ export default async function ProfessorAgendaPage({ searchParams }: { searchPara
 
         <section className="panel">
           <div className="panel-head"><div><h2>Próximos encontros</h2><p>O link aparece aqui e também no painel Hoje.</p></div></div>
-          {upcoming.length ? <div className="teacher-agenda-list">{upcoming.slice(0, 8).map((event: any) => {
+          {upcoming?.length ? <div className="teacher-agenda-list">{upcoming.map((event: any) => {
             const student = event.agenda_event_students?.[0]?.students;
             const attendance = responsesByEvent.get(event.id) ?? [];
             const hasUnavailable = attendance.some((row: any) => row.response === "unavailable");
@@ -119,7 +145,7 @@ export default async function ProfessorAgendaPage({ searchParams }: { searchPara
       </div>
 
       <section className="panel">
-        <div className="panel-head"><div><h2>Compromissos cadastrados</h2><p>Histórico e próximos eventos sem perder participantes, horário, link ou resposta da família.</p></div></div>
+        <div className="panel-head"><div><h2>Compromissos cadastrados</h2><p>{total} compromisso(s) no histórico. A página carrega no máximo {HISTORY_PAGE_SIZE} por vez.</p></div></div>
         {events?.length ? <div className="teacher-resource-list">{events.map((event: any) => {
           const participantLink = event.agenda_event_students?.[0];
           const participant = participantLink?.students;
@@ -137,6 +163,16 @@ export default async function ProfessorAgendaPage({ searchParams }: { searchPara
             </div>
           </article>;
         })}</div> : <EmptyState title="Nenhum compromisso" description="Crie o primeiro usando o formulário acima." />}
+
+        {totalPages > 1 && (
+          <nav className="flex gap-8 wrap align-center space-between mt-16" aria-label="Paginação da agenda">
+            <small className="muted">Página {page} de {totalPages}</small>
+            <div className="flex gap-8 wrap">
+              {page > 1 && <Link className="button button-secondary button-small" href={`/professor/agenda?pagina=${page - 1}`}>← Anterior</Link>}
+              {page < totalPages && <Link className="button button-secondary button-small" href={`/professor/agenda?pagina=${page + 1}`}>Próxima →</Link>}
+            </div>
+          </nav>
+        )}
       </section>
     </>
   );

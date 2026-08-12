@@ -4,6 +4,8 @@ import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { sendFamilyChatMessage } from "@/app/familia/actions";
 import { getFamilyPortal } from "@/lib/family";
 
+const MESSAGE_PAGE_SIZE = 50;
+
 function dt(value?: string | null) {
   if (!value) return "—";
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Bahia" }).format(new Date(value));
@@ -21,16 +23,16 @@ export default async function FamilyMessagesPage({ searchParams }: { searchParam
       .select("thread_id,user_id,last_read_at,message_threads(id,subject,thread_type,updated_at,context_student_id)")
       .eq("user_id", viewer.user.id)
       .order("joined_at", { ascending: false })
-      .limit(80),
+      .limit(60),
   ]);
 
   const childTargets = (Array.isArray(targets) ? targets : []).filter((target: any) => target.student_id === selectedChild.student_id);
   const threads = (participantRows ?? []).map((row: any) => row.message_threads).filter((thread: any) => thread?.context_student_id === selectedChild.student_id && thread.thread_type === "family");
   const threadIds = threads.map((thread: any) => thread.id);
-  const [{ data: allParticipants }, { data: messages }] = await Promise.all([
-    threadIds.length ? supabase.from("message_thread_participants").select("thread_id,user_id").in("thread_id", threadIds) : Promise.resolve({ data: [] as any[] }),
-    threadIds.length ? supabase.from("messages").select("id,thread_id,sender_user_id,body,created_at,edited_at,action_label,action_url").in("thread_id", threadIds).is("deleted_at", null).order("created_at", { ascending: true }).limit(300) : Promise.resolve({ data: [] as any[] }),
-  ]);
+
+  const { data: allParticipants } = threadIds.length
+    ? await supabase.from("message_thread_participants").select("thread_id,user_id").in("thread_id", threadIds)
+    : { data: [] as any[] };
 
   const participantsByThread = new Map<string, string[]>();
   for (const row of allParticipants ?? []) {
@@ -46,7 +48,16 @@ export default async function FamilyMessagesPage({ searchParams }: { searchParam
   }).sort((a: any, b: any) => +new Date(b.updated_at) - +new Date(a.updated_at));
 
   const selectedThread = threadInfo.find((thread: any) => thread.id === query.conversa) || threadInfo.find((thread: any) => thread.isTeacherChat) || threadInfo[0] || null;
-  const selectedMessages = selectedThread ? (messages ?? []).filter((message: any) => message.thread_id === selectedThread.id) : [];
+  const { data: selectedMessagesDesc } = selectedThread
+    ? await supabase
+      .from("messages")
+      .select("id,thread_id,sender_user_id,body,created_at,edited_at,action_label,action_url")
+      .eq("thread_id", selectedThread.id)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(MESSAGE_PAGE_SIZE)
+    : { data: [] as any[] };
+  const selectedMessages = [...(selectedMessagesDesc ?? [])].reverse();
 
   return (
     <>
@@ -103,6 +114,7 @@ export default async function FamilyMessagesPage({ searchParams }: { searchParam
                     {message.action_label && message.action_url ? <div className="mt-8"><a className="button button-secondary button-small" href={message.action_url} target={message.action_url.startsWith("https://") ? "_blank" : undefined} rel={message.action_url.startsWith("https://") ? "noreferrer" : undefined}>{message.action_label}</a></div> : null}
                   </div>
                 )) : <p className="muted">A conversa ainda não tem mensagens.</p>}
+                {selectedMessages.length === MESSAGE_PAGE_SIZE && <small className="muted">Mostrando as {MESSAGE_PAGE_SIZE} mensagens mais recentes desta conversa.</small>}
               </div>
 
               {selectedThread.isTeacherChat ? (
