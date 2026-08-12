@@ -66,12 +66,12 @@ export async function convertPreparationDraft(formData: FormData) {
   let error: any = null;
   let destination = "/professor/conteudos";
 
-  if (outputType === "material" || outputType === "activity") {
-    const result = await supabase.from("materials").insert({ id: outputId, created_by_teacher_id: teacher.id, title: outputType === "activity" ? `${title} — atividade` : title, description, subject_id: draft.subject_id, grade_id: draft.grade_id, material_type: materialType(draft.source_mime_type), file_path: filePath, status: "draft" });
+  if (outputType === "material") {
+    const result = await supabase.from("materials").insert({ id: outputId, created_by_teacher_id: teacher.id, title, description, subject_id: draft.subject_id, grade_id: draft.grade_id, material_type: materialType(draft.source_mime_type), file_path: filePath, status: "draft" });
     error = result.error;
     destination = "/professor/materiais";
-  } else if (outputType === "notebook_pdf") {
-    const result = await supabase.from("notebook_activities").insert({ id: outputId, created_by_teacher_id: teacher.id, title, description, subject_id: draft.subject_id, grade_id: draft.grade_id, worksheet_path: filePath, status: "draft" });
+  } else if (outputType === "activity" || outputType === "notebook_pdf") {
+    const result = await supabase.from("notebook_activities").insert({ id: outputId, created_by_teacher_id: teacher.id, title: outputType === "activity" ? `${title} — atividade` : title, description, subject_id: draft.subject_id, grade_id: draft.grade_id, worksheet_path: filePath, status: "draft" });
     error = result.error;
     destination = "/professor/materiais";
   } else {
