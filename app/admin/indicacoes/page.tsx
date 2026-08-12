@@ -20,6 +20,13 @@ function statusTone(status: string): "green" | "yellow" | "pink" | "blue" | "neu
   return "neutral";
 }
 
+function nextStatus(status: string): { value: "converted" | "qualified" | "rewarded"; label: string } | null {
+  if (status === "new") return { value: "converted", label: "Marcar conversão" };
+  if (status === "converted") return { value: "qualified", label: "Qualificar após retenção" };
+  if (status === "qualified") return { value: "rewarded", label: "Registrar crédito" };
+  return null;
+}
+
 export default async function AdminReferralsPage({ searchParams }: { searchParams: Promise<{ erro?: string; sucesso?: string }> }) {
   await requireRole("admin");
   const query = await searchParams;
@@ -71,6 +78,7 @@ export default async function AdminReferralsPage({ searchParams }: { searchParam
             {leads.map((lead: any) => {
               const code: any = codeById.get(lead.referral_code_id);
               const owner: any = code ? ownerById.get(code.owner_user_id) : null;
+              const next = nextStatus(lead.status);
               return (
                 <article className="mission-card" key={lead.id}>
                   <div className="flex space-between gap-8 wrap">
@@ -82,15 +90,22 @@ export default async function AdminReferralsPage({ searchParams }: { searchParam
                     <strong>{lead.status === "rewarded" ? money(lead.reward_value) : "Sem crédito aplicado"}</strong>
                   </div>
                   <small className="muted">Recebido: {dt(lead.created_at)} • Conversão: {dt(lead.converted_at)} • Qualificação: {dt(lead.qualified_at)} • Recompensa: {dt(lead.rewarded_at)}</small>
-                  <div className="flex gap-8 wrap" style={{ marginTop: 12 }}>
-                    {(["converted", "qualified", "rewarded", "rejected"] as const).map((status) => (
-                      <form action={setReferralStatus} key={status}>
+                  {lead.status !== "rewarded" && lead.status !== "rejected" && (
+                    <div className="flex gap-8 wrap" style={{ marginTop: 12 }}>
+                      {next && (
+                        <form action={setReferralStatus}>
+                          <input type="hidden" name="id" value={lead.id} />
+                          <input type="hidden" name="status" value={next.value} />
+                          <button className="button button-secondary button-small" type="submit">{next.label}</button>
+                        </form>
+                      )}
+                      <form action={setReferralStatus}>
                         <input type="hidden" name="id" value={lead.id} />
-                        <input type="hidden" name="status" value={status} />
-                        <button className={status === "rejected" ? "button button-ghost button-small" : "button button-secondary button-small"} type="submit" disabled={lead.status === status || lead.status === "rewarded"}>{status === "converted" ? "Marcar conversão" : status === "qualified" ? "Qualificar" : status === "rewarded" ? "Registrar crédito" : "Rejeitar"}</button>
+                        <input type="hidden" name="status" value="rejected" />
+                        <button className="button button-ghost button-small" type="submit">Rejeitar</button>
                       </form>
-                    ))}
-                  </div>
+                    </div>
+                  )}
                 </article>
               );
             })}
