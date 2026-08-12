@@ -1,31 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import { CURIO_SOUND_KEY, playCurioSound } from "@/lib/curio-sounds";
 
 type ThemeMode = "system" | "light" | "dark";
+type TextSize = "default" | "large" | "extra";
 
 type Preferences = {
   theme: ThemeMode;
+  textSize: TextSize;
   visual: boolean;
   epilepsy: boolean;
   focus: boolean;
-  sound: boolean;
 };
+
+const EXPERIENCE_PREFERENCES_KEY = "curio:experience-preferences:v1";
 
 const defaults: Preferences = {
   theme: "system",
+  textSize: "default",
   visual: false,
   epilepsy: false,
   focus: false,
-  sound: false,
 };
 
 function readPreferences(): Preferences {
   if (typeof window === "undefined") return defaults;
   try {
-    const stored = window.localStorage.getItem(CURIO_SOUND_KEY);
+    const stored = window.localStorage.getItem(EXPERIENCE_PREFERENCES_KEY);
     return stored ? { ...defaults, ...(JSON.parse(stored) as Partial<Preferences>) } : defaults;
   } catch {
     return defaults;
@@ -41,10 +42,10 @@ function applyPreferences(preferences: Preferences) {
   const root = document.documentElement;
   root.dataset.theme = resolvedTheme(preferences.theme);
   root.dataset.themeMode = preferences.theme;
+  root.dataset.textSize = preferences.textSize;
   root.dataset.accessVisual = String(preferences.visual);
   root.dataset.accessEpilepsy = String(preferences.epilepsy);
   root.dataset.accessFocus = String(preferences.focus);
-  root.dataset.sound = String(preferences.sound);
   root.style.colorScheme = root.dataset.theme;
 
   if (preferences.epilepsy) {
@@ -58,8 +59,6 @@ function applyPreferences(preferences: Preferences) {
 export function ExperiencePreferences() {
   const [open, setOpen] = useState(false);
   const [preferences, setPreferences] = useState<Preferences>(defaults);
-  const pathname = usePathname();
-  const isStudentArea = pathname.startsWith("/aluno") && pathname !== "/aluno/desbloquear-familia";
 
   useEffect(() => {
     const initial = readPreferences();
@@ -73,19 +72,13 @@ export function ExperiencePreferences() {
     };
     media.addEventListener?.("change", syncSystemTheme);
 
-    const params = new URLSearchParams(window.location.search);
-    const success = (params.get("sucesso") || "").toLocaleLowerCase("pt-BR");
-    if (isStudentArea && (success.includes("missão enviada") || success.includes("missão concluída"))) {
-      window.setTimeout(() => playCurioSound("mission-complete"), 250);
-    }
-
     return () => media.removeEventListener?.("change", syncSystemTheme);
-  }, [isStudentArea, pathname]);
+  }, []);
 
   function update(patch: Partial<Preferences>) {
     const next = { ...preferences, ...patch };
     setPreferences(next);
-    window.localStorage.setItem(CURIO_SOUND_KEY, JSON.stringify(next));
+    window.localStorage.setItem(EXPERIENCE_PREFERENCES_KEY, JSON.stringify(next));
     applyPreferences(next);
   }
 
@@ -107,7 +100,7 @@ export function ExperiencePreferences() {
           <div className="experience-panel-head">
             <div>
               <strong>Aparência e acessibilidade</strong>
-              <small>Escolhas salvas neste dispositivo.</small>
+              <small>Preferências deste dispositivo. Você pode alterar quando quiser.</small>
             </div>
             <button className="experience-close" type="button" onClick={() => setOpen(false)} aria-label="Fechar">×</button>
           </div>
@@ -128,37 +121,40 @@ export function ExperiencePreferences() {
             </div>
           </div>
 
+          <div className="experience-group">
+            <span className="experience-label">Tamanho do texto</span>
+            <div className="segmented-control" role="group" aria-label="Tamanho do texto">
+              {(["default", "large", "extra"] as TextSize[]).map((size) => (
+                <button
+                  key={size}
+                  type="button"
+                  aria-pressed={preferences.textSize === size}
+                  onClick={() => update({ textSize: size })}
+                >
+                  {size === "default" ? "Padrão" : size === "large" ? "Maior" : "Extra"}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <label className="preference-toggle">
-            <span><strong>Apoio visual</strong><small>Aumenta a fonte, reforça contraste, foco e contornos.</small></span>
+            <span><strong>Leitura confortável</strong><small>Reforça contraste, foco e contornos para facilitar a leitura.</small></span>
             <input type="checkbox" checked={preferences.visual} onChange={(event) => update({ visual: event.target.checked })} />
           </label>
 
           <label className="preference-toggle">
-            <span><strong>Segurança para epilepsia</strong><small>Remove animações e transições e reduz estímulos visuais. Não substitui orientações médicas.</small></span>
-            <input type="checkbox" checked={preferences.epilepsy} onChange={(event) => update({ epilepsy: event.target.checked })} />
+            <span><strong>Reduzir estímulos</strong><small>Reduz animações, transições, movimentos decorativos, autoplay e também silencia os sons de Missões e Conquistas.</small></span>
+            <input
+              type="checkbox"
+              checked={preferences.epilepsy}
+              onChange={(event) => update({ epilepsy: event.target.checked })}
+            />
           </label>
 
           <label className="preference-toggle">
-            <span><strong>Foco cognitivo e TDAH</strong><small>Reduz elementos decorativos e prioriza o conteúdo essencial.</small></span>
+            <span><strong>Foco e simplicidade</strong><small>Prioriza o conteúdo essencial e reduz distrações visuais sem esconder funções.</small></span>
             <input type="checkbox" checked={preferences.focus} onChange={(event) => update({ focus: event.target.checked })} />
           </label>
-
-          {isStudentArea && (
-            <>
-              <label className="preference-toggle">
-                <span><strong>Sons rápidos do Curió</strong><small>Feedback curto para acertos, erros e conclusão. Vem desligado por padrão.</small></span>
-                <input type="checkbox" checked={preferences.sound} onChange={(event) => update({ sound: event.target.checked })} />
-              </label>
-
-              {preferences.sound && (
-                <div className="sound-preview" aria-label="Testar sons">
-                  <button type="button" onClick={() => playCurioSound("correct")}>Acerto</button>
-                  <button type="button" onClick={() => playCurioSound("incorrect")}>Erro</button>
-                  <button type="button" onClick={() => playCurioSound("mission-complete")}>Missão concluída</button>
-                </div>
-              )}
-            </>
-          )}
         </section>
       )}
     </div>

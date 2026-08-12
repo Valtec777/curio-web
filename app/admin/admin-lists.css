@@ -1,0 +1,175 @@
+/* Listas de pessoas do Admin: filtros compactos e ações sem poluir a tela. */
+
+.student-filter-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 16px;
+}
+
+.student-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 13px;
+  border: 1px solid #dedde3;
+  border-radius: 999px;
+  background: rgba(255,255,255,.78);
+  color: #586177;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.student-filter-chip span {
+  display: grid;
+  place-items: center;
+  min-width: 23px;
+  height: 23px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #ececf3;
+  color: #596176;
+  font-size: 10px;
+}
+
+.student-filter-chip.is-active {
+  border-color: #6652e7;
+  background: #6652e7;
+  color: #fff;
+}
+
+.student-filter-chip.is-active span {
+  background: #b8f238;
+  color: #213000;
+}
+
+.student-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #ece7df;
+  border-radius: 22px;
+}
+
+.student-admin-table {
+  min-width: 1040px;
+  background: #fff;
+}
+
+.student-admin-table th {
+  background: #faf7f2;
+}
+
+.student-admin-table td {
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+.student-link-line {
+  display: grid;
+  gap: 1px;
+  margin-bottom: 3px;
+}
+
+.student-link-line strong { font-size: 12px; }
+.student-link-line small { color: #7c8495; font-size: 10px; }
+
+.student-actions-menu {
+  position: relative;
+}
+
+.student-actions-menu[open] {
+  min-width: 300px;
+}
+
+.student-actions-popover {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid #e1e3ea;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 15px 34px rgba(34,44,78,.12);
+}
+
+.status-action-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.teacher-summary-block {
+  display: grid;
+  gap: 9px;
+  margin: 12px 0;
+}
+
+.teacher-summary-block > div {
+  display: grid;
+  gap: 5px;
+  padding: 11px 12px;
+  border-radius: 16px;
+  background: #f7f4ef;
+}
+
+.teacher-summary-block small {
+  color: #7f8798;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.teacher-summary-block strong {
+  color: #2b3859;
+  font-size: 13px;
+}
+
+html[data-theme="dark"] .student-filter-chip {
+  border-color: #414b60;
+  background: #202636;
+  color: #d5dbea;
+}
+
+html[data-theme="dark"] .student-filter-chip span {
+  background: #30394c;
+  color: #e0e5ef;
+}
+
+html[data-theme="dark"] .student-filter-chip.is-active {
+  border-color: #8877ff;
+  background: #6551de;
+  color: #fff;
+}
+
+html[data-theme="dark"] .student-admin-table,
+html[data-theme="dark"] .student-actions-popover {
+  background: #202636;
+  color: #edf1f8;
+}
+
+html[data-theme="dark"] .student-table-wrap,
+html[data-theme="dark"] .student-actions-popover {
+  border-color: #414b60;
+}
+
+html[data-theme="dark"] .student-admin-table th,
+html[data-theme="dark"] .teacher-summary-block > div {
+  background: #181e2b;
+}
+
+html[data-theme="dark"] .teacher-summary-block strong { color: #edf1f8; }
+html[data-theme="dark"] .teacher-summary-block small { color: #aeb8cb; }
+
+@media (max-width: 640px) {
+  .student-filter-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .student-filter-chip { flex: 0 0 auto; }
+  .status-action-row { grid-template-columns: 1fr; }
+}

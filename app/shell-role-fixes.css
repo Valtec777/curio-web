@@ -1,0 +1,85 @@
+/* CURIÓ · contraste final das laterais por ambiente */
+
+/* Professor: lateral azul consistente, com navegação clara e cartão de identificação branco. */
+.app-frame-teacher .sidebar {
+  background: linear-gradient(180deg, #2757d7 0%, #273ca9 100%) !important;
+  color: #fff !important;
+  border-right-color: rgba(28, 45, 124, .34) !important;
+}
+
+.app-frame-teacher .sidebar-role {
+  background: #ffffff !important;
+  border-color: rgba(29, 47, 126, .14) !important;
+  box-shadow: 0 10px 28px rgba(18, 31, 92, .16);
+}
+
+.app-frame-teacher .sidebar-role > span,
+.app-frame-teacher .sidebar-role > strong,
+.app-frame-teacher .sidebar-role .sidebar-subtitle,
+.app-frame-teacher .sidebar-role .sidebar-metric span,
+.app-frame-teacher .sidebar-role .sidebar-metric strong {
+  color: #26345c !important;
+}
+
+.app-frame-teacher .sidebar-role > span,
+.app-frame-teacher .sidebar-role .sidebar-subtitle {
+  color: #65708b !important;
+}
+
+.app-frame-teacher .sidebar-nav-title {
+  color: rgba(255,255,255,.72) !important;
+}
+
+.app-frame-teacher .sidebar-nav-link,
+.app-frame-teacher .sidebar-nav-label {
+  color: #ffffff !important;
+}
+
+.app-frame-teacher .sidebar-nav-link:hover,
+.app-frame-teacher .sidebar-nav-link.is-active,
+.app-frame-teacher .sidebar-nav-link[aria-current="page"] {
+  background: rgba(255,255,255,.12) !important;
+  border-color: rgba(255,255,255,.2) !important;
+}
+
+.app-frame-teacher .sidebar-nav-icon {
+  color: #ffffff !important;
+  background: rgba(255,255,255,.11) !important;
+  border-color: rgba(255,255,255,.18) !important;
+}
+
+.app-frame-teacher .sidebar-nav-link.is-active .sidebar-nav-icon,
+.app-frame-teacher .sidebar-nav-link[aria-current="page"] .sidebar-nav-icon {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+  color: #3150c7 !important;
+}
+
+.app-frame-teacher .sidebar-collapse-button {
+  color: #fff !important;
+}
+
+/* Admin: mantém a lateral que já está funcionando e garante ícones claros nos estados normais. */
+.app-frame-admin .sidebar-nav-icon {
+  color: #f8faff !important;
+}
+
+.app-frame-admin .sidebar-nav-link.is-active .sidebar-nav-icon,
+.app-frame-admin .sidebar-nav-link[aria-current="page"] .sidebar-nav-icon {
+  color: #263209 !important;
+}
+
+/* Evita qualquer recorte lateral ao recolher a navegação. */
+@media (min-width: 981px) {
+  html[data-sidebar-compact="true"] .app-frame-teacher .sidebar,
+  html[data-sidebar-compact="true"] .app-frame-admin .sidebar {
+    overflow-x: hidden !important;
+  }
+
+  html[data-sidebar-compact="true"] .app-frame-teacher .sidebar-nav-icon,
+  html[data-sidebar-compact="true"] .app-frame-admin .sidebar-nav-icon {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+  }
+}

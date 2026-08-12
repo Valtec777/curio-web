@@ -5,14 +5,11 @@ import { Logo } from "@/components/logo";
 import { EmptyState } from "@/components/ui";
 import { NavIcon } from "@/components/nav-icon";
 
-const environments: Record<
-  AppRole,
-  { title: string; description: string; href: string }
-> = {
-  admin: { title: "Administração", description: "Pessoas, vínculos e operação.", href: "/admin" },
-  teacher: { title: "Professor", description: "Alunos, missões, correções e mapa pedagógico.", href: "/professor" },
-  student: { title: "Modo Criança", description: "Missões e próximos desafios.", href: "/aluno" },
-  guardian: { title: "Ninho da Família", description: "Acompanhamento dos alunos vinculados.", href: "/familia" },
+const environments: Record<AppRole, { title: string; description: string; href: string }> = {
+  admin: { title: "Administração", description: "Gestão de pessoas, planos e operação.", href: "/admin" },
+  teacher: { title: "Professor", description: "Alunos, agenda, conteúdos e acompanhamento.", href: "/professor" },
+  student: { title: "Modo Criança", description: "Missões, atividades e descobertas.", href: "/aluno" },
+  guardian: { title: "Ninho da Família", description: "Acompanhe a rotina e a evolução da criança.", href: "/familia" },
 };
 
 export default async function Dashboard() {
@@ -29,7 +26,7 @@ export default async function Dashboard() {
         <div>
           <div className="eyebrow">Escolha o ambiente</div>
           <h1>Olá, {viewer.profile?.preferred_name || viewer.profile?.full_name || "bem-vindo"}.</h1>
-          <p>Seu usuário pode acumular mais de um papel sem perder acessos.</p>
+          <p>Escolha onde você quer entrar agora.</p>
         </div>
       </div>
 
@@ -39,7 +36,7 @@ export default async function Dashboard() {
             const item = environments[role];
             const href = role === "student" && viewer.roles.includes("guardian") ? "/familia/filhos" : item.href;
             const description = role === "student" && viewer.roles.includes("guardian")
-              ? "Escolha a criança vinculada e abra o espaço dela com segurança."
+              ? "Escolha a criança e abra o espaço dela."
               : item.description;
             return (
               <Link className="role-card" href={href} key={role}>
@@ -55,8 +52,8 @@ export default async function Dashboard() {
         </div>
       ) : (
         <EmptyState
-          title="Seu acesso ainda não possui um papel"
-          description="Peça à administração para autorizar o ambiente apropriado."
+          title="Seu acesso ainda está sendo preparado"
+          description="A administração precisa liberar o ambiente correspondente ao seu perfil."
         />
       )}
     </main>

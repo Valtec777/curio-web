@@ -1,0 +1,251 @@
+/* CURIÓ Admin · refinamentos após revisão visual */
+
+.app-frame-admin .sidebar-nav-title {
+  color: #efffc5;
+  text-shadow: 0 1px 10px rgba(11,19,74,.18);
+  opacity: 1;
+}
+
+.app-frame-admin .sidebar-nav-link {
+  color: #f1f3ff;
+}
+
+.app-frame-admin .sidebar-nav-link:hover,
+.app-frame-admin .sidebar-nav-link[aria-current="page"] {
+  color: #fff;
+}
+
+.app-frame-admin .admin-kpi-card > div {
+  display: grid;
+  gap: 8px;
+}
+
+.app-frame-admin .admin-kpi-card strong {
+  display: block;
+  margin-bottom: 1px;
+}
+
+.app-frame-admin .admin-kpi-card span {
+  display: block;
+  line-height: 1.25;
+}
+
+.app-frame-admin .person-admin-card .plan-admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.app-frame-admin .person-admin-card .plan-admin-actions > form,
+.app-frame-admin .person-admin-card .plan-admin-actions > details {
+  margin: 0;
+  align-self: center;
+}
+
+.app-frame-admin .person-admin-card .plan-admin-actions > form > .button,
+.app-frame-admin .person-admin-card .plan-admin-actions > details > summary.button {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}
+
+.app-frame-admin .person-admin-card .badge,
+.app-frame-admin .access-invite-card .badge {
+  gap: 6px;
+  border: 1px solid rgba(45,54,88,.10);
+  border-radius: 11px;
+  background: #f7f8fb;
+  box-shadow: none;
+}
+
+.app-frame-admin .person-admin-card .badge::before,
+.app-frame-admin .access-invite-card .badge::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .72;
+}
+
+.app-frame-admin .button-primary,
+.app-frame-admin .plan-create-panel .plan-editor > summary.button-primary {
+  color: #fff;
+}
+
+.app-frame-admin .plan-create-panel .plan-editor > summary.button-primary {
+  text-shadow: 0 1px 1px rgba(22,31,89,.15);
+}
+
+/* ===== Modelos: prévia legível ===== */
+.template-help-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 18px;
+  padding: 22px 24px;
+  border: 1px solid rgba(52,58,92,.09);
+  border-radius: 26px;
+  background: linear-gradient(135deg,#fff 0%,#f7f4ff 100%);
+}
+
+.template-help-card h2 { margin: 4px 0 6px; color: #17284e; }
+.template-help-card p { margin: 0; color: #6a7387; }
+.template-help-card > span {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 20px;
+  background: #b8f238;
+  color: #27300c;
+  font-size: 26px;
+  font-weight: 900;
+}
+
+.template-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 14px;
+}
+
+.template-preview-card {
+  padding: 20px;
+  border: 1px solid #e7e3de;
+  border-radius: 24px;
+  background: #fff;
+}
+
+.template-preview-card h3 { margin: 10px 0 5px; color: #17284e; }
+.template-preview-card > p { margin: 0 0 14px; color: #6e778a; }
+
+.template-preview-details {
+  border: 1px solid #e3e1e8;
+  border-radius: 18px;
+  background: #fbfafc;
+}
+
+.template-preview-details > summary {
+  padding: 12px 14px;
+  cursor: pointer;
+  color: #5546bd;
+  font-size: 12px;
+  font-weight: 900;
+  list-style: none;
+}
+
+.template-preview-details > summary::-webkit-details-marker { display: none; }
+.template-preview-body { padding: 0 14px 14px; }
+.template-section-list { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; counter-reset: template-section; }
+.template-section-list li {
+  counter-increment: template-section;
+  display: grid;
+  grid-template-columns: 26px minmax(0,1fr);
+  align-items: start;
+  gap: 8px;
+  color: #4f596e;
+  font-size: 13px;
+}
+.template-section-list li::before {
+  content: counter(template-section);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 9px;
+  background: #ece9ff;
+  color: #5546bd;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+/* ===== Gerador rápido ===== */
+.generator-quick-shell {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 20px;
+  padding: clamp(18px,2.4vw,28px);
+  border: 1px solid rgba(50,56,90,.09);
+  border-radius: 30px;
+  background: rgba(255,255,255,.70);
+}
+
+.generator-quick-grid {
+  display: grid;
+  grid-template-columns: minmax(0,1.1fr) minmax(280px,.9fr);
+  gap: 14px;
+}
+
+.generator-quick-card {
+  padding: 20px;
+  border: 1px solid #e7e4df;
+  border-radius: 24px;
+  background: #fff;
+}
+.generator-quick-card h3 { margin: 0 0 5px; color: #17284e; }
+.generator-quick-card > p { margin: 0 0 14px; color: #70798b; }
+
+.generator-advanced {
+  border: 1.5px dashed #dad7e3;
+  border-radius: 20px;
+  background: #fbfaff;
+}
+.generator-advanced > summary {
+  padding: 14px 16px;
+  cursor: pointer;
+  color: #5845c5;
+  font-weight: 900;
+  list-style: none;
+}
+.generator-advanced > summary::-webkit-details-marker { display: none; }
+.generator-advanced-body { display: grid; gap: 14px; padding: 0 16px 17px; }
+
+.course-generator-callout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  background: linear-gradient(135deg,#f2ffd3,#fff 62%) !important;
+}
+.course-generator-callout h2 { margin: 0 0 5px; color: #17284e; }
+.course-generator-callout p { margin: 0; color: #6d7689; }
+
+html[data-theme="dark"] .app-frame-admin .person-admin-card .badge,
+html[data-theme="dark"] .app-frame-admin .access-invite-card .badge,
+html[data-theme="dark"] .template-preview-card,
+html[data-theme="dark"] .generator-quick-card,
+html[data-theme="dark"] .template-help-card,
+html[data-theme="dark"] .generator-quick-shell,
+html[data-theme="dark"] .generator-advanced,
+html[data-theme="dark"] .template-preview-details {
+  background: #202636;
+  color: #eef2f8;
+  border-color: #414b60;
+}
+
+html[data-theme="dark"] .template-help-card h2,
+html[data-theme="dark"] .template-preview-card h3,
+html[data-theme="dark"] .generator-quick-card h3,
+html[data-theme="dark"] .course-generator-callout h2 { color: #f5f7fb; }
+
+html[data-theme="dark"] .template-help-card p,
+html[data-theme="dark"] .template-preview-card > p,
+html[data-theme="dark"] .generator-quick-card > p,
+html[data-theme="dark"] .template-section-list li,
+html[data-theme="dark"] .course-generator-callout p { color: #bcc5d6; }
+
+@media (max-width: 900px) {
+  .template-preview-grid,
+  .generator-quick-grid { grid-template-columns: 1fr; }
+  .course-generator-callout { align-items: flex-start; flex-direction: column; }
+}
+
+@media (max-width: 640px) {
+  .template-help-card { grid-template-columns: 1fr; }
+  .template-help-card > span { display: none; }
+}

@@ -4,6 +4,15 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Logo } from "@/components/logo";
 import { createClient } from "@/lib/supabase/client";
 
+function passwordIssue(value: string) {
+  if (value.length < 10) return "A senha precisa ter pelo menos 10 caracteres.";
+  if (!/[a-z]/.test(value)) return "Inclua pelo menos uma letra minúscula.";
+  if (!/[A-Z]/.test(value)) return "Inclua pelo menos uma letra maiúscula.";
+  if (!/\d/.test(value)) return "Inclua pelo menos um número.";
+  if (!/[^A-Za-z0-9]/.test(value)) return "Inclua pelo menos um símbolo.";
+  return null;
+}
+
 export default function DefinirSenhaPage() {
   const supabase = useMemo(() => createClient(), []);
   const [ready, setReady] = useState(false);
@@ -57,8 +66,9 @@ export default function DefinirSenhaPage() {
     const form = new FormData(event.currentTarget);
     const password = String(form.get("password") || "");
     const confirmPassword = String(form.get("confirmPassword") || "");
+    const issue = passwordIssue(password);
 
-    if (password.length < 8) return setError("A senha precisa ter pelo menos 8 caracteres.");
+    if (issue) return setError(issue);
     if (password !== confirmPassword) return setError("As senhas não coincidem.");
 
     setLoading(true);
@@ -93,8 +103,9 @@ export default function DefinirSenhaPage() {
           {error && <div className="form-message form-error">{error}</div>}
           {ready ? (
             <form className="form-stack" onSubmit={submit}>
-              <div className="field"><label htmlFor="password">Nova senha</label><input className="input" id="password" name="password" type="password" minLength={8} autoComplete="new-password" required /></div>
-              <div className="field"><label htmlFor="confirmPassword">Confirmar nova senha</label><input className="input" id="confirmPassword" name="confirmPassword" type="password" minLength={8} autoComplete="new-password" required /></div>
+              <div className="notice text-small">Use pelo menos 10 caracteres, com letra maiúscula, letra minúscula, número e símbolo. Evite nome, data de nascimento ou senha usada em outro serviço.</div>
+              <div className="field"><label htmlFor="password">Nova senha</label><input className="input" id="password" name="password" type="password" minLength={10} autoComplete="new-password" required /></div>
+              <div className="field"><label htmlFor="confirmPassword">Confirmar nova senha</label><input className="input" id="confirmPassword" name="confirmPassword" type="password" minLength={10} autoComplete="new-password" required /></div>
               <button className="button button-primary button-block" type="submit" disabled={loading}>{loading ? "Salvando..." : "Salvar minha senha"}</button>
             </form>
           ) : !error ? <div className="auth-loading-orb" aria-label="Validando acesso">✦</div> : <a className="button button-secondary button-block" href="/primeiro-acesso">Solicitar novo link</a>}

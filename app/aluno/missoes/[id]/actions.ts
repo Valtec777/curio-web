@@ -12,15 +12,13 @@ export async function submitMission(formData: FormData) {
 
   const { data: assignment } = await supabase
     .from("mission_students")
-    .select("id, mission_id, student_id, status")
+    .select("id,mission_id,student_id,status")
     .eq("id", missionStudentId)
     .eq("student_id", student.id)
     .single();
 
   if (!assignment) redirect("/aluno/missoes");
-  if (assignment.status === "submitted" || assignment.status === "reviewed") {
-    redirect("/aluno/missoes");
-  }
+  if (assignment.status === "submitted" || assignment.status === "reviewed") redirect("/aluno/missoes");
 
   const { data: questions } = await supabase
     .from("mission_questions")
@@ -58,7 +56,40 @@ export async function submitMission(formData: FormData) {
     }
   }
 
+  const { data: gradeRows, error: gradeError } = await supabase.rpc("grade_objective_mission_submission", {
+    p_submission_id: submission.id,
+    p_student_id: student.id,
+  });
+
+  if (gradeError) {
+    console.error("Falha na correção objetiva da missão", gradeError.code);
+  }
+
+  const result = gradeRows?.[0] as { needs_teacher?: number; score_percent?: number | null } | undefined;
+  const needsTeacher = Number(result?.needs_teacher || 0) > 0 || Boolean(gradeError);
+  const score = result?.score_percent == null ? null : Math.round(Number(result.score_percent));
+
+  const { data: achievementCount, error: achievementError } = await supabase.rpc("refresh_student_achievements", {
+    p_student_id: student.id,
+  });
+  if (achievementError) {
+    console.error("Falha ao atualizar conquistas após missão", achievementError.code);
+  }
+  const newAchievements = achievementError ? 0 : Math.max(0, Number(achievementCount || 0));
+
   revalidatePath("/aluno");
   revalidatePath("/aluno/missoes");
-  redirect("/aluno/missoes?sucesso=" + encodeURIComponent("Missão enviada! Ela ficará aguardando correção."));
+  revalidatePath("/aluno/conquistas");
+  revalidatePath("/professor");
+  revalidatePath("/professor/correcoes");
+
+  const message = needsTeacher
+    ? "Missão enviada! As questões objetivas foram conferidas e a parte discursiva ficará para o professor revisar."
+    : score == null
+      ? "Missão enviada!"
+      : `Missão enviada e corrigida automaticamente: ${score}% nas questões objetivas.`;
+
+  const query = new URLSearchParams({ sucesso: message, evento: submission.id });
+  if (newAchievements > 0) query.set("conquistas", String(newAchievements));
+  redirect(`/aluno/missoes?${query.toString()}`);
 }

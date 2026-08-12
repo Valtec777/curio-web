@@ -1,5 +1,6 @@
 "use server";
 
+import { createHash } from "node:crypto";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -9,6 +10,7 @@ const generationSchema = z.object({
   outputType: z.enum([
     "mission_cuca",
     "caderno_curio",
+    "material_apoio",
     "modo_prova",
     "diagnostico_inicial",
     "plano_30_dias",
@@ -32,9 +34,37 @@ function safeFileName(name: string) {
   return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/-+/g, "-").slice(0, 110);
 }
 
+function bahiaDay() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Bahia",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+function generationFingerprint(payload: Record<string, unknown>) {
+  return createHash("sha256").update(JSON.stringify(payload)).digest("hex");
+}
+
+function isDuplicateStorageError(message?: string) {
+  const value = String(message || "").toLowerCase();
+  return value.includes("already exists") || value.includes("duplicate") || value.includes("resource exists");
+}
+
+function generationJobType(outputType: z.infer<typeof generationSchema>["outputType"]) {
+  if (outputType === "mission_cuca") return "mission";
+  if (outputType === "caderno_curio") return "notebook";
+  if (outputType === "material_apoio") return "material";
+  if (outputType === "modo_prova") return "assessment";
+  if (outputType === "diagnostico_inicial" || outputType === "plano_30_dias") return "analysis";
+  return "report";
+}
+
 export async function queueCurioGeneration(formData: FormData) {
   const { teacher, supabase, viewer } = await getCurrentTeacher();
-  if (!teacher) redirect("/professor/gerador?erro=Professor+não+vinculado");
+  const returnTo = String(formData.get("returnTo") || "").startsWith("/professor/criar") ? "/professor/criar" : "/professor/gerador";
+  if (!teacher) redirect(`${returnTo}?erro=Professor+não+vinculado`);
 
   const file = formData.get("sourceFile");
   const hasFile = file instanceof File && file.size > 0;
@@ -49,55 +79,78 @@ export async function queueCurioGeneration(formData: FormData) {
     subjectId: String(formData.get("subjectId") || ""),
   });
 
-  if (!parsed.success) redirect(`/professor/gerador?erro=${encodeURIComponent(parsed.error.issues[0]?.message || "Revise os campos.")}`);
+  if (!parsed.success) redirect(`${returnTo}?erro=${encodeURIComponent(parsed.error.issues[0]?.message || "Revise os campos.")}`);
+
+  if (hasFile) {
+    if (file.size > 10 * 1024 * 1024) redirect(`${returnTo}?erro=${encodeURIComponent("O arquivo deve ter até 10 MB.")}`);
+    if (!allowedMimeTypes.has(file.type)) redirect(`${returnTo}?erro=${encodeURIComponent("Envie PDF, TXT ou DOCX.")}`);
+  }
+
+  const fingerprint = generationFingerprint({
+    output_type: parsed.data.outputType,
+    prompt: rawPrompt.trim() || null,
+    title_hint: parsed.data.titleHint?.trim() || null,
+    student_id: parsed.data.studentId || null,
+    grade_id: parsed.data.gradeId || null,
+    subject_id: parsed.data.subjectId || null,
+    source_file_name: hasFile ? file.name : null,
+    source_file_size: hasFile ? file.size : null,
+    source_mime_type: hasFile ? file.type : null,
+  });
+  const idempotencyKey = `generation-v2:${fingerprint}`;
 
   let sourceFilePath: string | null = null;
   let sourceFileName: string | null = null;
   let sourceMimeType: string | null = null;
 
   if (hasFile) {
-    if (file.size > 10 * 1024 * 1024) redirect("/professor/gerador?erro=O+arquivo+deve+ter+até+10+MB");
-    if (!allowedMimeTypes.has(file.type)) redirect("/professor/gerador?erro=Envie+PDF,+TXT+ou+DOCX");
-
-    const path = `${viewer.user.id}/${crypto.randomUUID()}-${safeFileName(file.name || "fonte.pdf")}`;
+    const path = `${viewer.user.id}/${bahiaDay()}-${fingerprint}-${safeFileName(file.name || "fonte.pdf")}`;
     const { error: uploadError } = await supabase.storage.from("generation-sources").upload(path, file, {
       contentType: file.type,
       upsert: false,
     });
-    if (uploadError) redirect(`/professor/gerador?erro=${encodeURIComponent("Não foi possível anexar o arquivo: " + uploadError.message)}`);
+    if (uploadError && !isDuplicateStorageError(uploadError.message)) {
+      redirect(`${returnTo}?erro=${encodeURIComponent("Não foi possível anexar o arquivo.")}`);
+    }
     sourceFilePath = path;
     sourceFileName = file.name;
     sourceMimeType = file.type;
   }
 
   const templateContract = parsed.data.outputType === "mission_cuca"
-    ? "ATV-01"
-    : parsed.data.outputType === "diagnostico_inicial"
-      ? "PED-01"
-      : parsed.data.outputType === "plano_30_dias"
-        ? "PRO-01"
-        : parsed.data.outputType === "registro_pos_encontro"
-          ? "PED-03"
-          : parsed.data.outputType === "relatorio_familia"
-            ? "REL-01"
-            : parsed.data.outputType === "caderno_curio"
-              ? "ATV-01:CADERNO"
-              : "MODO-PROVA";
+    ? "ATV-01:MISSÃO"
+    : parsed.data.outputType === "caderno_curio"
+      ? "ATV-01:CADERNO"
+      : parsed.data.outputType === "material_apoio"
+        ? "MAT-01"
+        : parsed.data.outputType === "diagnostico_inicial"
+          ? "PED-01"
+          : parsed.data.outputType === "plano_30_dias"
+            ? "PRO-01"
+            : parsed.data.outputType === "registro_pos_encontro"
+              ? "PED-03"
+              : parsed.data.outputType === "relatorio_familia"
+                ? "REL-01"
+                : "MODO-PROVA";
 
   const outputContract = parsed.data.outputType === "mission_cuca"
     ? { entity: "mission", interaction: "in_app_quiz", output_format: "structured_questions", requires_pdf: false }
     : parsed.data.outputType === "caderno_curio"
       ? { entity: "notebook_activity", interaction: "offline_worksheet", output_format: "print_ready_pdf", requires_pdf: true }
-      : parsed.data.outputType === "modo_prova"
-        ? { entity: "assessment_review", interaction: "in_app_review", output_format: "structured_questions", requires_pdf: false }
-        : { entity: "document_draft", interaction: "review_before_publish", output_format: "structured_document", requires_pdf: false };
+      : parsed.data.outputType === "material_apoio"
+        ? { entity: "material", interaction: "read_or_download", output_format: "curio_material", requires_pdf: true }
+        : parsed.data.outputType === "modo_prova"
+          ? { entity: "assessment_review", interaction: "in_app_or_pdf", output_format: "structured_assessment", requires_pdf: true }
+          : { entity: "document_draft", interaction: "review_before_publish", output_format: "structured_document", requires_pdf: false };
 
   const { error } = await supabase.from("generation_jobs").insert({
     requested_by_user_id: viewer.user.id,
     teacher_id: teacher.id,
-    job_type: parsed.data.outputType,
+    job_type: generationJobType(parsed.data.outputType),
     status: "queued",
+    idempotency_key: idempotencyKey,
     input: {
+      requested_output_type: parsed.data.outputType,
       prompt: rawPrompt.trim() || null,
       title_hint: parsed.data.titleHint?.trim() || null,
       student_id: parsed.data.studentId || null,
@@ -114,7 +167,12 @@ export async function queueCurioGeneration(formData: FormData) {
     },
   });
 
-  if (error) redirect(`/professor/gerador?erro=${encodeURIComponent(error.message)}`);
+  if (error && error.code !== "23505") {
+    if (sourceFilePath) await supabase.storage.from("generation-sources").remove([sourceFilePath]);
+    redirect(`${returnTo}?erro=${encodeURIComponent("Não foi possível colocar esta geração na fila.")}`);
+  }
+
+  revalidatePath("/professor/criar");
   revalidatePath("/professor/gerador");
-  redirect("/professor/gerador?sucesso=Fonte+recebida.+Rascunho+colocado+na+fila+de+geração.");
+  redirect(`${returnTo}?sucesso=${encodeURIComponent(error?.code === "23505" ? "Esse pedido já estava na fila. Nenhuma geração duplicada foi criada." : "Fonte recebida e enviada para a fila de geração.")}`);
 }

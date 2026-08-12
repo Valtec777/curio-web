@@ -21,19 +21,21 @@ export async function getCurrentStudent() {
     if (guardian) {
       const { data: link } = await supabase
         .from("guardian_students")
-        .select("student_id,students(id,preferred_name,full_name,grade_id,grades(name))")
+        .select("student_id,students(id,preferred_name,full_name,grade_id,deleted_at,grades(name))")
         .eq("guardian_id", guardian.id)
         .eq("student_id", studentContext)
         .maybeSingle();
-      student = (link as any)?.students || null;
+      const linkedStudent = (link as any)?.students || null;
+      student = linkedStudent && !linkedStudent.deleted_at ? linkedStudent : null;
     }
   }
 
   if (!student && viewer.roles.includes("student") && !viewer.roles.includes("guardian")) {
     const { data } = await supabase
       .from("students")
-      .select("id,preferred_name,full_name,grade_id,grades(name)")
+      .select("id,preferred_name,full_name,grade_id,deleted_at,grades(name)")
       .eq("auth_user_id", viewer.user.id)
+      .is("deleted_at", null)
       .maybeSingle();
     student = data;
   }

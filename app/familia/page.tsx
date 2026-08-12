@@ -1,54 +1,52 @@
-import { requireRole } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
-import { PageHeader, EmptyState, Badge, StatCard } from "@/components/ui";
+import Link from "next/link";
+import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { enterStudentSpace } from "@/app/familia/access-actions";
+import { getFamilyPortal } from "@/lib/family";
 
-function progressLabel(level:number,count:number){ if(count<2)return "Nova habilidade"; if(level>=4)return "Consolidado"; if(level>=3)return "Praticando com autonomia"; return "Em desenvolvimento"; }
+function dt(value?: string | null) { if (!value) return "—"; return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Bahia" }).format(new Date(value)); }
+function childHref(path: string, studentId: string) { return `${path}?aluno=${encodeURIComponent(studentId)}`; }
 
-export default async function FamilyPage({ searchParams }: { searchParams: Promise<{ erro?: string; sucesso?: string }> }) {
+export default async function FamilyPage({ searchParams }: { searchParams: Promise<{ aluno?: string; erro?: string; sucesso?: string }> }) {
   const query = await searchParams;
-  const viewer = await requireRole("guardian");
-  const supabase = await createClient();
-  const { data: guardian } = await supabase.from("guardians").select("id").eq("profile_id", viewer.user.id).maybeSingle();
-  if (!guardian) return <EmptyState title="Perfil da família incompleto" description="Falta concluir o registro de responsável." />;
-  const { data: links } = await supabase.from("guardian_students").select("student_id,can_view_progress,students(id,preferred_name,full_name,school_name,grades(name))").eq("guardian_id", guardian.id);
-  if (!links?.length) return <><PageHeader eyebrow="Ninho da Família" title="Acompanhando" description="Uma visão acolhedora e objetiva da jornada escolar."/><EmptyState title="Nenhuma criança vinculada" description="A administração precisa aprovar o vínculo da família com a criança." /></>;
+  const { children, selectedChild, supabase } = await getFamilyPortal(query.aluno || null);
+  if (!children.length || !selectedChild) return <><PageHeader eyebrow="Ninho da Família" title="Acompanhando" description="Uma visão acolhedora e objetiva da jornada escolar." /><EmptyState title="Nenhuma criança vinculada" description="A administração precisa aprovar o vínculo da família com a criança." /></>;
 
-  const visibleIds = links.filter((l:any)=>l.can_view_progress).map((l:any)=>l.student_id);
-  const childName = new Map(links.map((l:any)=>[l.student_id,l.students?.preferred_name||l.students?.full_name||"Criança"]));
-  const [{ data: states }, { data: currentContents }, { data: missions }, { data: assessments }] = visibleIds.length ? await Promise.all([
-    supabase.from("student_skill_states").select("student_id,domain_level,confidence,trend,evidence_count,skills(name)").in("student_id",visibleIds).order("updated_at",{ascending:false}).limit(80),
-    supabase.from("student_current_contents").select("student_id,confirmed,is_manual,subjects(name),contents(name)").in("student_id",visibleIds).eq("active",true).limit(30),
-    supabase.from("mission_students").select("student_id,status,progress_percent").in("student_id",visibleIds).in("status",["assigned","in_progress"]).limit(100),
-    supabase.from("assessment_students").select("student_id,status,assessments(scheduled_for)").in("student_id",visibleIds).limit(50),
-  ]) : [{data:[] as any[]},{data:[] as any[]},{data:[] as any[]},{data:[] as any[]}];
+  const studentId = selectedChild.student_id;
+  const now = new Date().toISOString();
+  const [{ data: missions }, { data: notebooks }, { data: assessments }, { data: eventLinks }, { data: states }, { count: sentContents }, { data: currentContents }] = await Promise.all([
+    supabase.from("mission_students").select("id,status,due_at,completed_at,progress_percent,missions(title)").eq("student_id", studentId).order("assigned_at", { ascending: false }).limit(80),
+    supabase.from("notebook_assignments").select("id,status,due_at,submitted_at,teacher_note,score,needs_redo,redo_note,notebook_activities(title)").eq("student_id", studentId).order("created_at", { ascending: false }).limit(60),
+    supabase.from("assessment_students").select("id,status,score,assessments(title,scheduled_for,subjects(name))").eq("student_id", studentId).order("created_at", { ascending: false }).limit(40),
+    supabase.from("agenda_event_students").select("event_id,agenda_events(id,title,event_type,starts_at,ends_at,status,meeting_url,visible_to_guardian)").eq("student_id", studentId).limit(60),
+    selectedChild.can_view_progress ? supabase.from("student_skill_states").select("domain_level,evidence_count,trend").eq("student_id", studentId).limit(100) : Promise.resolve({ data: [] as any[] }),
+    supabase.from("family_school_uploads").select("id", { count: "exact", head: true }).eq("student_id", studentId),
+    supabase.from("student_current_contents").select("id,confirmed,is_manual,subjects(name),contents(name)").eq("student_id", studentId).eq("active", true).limit(6),
+  ]);
+  const missionRows = (missions ?? []) as any[];
+  const notebookRows = (notebooks ?? []) as any[];
+  const assessmentRows = (assessments ?? []) as any[];
+  const eventRows = (eventLinks ?? []) as any[];
+  const stateRows = (states ?? []) as any[];
+  const contentRows = (currentContents ?? []) as any[];
 
-  const improving=(states??[]).filter((s:any)=>s.trend==="improving").length;
-  const developing=(states??[]).filter((s:any)=>s.evidence_count>=2&&s.domain_level<3).length;
-  const consolidated=(states??[]).filter((s:any)=>s.evidence_count>=2&&s.domain_level>=3).length;
+  const completedMissions = missionRows.filter((item) => ["completed", "reviewed"].includes(String(item.status))).length;
+  const pendingMissions = missionRows.filter((item) => ["assigned", "in_progress"].includes(String(item.status))).length;
+  const pendingActivities = notebookRows.filter((item) => ["assigned", "in_progress"].includes(item.status) || item.needs_redo).length;
+  const redoActivities = notebookRows.filter((item) => item.needs_redo).length;
+  const futureAssessments = assessmentRows.filter((item) => item.assessments?.scheduled_for && new Date(item.assessments.scheduled_for) >= new Date()).sort((a, b) => +new Date(a.assessments.scheduled_for) - +new Date(b.assessments.scheduled_for));
+  const nextAssessment = futureAssessments[0];
+  const futureEvents = eventRows.filter((item) => item.agenda_events?.visible_to_guardian && item.agenda_events?.status !== "cancelled" && item.agenda_events?.starts_at && item.agenda_events.starts_at >= now).sort((a, b) => +new Date(a.agenda_events.starts_at) - +new Date(b.agenda_events.starts_at));
+  const nextEvent: any = futureEvents[0]?.agenda_events || null;
+  const reviewedNotebooks = notebookRows.filter((item) => item.teacher_note || item.score != null);
+  const recentFeedback = reviewedNotebooks[0];
+  const evidencedStates = stateRows.filter((state) => Number(state.evidence_count || 0) > 0);
+  const progress = evidencedStates.length ? Math.round(evidencedStates.reduce((sum, state) => sum + Math.min(4, Number(state.domain_level || 0)), 0) / (evidencedStates.length * 4) * 100) : 0;
+  const overdueMissions = missionRows.filter((item) => ["assigned", "in_progress"].includes(String(item.status)) && item.due_at && new Date(item.due_at) < new Date()).length;
+  const overdueNotebooks = notebookRows.filter((item) => ["assigned", "in_progress"].includes(item.status) && item.due_at && new Date(item.due_at) < new Date()).length;
+  const alertCount = overdueMissions + overdueNotebooks + redoActivities;
 
-  return <>
-    <PageHeader eyebrow="Ninho da Família" title="Acompanhando" description="Veja conteúdos, atividades e evolução com linguagem adequada para a família." />
-    {query.erro && <div className="form-message form-error">{query.erro}</div>}
-    {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
-    <section className="panel family-child-switcher">
-      <div className="panel-head"><div><div className="eyebrow eyebrow-pink">Espaço da criança</div><h2>Quem vai estudar agora?</h2><p>O acesso da criança usa este mesmo login. Para voltar ao Ninho da Família, o Curió pede o PIN de 4 números.</p></div></div>
-      <div className="family-child-buttons">
-        {links.map((link:any) => (
-          <form action={enterStudentSpace} key={link.student_id}>
-            <input type="hidden" name="studentId" value={link.student_id} />
-            <button className="child-space-button" type="submit">
-              <span className="child-space-avatar" aria-hidden="true">{String(link.students?.preferred_name || link.students?.full_name || "C").slice(0,1).toUpperCase()}</span>
-              <span><strong>Entrar como {link.students?.preferred_name || link.students?.full_name || "criança"}</strong><small>{link.students?.grades?.name || "Ano escolar"} · Espaço protegido</small></span>
-              <b aria-hidden="true">→</b>
-            </button>
-          </form>
-        ))}
-      </div>
-    </section>
-    <div className="stats-grid"><StatCard value={links.length} label={links.length===1?"Criança":"Crianças"}/><StatCard value={missions?.length??0} label="Atividades em andamento"/><StatCard value={improving} label="Evoluções recentes"/><StatCard value={developing} label="Em desenvolvimento"/></div>
-    <section className="panel"><div className="panel-head"><div><h2>Estudando agora</h2><p>Conteúdos podem ser sugeridos automaticamente e confirmados pela professora.</p></div></div>{currentContents?.length?<div className="grid-3">{currentContents.map((item:any,index)=><article className="mission-card" key={index}><Badge tone={item.confirmed||item.is_manual?"green":"yellow"}>{item.confirmed||item.is_manual?"Confirmado":"Sugestão"}</Badge><h3>{item.contents?.name||"Conteúdo"}</h3><p>{item.subjects?.name||"Matéria"} • {childName.get(item.student_id)}</p></article>)}</div>:<p className="muted">Os conteúdos atuais aparecerão conforme o acompanhamento for avançando.</p>}</section>
-    <section className="panel"><div className="panel-head"><div><h2>Progresso por habilidade</h2><p>Não mostramos rótulos como “fraco”. O foco é o que já está consolidado e o que está em desenvolvimento.</p></div></div>{states?.length?<div className="grid-3">{states.slice(0,12).map((state:any,index)=><article className="mission-card" key={index}><strong>{state.skills?.name}</strong><p>{childName.get(state.student_id)}</p><Badge tone={state.evidence_count<2?"neutral":state.domain_level>=3?"green":"yellow"}>{progressLabel(state.domain_level,state.evidence_count)}</Badge></article>)}</div>:<EmptyState title="O ciclo está começando" description="O progresso aparecerá quando houver evidências suficientes."/>}</section>
-    <div className="grid-2"><section className="panel"><h2 className="mt-0">Resumo</h2><div className="profile-lines"><div><span>Habilidades consolidadas/praticando</span><strong>{consolidated}</strong></div><div><span>Em desenvolvimento</span><strong>{developing}</strong></div><div><span>Missões abertas</span><strong>{missions?.length??0}</strong></div></div></section><section className="panel family-highlight"><h2 className="mt-0">Avaliações</h2><p>{assessments?.length ? `${assessments.length} avaliação(ões) vinculada(s) ao acompanhamento.` : "Nenhuma avaliação vinculada no momento."}</p><a href="/familia/avaliacoes">Abrir avaliações →</a></section></div>
-  </>;
+  return <><PageHeader eyebrow="Ninho da Família" title={`Acompanhando ${selectedChild.student_name}`} description="Próximos compromissos, pendências e evolução da criança escolhida na lateral." />{query.erro && <div className="form-message form-error">{query.erro}</div>}{query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
+    <section className="family-overview-hero"><div><Badge tone={selectedChild.student_status === "active" ? "green" : "neutral"}>{selectedChild.student_status === "active" ? "Acompanhamento ativo" : selectedChild.student_status}</Badge><h2>{selectedChild.student_name}</h2><p>{selectedChild.grade_name || "Ano escolar não informado"}{selectedChild.school_name ? ` · ${selectedChild.school_name}` : ""}</p><div className="family-overview-meta"><Badge tone="blue">Professor(a): {selectedChild.teacher_name || "A definir"}</Badge>{(selectedChild.tracked_subjects ?? []).map((subject) => <Badge tone="purple" key={subject}>{subject}</Badge>)}</div><div className="flex gap-8 wrap mt-16"><Link className="button button-secondary button-small" href={childHref("/familia/progresso", studentId)}>Ver acompanhamento</Link><form action={enterStudentSpace}><input type="hidden" name="studentId" value={studentId} /><button className="button button-primary button-small" type="submit">Entrar no espaço da criança</button></form></div></div><div className="family-metric-grid"><div className="family-metric"><strong>{completedMissions}</strong><span>Missões concluídas</span></div><div className="family-metric"><strong>{pendingMissions}</strong><span>Missões pendentes</span></div><div className="family-metric"><strong>{pendingActivities}</strong><span>Atividades pendentes</span></div><div className="family-metric"><strong>{progress}%</strong><span>Progresso observado</span></div></div></section>
+    <div className="family-dashboard-grid"><article className="family-summary-card"><Badge tone="blue">Próxima aula / encontro</Badge><h3>{nextEvent?.title || "Nenhum encontro marcado"}</h3><p>{nextEvent ? dt(nextEvent.starts_at) : "Quando o professor agendar, aparecerá aqui."}</p>{nextEvent?.meeting_url && <a className="button button-primary button-small mt-12" href={nextEvent.meeting_url} target="_blank" rel="noreferrer">Entrar ↗</a>}</article><article className="family-summary-card"><Badge tone="purple">Próxima avaliação</Badge><h3>{nextAssessment?.assessments?.title || "Nenhuma avaliação próxima"}</h3><p>{nextAssessment?.assessments?.scheduled_for ? `${nextAssessment.assessments.subjects?.name || "Avaliação"} · ${dt(nextAssessment.assessments.scheduled_for)}` : "Você também pode informar uma prova recebida da escola."}</p><Link className="button button-secondary button-small mt-12" href={childHref("/familia/avaliacoes", studentId)}>Abrir avaliações</Link></article><article className="family-summary-card"><Badge tone={alertCount ? "yellow" : "green"}>Alertas</Badge><h3>{alertCount ? `${alertCount} item(ns) precisam de atenção` : "Nenhum alerta no momento"}</h3><p>{redoActivities ? `${redoActivities} atividade(s) para refazer.` : overdueMissions + overdueNotebooks ? "Há atividade(s) com prazo vencido." : "Tudo em dia por aqui."}</p>{alertCount ? <Link className="button button-secondary button-small mt-12" href={childHref("/familia/atividades", studentId)}>Ver pendências</Link> : null}</article><article className="family-summary-card"><Badge tone="pink">Feedback recente</Badge><h3>{recentFeedback?.notebook_activities?.title || "Ainda sem feedback novo"}</h3><p>{recentFeedback?.teacher_note || "As devolutivas da professora aparecem aqui depois das correções."}</p></article><article className="family-summary-card"><Badge tone="green">Conteúdo enviado</Badge><h3>{sentContents ?? 0} arquivo(s) da escola</h3><p>Fotos do caderno, PDFs, atividades e avisos enviados pela família.</p><Link className="button button-secondary button-small mt-12" href={childHref("/familia/conteudos", studentId)}>Enviar conteúdo</Link></article><article className="family-summary-card"><Badge tone="blue">Estudando agora</Badge><h3>{contentRows[0]?.contents?.name || "Conteúdo em atualização"}</h3><p>{contentRows[0]?.subjects?.name || "O conteúdo atual aparecerá conforme o acompanhamento avançar."}</p></article></div>
+    <section className="panel mt-16"><div className="panel-head"><div><h2>Meus filhos</h2><p>{children.length} {children.length === 1 ? "criança vinculada" : "crianças vinculadas"}. Trocar aqui também atualiza o restante da área.</p></div></div><div className="family-action-grid">{children.map((child) => <article className="family-summary-card" key={child.student_id}><Badge tone={child.student_id === studentId ? "green" : "neutral"}>{child.student_id === studentId ? "Acompanhando agora" : "Vinculado"}</Badge><h3>{child.student_name}</h3><p>{child.grade_name || "Ano não informado"}{child.school_name ? ` · ${child.school_name}` : ""}</p><small className="muted">Professor(a): {child.teacher_name || "A definir"}</small><div className="flex gap-8 wrap mt-12"><Link className="button button-secondary button-small" href={childHref("/familia", child.student_id)}>Ver acompanhamento</Link><form action={enterStudentSpace}><input type="hidden" name="studentId" value={child.student_id} /><button className="button button-primary button-small" type="submit">Entrar no espaço</button></form></div></article>)}</div></section></>;
 }

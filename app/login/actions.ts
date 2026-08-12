@@ -1,10 +1,12 @@
 "use server";
 
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+
+const OFFICIAL_SITE_ORIGIN = "https://curio-web-nu.vercel.app";
 
 const loginSchema = z.object({
   email: z.string().email("Informe um e-mail válido."),
@@ -15,9 +17,16 @@ const emailSchema = z.object({
   email: z.string().email("Informe um e-mail válido."),
 });
 
+const strongPassword = z.string()
+  .min(10, "A nova senha precisa ter pelo menos 10 caracteres.")
+  .refine((value) => /[a-z]/.test(value), "Inclua pelo menos uma letra minúscula.")
+  .refine((value) => /[A-Z]/.test(value), "Inclua pelo menos uma letra maiúscula.")
+  .refine((value) => /\d/.test(value), "Inclua pelo menos um número.")
+  .refine((value) => /[^A-Za-z0-9]/.test(value), "Inclua pelo menos um símbolo.");
+
 const passwordSchema = z
   .object({
-    password: z.string().min(8, "A nova senha precisa ter pelo menos 8 caracteres."),
+    password: strongPassword,
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -29,41 +38,35 @@ function queryError(message: string) {
   return `/login?erro=${encodeURIComponent(message)}`;
 }
 
-function normalizePublicOrigin(value: string | null | undefined) {
-  if (!value) return null;
-  const raw = value.trim().replace(/\/$/, "");
+function normalizedOrigin(value?: string | null) {
+  const raw = String(value || "").trim();
   if (!raw) return null;
-
   try {
-    const url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
-    const local = url.hostname === "localhost" || url.hostname === "127.0.0.1";
-    if (process.env.NODE_ENV === "production" && local) return null;
-    if (!local && url.protocol !== "https:") return null;
+    const url = new URL(raw.includes("://") ? raw : `https://${raw}`);
     return url.origin;
   } catch {
     return null;
   }
 }
 
-async function siteOrigin() {
-  // Em produção, prefira sempre a URL estável do projeto na Vercel. Isso evita
-  // gerar e-mails de acesso apontando para localhost ou para um preview efêmero.
-  const vercelProduction = normalizePublicOrigin(process.env.VERCEL_PROJECT_PRODUCTION_URL);
-  if (process.env.NODE_ENV === "production" && vercelProduction) return vercelProduction;
+function isLocalOrigin(origin?: string | null) {
+  return Boolean(origin && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin));
+}
 
-  const configured = normalizePublicOrigin(process.env.NEXT_PUBLIC_SITE_URL);
+function siteOrigin() {
+  const configured = normalizedOrigin(process.env.NEXT_PUBLIC_SITE_URL);
+  const productionUrl = normalizedOrigin(process.env.VERCEL_PROJECT_PRODUCTION_URL);
+  const branchUrl = normalizedOrigin(process.env.VERCEL_BRANCH_URL);
+  const deploymentUrl = normalizedOrigin(process.env.VERCEL_URL);
+  const runningOnVercel = process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV);
+
+  if (productionUrl && !isLocalOrigin(productionUrl)) return productionUrl;
+  if (configured && !isLocalOrigin(configured)) return configured;
+  if (runningOnVercel) return OFFICIAL_SITE_ORIGIN;
   if (configured) return configured;
-
-  const requestHeaders = await headers();
-  const origin = normalizePublicOrigin(requestHeaders.get("origin"));
-  if (origin) return origin;
-
-  const host = requestHeaders.get("x-forwarded-host") || requestHeaders.get("host");
-  const protocol = requestHeaders.get("x-forwarded-proto") || (host?.includes("localhost") ? "http" : "https");
-  const forwarded = normalizePublicOrigin(host ? `${protocol}://${host}` : null);
-  if (forwarded) return forwarded;
-
-  return process.env.NODE_ENV === "production" ? "https://curio-web-nu.vercel.app" : "http://localhost:3000";
+  if (branchUrl && !isLocalOrigin(branchUrl)) return branchUrl;
+  if (deploymentUrl && !isLocalOrigin(deploymentUrl)) return deploymentUrl;
+  return process.env.NODE_ENV === "development" ? "http://localhost:3000" : OFFICIAL_SITE_ORIGIN;
 }
 
 function portalFor(roles: string[]) {
@@ -72,6 +75,13 @@ function portalFor(roles: string[]) {
   if (roles.includes("guardian")) return "/familia";
   if (roles.includes("student")) return "/aluno";
   return "/dashboard";
+}
+
+function emailSendErrorMessage(code?: string) {
+  if (code === "over_email_send_rate_limit") {
+    return "Muitas tentativas de envio foram feitas em pouco tempo. Aguarde um instante e tente novamente.";
+  }
+  return "Não foi possível enviar o e-mail agora. Aguarde um pouco e tente novamente.";
 }
 
 export async function login(formData: FormData) {
@@ -89,6 +99,11 @@ export async function login(formData: FormData) {
     redirect(queryError("Não foi possível entrar. Confira e-mail e senha."));
   }
 
+  const { error: invitationSyncError } = await supabase.rpc("mark_access_invitation_accepted");
+  if (invitationSyncError) {
+    console.error("Falha ao sincronizar situação do convite após login", invitationSyncError.code);
+  }
+
   const { data: roleRows } = await supabase
     .from("user_roles")
     .select("role")
@@ -101,18 +116,34 @@ export async function login(formData: FormData) {
   redirect(destination);
 }
 
+async function sendFirstAccessLink(email: string) {
+  const supabase = await createClient();
+  const origin = siteOrigin();
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: false,
+      emailRedirectTo: `${origin}/auth/confirm?next=/definir-senha`,
+    },
+  });
+
+  if (error) {
+    console.error("Falha no envio do primeiro acesso", error.code);
+    redirect(`/primeiro-acesso?erro=${encodeURIComponent(emailSendErrorMessage(error.code))}`);
+  }
+  redirect("/primeiro-acesso?sucesso=1");
+}
+
 async function sendPasswordLink(email: string, successPath: string) {
   const supabase = await createClient();
-  const origin = await siteOrigin();
+  const origin = siteOrigin();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    // Mantemos toda recuperação/primeiro acesso no mesmo callback. Ele sabe
-    // tratar PKCE, token_hash e também o fluxo legado com sessão no fragmento.
     redirectTo: `${origin}/auth/confirm?next=/definir-senha`,
   });
 
-  // Não revelamos se o e-mail existe ou não.
   if (error) {
-    redirect(`${successPath}?erro=${encodeURIComponent("Não foi possível enviar o e-mail agora. Aguarde um pouco e tente novamente.")}`);
+    console.error("Falha no envio do link de recuperação", error.code);
+    redirect(`${successPath}?erro=${encodeURIComponent(emailSendErrorMessage(error.code))}`);
   }
   redirect(`${successPath}?sucesso=1`);
 }
@@ -122,7 +153,7 @@ export async function requestFirstAccess(formData: FormData) {
   if (!parsed.success) {
     redirect(`/primeiro-acesso?erro=${encodeURIComponent(parsed.error.issues[0].message)}`);
   }
-  await sendPasswordLink(parsed.data.email, "/primeiro-acesso");
+  await sendFirstAccessLink(parsed.data.email);
 }
 
 export async function requestPasswordReset(formData: FormData) {

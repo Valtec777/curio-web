@@ -1,9 +1,10 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export type AppRole = "admin" | "teacher" | "student" | "guardian";
 
-export async function getViewer() {
+export const getViewer = cache(async function getViewer() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -12,23 +13,24 @@ export async function getViewer() {
 
   if (error || !user) return null;
 
-  const { data: roles } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", user.id);
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, full_name, preferred_name")
-    .eq("id", user.id)
-    .maybeSingle();
+  const [{ data: roles }, { data: profile }] = await Promise.all([
+    supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id),
+    supabase
+      .from("profiles")
+      .select("id, full_name, preferred_name")
+      .eq("id", user.id)
+      .maybeSingle(),
+  ]);
 
   return {
     user,
     profile,
     roles: (roles ?? []).map((item) => item.role as AppRole),
   };
-}
+});
 
 export async function requireUser() {
   const viewer = await getViewer();

@@ -1,0 +1,402 @@
+/* CURIÓ · fechamento responsivo global
+   Carregado depois das demais folhas para impedir regressões de desktop em telas menores. */
+
+html, body { max-width: 100%; }
+body { overflow-x: clip; }
+@supports not (overflow: clip) { body { overflow-x: hidden; } }
+
+img, video, iframe, canvas, svg { max-width: 100%; }
+
+/* Qualquer bloco que participe de grid/flex precisa poder encolher. */
+.app-frame *,
+.public-header-inner *,
+.site-shell * { min-width: 0; }
+
+@media (max-width: 1100px) {
+  .app-main,
+  .app-main > *,
+  .app-main section,
+  .app-main article,
+  .app-main form,
+  .app-main fieldset,
+  .app-main .panel,
+  .app-main .page-header,
+  .app-main .panel-head {
+    max-width: 100%;
+  }
+
+  .flex,
+  .row,
+  .panel-head,
+  .page-header,
+  .student-admin-actions,
+  .plan-admin-actions,
+  .course-admin-actions,
+  .legal-doc-actions,
+  .message-actions,
+  .teacher-actions,
+  .family-actions,
+  .agenda-actions {
+    flex-wrap: wrap;
+  }
+
+  .input,
+  .select,
+  .textarea,
+  .button,
+  input,
+  select,
+  textarea,
+  button {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 980px) {
+  /* Portais inteiros passam a respeitar o viewport. */
+  .app-frame,
+  html[data-sidebar-compact="true"] .app-frame,
+  .app-frame-admin,
+  .app-frame-teacher,
+  .app-frame-guardian,
+  .app-frame-student {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    overflow-x: hidden !important;
+  }
+
+  .sidebar,
+  html[data-sidebar-compact="true"] .sidebar {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 14px 16px !important;
+    overflow: visible !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(30,43,121,.18) !important;
+  }
+
+  .sidebar-collapse-button { display: none !important; }
+  .sidebar-brand-row,
+  .sidebar-role { width: 100% !important; max-width: 100% !important; }
+
+  .sidebar-nav,
+  html[data-sidebar-compact="true"] .sidebar-nav {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: 8px !important;
+    padding: 8px 0 10px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sidebar-nav-group,
+  html[data-sidebar-compact="true"] .sidebar-nav-group {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: max-content !important;
+    gap: 7px !important;
+    margin: 0 !important;
+  }
+
+  .sidebar-nav-title { display: none !important; }
+
+  .sidebar-nav-link,
+  html[data-sidebar-compact="true"] .sidebar-nav-link {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: max-content !important;
+    height: auto !important;
+    min-height: 44px !important;
+    padding: 9px 12px !important;
+    border-radius: 14px !important;
+    white-space: nowrap !important;
+  }
+
+  .sidebar-nav-label,
+  html[data-sidebar-compact="true"] .sidebar-nav-label { display: inline !important; }
+
+  .sidebar-nav-icon,
+  html[data-sidebar-compact="true"] .sidebar-nav-icon {
+    width: 28px !important;
+    height: 28px !important;
+    flex: 0 0 28px !important;
+  }
+
+  .sidebar-logout,
+  html[data-sidebar-compact="true"] .sidebar-logout {
+    display: inline-flex !important;
+    width: auto !important;
+    max-width: 100% !important;
+  }
+
+  .app-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding: 26px 20px 40px !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Grids recorrentes: tablet ganha composição fluida sem largura fixa de desktop. */
+  .grid-2,
+  .grid-3,
+  .teacher-section-grid,
+  .teacher-today-grid,
+  .family-dashboard-grid,
+  .family-action-grid,
+  .mission-list-grid,
+  .plan-management-grid,
+  .admin-module-grid,
+  .mascot-admin-grid,
+  .media-library-grid,
+  .enrollment-two-steps,
+  .course-public-grid,
+  .map-promise-grid,
+  .lead-grid,
+  .about-grid,
+  .access-setup-grid,
+  .generator-input-grid,
+  .thinking-grid,
+  .referral-grid,
+  .report-grid,
+  .message-grid,
+  .finance-grid,
+  .contract-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .stats-grid,
+  .record-meta-grid,
+  .enrollment-progress,
+  .plan-checks {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  /* Conteúdo largo rola localmente, nunca desloca a página inteira. */
+  .data-table,
+  .table-wrap,
+  .table-scroll,
+  .overflow-table,
+  .audit-table,
+  .finance-table {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  pre, code, .asset-path, .file-path, .technical-value {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* Modais e painéis flutuantes nunca podem ultrapassar o viewport. */
+  .modal,
+  .modal-card,
+  .dialog,
+  .dialog-card,
+  .family-pin-card,
+  .experience-panel,
+  .drawer,
+  .popover {
+    width: min(100% - 28px, 720px) !important;
+    max-width: calc(100vw - 28px) !important;
+    max-height: calc(100dvh - 28px) !important;
+    overflow-y: auto !important;
+  }
+
+  /* Header público: Entrar permanece disponível. */
+  .public-header-inner {
+    width: 100%;
+    min-width: 0;
+    gap: 12px !important;
+  }
+  .public-nav { display: none !important; }
+  .public-actions {
+    display: flex !important;
+    flex: 0 0 auto;
+    min-width: 0;
+    gap: 8px !important;
+  }
+  .public-actions .button-secondary { display: inline-flex !important; }
+}
+
+@media (min-width: 721px) and (max-width: 980px) {
+  /* Tablet: cards curtos podem usar duas colunas sem voltar ao layout de desktop. */
+  .stats-grid,
+  .public-plan-grid,
+  .steps-grid,
+  .experience-grid,
+  .mascot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .site-shell { width: min(100% - 22px, 1180px) !important; }
+  .app-main { padding: 20px 14px 34px !important; }
+
+  .page-header,
+  .panel-head {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+  }
+
+  .page-header > *,
+  .panel-head > * { width: 100%; max-width: 100%; }
+
+  .stats-grid,
+  .grid-2,
+  .grid-3,
+  .form-row,
+  .record-meta-grid,
+  .enrollment-two-steps,
+  .enrollment-progress,
+  .plan-checks,
+  .steps-grid,
+  .experience-grid,
+  .mascot-grid,
+  .public-plan-grid,
+  .course-public-grid,
+  .thinking-grid,
+  .teacher-section-grid,
+  .teacher-today-grid,
+  .family-dashboard-grid,
+  .family-action-grid,
+  .mission-list-grid,
+  .plan-management-grid,
+  .admin-module-grid,
+  .mascot-admin-grid,
+  .media-library-grid,
+  .map-promise-grid,
+  .lead-grid,
+  .about-grid,
+  .access-setup-grid,
+  .generator-input-grid,
+  .referral-grid,
+  .report-grid,
+  .message-grid,
+  .finance-grid,
+  .contract-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .panel,
+  .mission-card,
+  .question-box,
+  .resource-card,
+  .stat-card,
+  .enrollment-step,
+  .enrollment-review-card,
+  .referral-card,
+  .report-card,
+  .course-card {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .student-admin-actions,
+  .plan-admin-actions,
+  .course-admin-actions,
+  .legal-doc-actions,
+  .message-actions,
+  .teacher-actions,
+  .family-actions,
+  .agenda-actions,
+  .hero-buttons {
+    width: 100%;
+    max-width: 100%;
+    flex-wrap: wrap !important;
+  }
+
+  .public-header-inner { height: 68px !important; }
+  .public-header-inner .brand {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    max-width: 145px;
+    height: 54px;
+  }
+  .public-actions .button {
+    min-height: 42px;
+    padding: 9px 13px !important;
+    white-space: nowrap;
+  }
+
+  /* Alvos de toque confortáveis. */
+  .button,
+  button,
+  input,
+  select,
+  textarea,
+  .sidebar-nav-link {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 520px) {
+  .public-header-inner .brand { max-width: 128px; }
+  .public-actions .button-secondary { display: inline-flex !important; }
+  .public-actions .button-primary { display: none !important; }
+
+  .sidebar { padding-inline: 12px !important; }
+  .sidebar-role { padding: 12px !important; }
+  .app-main { padding-inline: 11px !important; }
+  .panel { padding: 16px !important; }
+
+  .form-stack > .button,
+  .compact-form > .button,
+  .form-actions > .button,
+  .dialog-actions > .button {
+    width: 100%;
+  }
+
+  .experience-panel {
+    width: min(360px, calc(100vw - 20px)) !important;
+    max-width: calc(100vw - 20px) !important;
+  }
+}
+
+/* Contraste seguro no tema escuro para componentes administrativos e móveis. */
+html[data-theme="dark"] .modal-card,
+html[data-theme="dark"] .dialog-card,
+html[data-theme="dark"] .referral-card,
+html[data-theme="dark"] .report-card,
+html[data-theme="dark"] .course-card,
+html[data-theme="dark"] .table-wrap,
+html[data-theme="dark"] .family-sidebar-child-mobile {
+  background: var(--curio-surface, #202633) !important;
+  color: var(--curio-text, #edf1f8) !important;
+  border-color: var(--curio-border, #3c465b) !important;
+}
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea {
+  background: var(--curio-input-bg, #181e2a);
+  color: var(--curio-text, #edf1f8);
+  border-color: var(--curio-border, #3c465b);
+}
+
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder { color: #98a5ba; }

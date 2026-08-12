@@ -19,24 +19,32 @@ function studentCookieOptions() {
   };
 }
 
+function familyReturn(value: string, key: "erro" | "sucesso", message: string) {
+  const raw = value.startsWith("/familia") ? value : "/familia";
+  const url = new URL(raw, "https://curio.local");
+  url.searchParams.delete("erro");
+  url.searchParams.delete("sucesso");
+  url.searchParams.set(key, message);
+  return `${url.pathname}${url.search}`;
+}
+
 export async function setFamilyPin(formData: FormData) {
   await requireRole("guardian");
   const requestedReturnTo = String(formData.get("returnTo") || "/familia");
-  const returnTo = requestedReturnTo.startsWith("/familia") ? requestedReturnTo : "/familia";
   const parsed = pinSchema.safeParse(String(formData.get("pin") || ""));
   const confirmation = String(formData.get("pinConfirmation") || "");
 
   if (!parsed.success || parsed.data !== confirmation) {
-    redirect(`${returnTo}?erro=${encodeURIComponent("O PIN precisa ter 4 números iguais nos dois campos.")}`);
+    redirect(familyReturn(requestedReturnTo, "erro", "O PIN precisa ter 4 números iguais nos dois campos."));
   }
 
   const supabase = await createClient();
   const { error } = await supabase.rpc("set_guardian_portal_pin", { p_pin: parsed.data });
   if (error) {
-    redirect(`${returnTo}?erro=${encodeURIComponent("Não foi possível salvar o PIN agora. Tente novamente.")}`);
+    redirect(familyReturn(requestedReturnTo, "erro", "Não foi possível salvar o PIN agora. Tente novamente."));
   }
 
-  redirect(`${returnTo}?sucesso=${encodeURIComponent("PIN da família criado com segurança.")}`);
+  redirect(familyReturn(requestedReturnTo, "sucesso", "PIN da família atualizado com segurança."));
 }
 
 export async function enterStudentSpace(formData: FormData) {
@@ -56,7 +64,7 @@ export async function enterStudentSpace(formData: FormData) {
   const { data: pinStatus } = await supabase.rpc("guardian_pin_status");
   const firstPinStatus = Array.isArray(pinStatus) ? pinStatus[0] : null;
   if (!firstPinStatus?.has_pin) {
-    redirect(`/familia?erro=${encodeURIComponent("Crie o PIN da família antes de abrir o espaço da criança.")}`);
+    redirect(`/familia?aluno=${parsed.data}&erro=${encodeURIComponent("Crie o PIN da família antes de abrir o espaço da criança.")}`);
   }
 
   const { data: link } = await supabase

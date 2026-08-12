@@ -14,10 +14,6 @@ Não salvar senha SMTP no repositório. Manter credenciais somente nas configura
 
 ## Domínio público do site
 
-Produção atual (12/08/2026): `https://curio-web-nu.vercel.app`.
-
-Os fluxos de **primeiro acesso** e **recuperação de senha** devem sempre retornar por `https://curio-web-nu.vercel.app/auth/confirm?next=/definir-senha`. Em produção, nunca gerar links de autenticação apontando para `localhost` nem para URLs efêmeras de preview.
-
 Fluxo recomendado:
 1. Registrar/comprar um domínio.
 2. Fazer deploy do Next.js na Vercel.

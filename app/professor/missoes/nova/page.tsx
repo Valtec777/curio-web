@@ -1,109 +1,66 @@
+import { randomUUID } from "node:crypto";
+import Link from "next/link";
+import { PageHeader } from "@/components/ui";
 import { getCurrentTeacher } from "@/lib/teacher";
-import { PageHeader, EmptyState } from "@/components/ui";
-import { createMission } from "../actions";
+import { MissionBuilder } from "./mission-builder";
 
-export default async function NewMissionPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ erro?: string }>;
-}) {
-  const params = await searchParams;
+export default async function NewMissionPage({ searchParams }: { searchParams: Promise<{ erro?: string; rascunho?: string; saida?: string }> }) {
+  const query = await searchParams;
   const { teacher, supabase } = await getCurrentTeacher();
-  if (!teacher) return <EmptyState title="Perfil incompleto" description="Falta o registro de professor." />;
+  if (!teacher) return null;
+  const sourceOutputType = query.saida === "quiz" ? "quiz" : "mission";
 
-  const [{ data: subjects }, { data: skills }] = await Promise.all([
-    supabase.from("subjects").select("id, name").eq("active", true).order("name"),
-    supabase.from("skills").select("id, name").eq("active", true).order("name"),
+  const [{ data: subjects }, { data: grades }, { data: skills }, { data: characters }, { data: studentLinks }] = await Promise.all([
+    supabase.from("subjects").select("id,name").eq("active", true).order("name"),
+    supabase.from("grades").select("id,name,sort_order").eq("active", true).order("sort_order"),
+    supabase.from("skills").select("id,name").eq("active", true).order("name").limit(180),
+    supabase.from("characters").select("id,name").eq("active", true).order("sort_order"),
+    supabase.from("teacher_students").select("student_id,students(preferred_name,full_name,school_name,deleted_at,grades(name))").eq("teacher_id", teacher.id).eq("active", true),
   ]);
 
-  return (
-    <>
-      <PageHeader
-        eyebrow="Missão Cuca"
-        title="Criar nova missão"
-        description="Crie um desafio interativo ligado a uma habilidade. A questão pode ser discursiva, múltipla escolha ou verdadeiro/falso."
-      />
+  let initialDraft: any = null;
+  if (query.rascunho) {
+    const { data: draft } = await supabase.from("content_preparation_drafts").select("id,title,objective,notes,subject_id,grade_id,estimated_minutes").eq("id", query.rascunho).eq("created_by_teacher_id", teacher.id).maybeSingle();
+    if (draft) {
+      const { data: questions } = await supabase.from("content_preparation_questions").select("question_type,prompt,options,correct_value,hint,position").eq("draft_id", draft.id).order("position");
+      initialDraft = {
+        title: draft.title || "",
+        objective: draft.objective || "",
+        description: draft.notes || "",
+        subjectId: draft.subject_id || "",
+        gradeId: draft.grade_id || "",
+        estimatedMinutes: draft.estimated_minutes || 20,
+        questions: (questions ?? []).map((question: any) => ({
+          type: question.question_type === "multiple_choice" || question.question_type === "true_false" ? question.question_type : "open_text",
+          prompt: question.prompt || "",
+          hint: question.hint || "",
+          options: Array.isArray(question.options) ? question.options : [],
+          correctValue: question.correct_value || null,
+        })),
+      };
+    }
+  }
 
-      {params.erro && <div className="form-message form-error">{params.erro}</div>}
+  const students = (studentLinks ?? []).filter((link: any) => link.students && !link.students.deleted_at).map((link: any) => ({
+    id: link.student_id,
+    name: link.students.preferred_name || link.students.full_name || "Aluno",
+    detail: link.students.grades?.name || link.students.school_name || "",
+  }));
+  const idempotencyKey = query.rascunho ? `content-draft:${query.rascunho}:${sourceOutputType}` : randomUUID();
 
-      <section className="panel">
-        <form action={createMission} className="form-stack">
-          <div className="form-row">
-            <div className="field">
-              <label>Título</label>
-              <input className="input" name="title" placeholder="Ex.: Detetive das pistas do texto" required />
-            </div>
-            <div className="field">
-              <label>Tempo estimado</label>
-              <input className="input" name="estimatedMinutes" type="number" min="5" max="180" defaultValue="20" required />
-            </div>
-          </div>
-
-          <div className="field">
-            <label>Objetivo da missão</label>
-            <textarea className="textarea" name="objective" placeholder="Explique em uma frase o que a criança deve conseguir ao terminar." required />
-          </div>
-
-          <div className="form-row">
-            <div className="field">
-              <label>Área / matéria</label>
-              <select className="select" name="subjectId" defaultValue="">
-                <option value="">Não definida</option>
-                {(subjects ?? []).map((subject) => (
-                  <option key={subject.id} value={subject.id}>{subject.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="field">
-              <label>Habilidade principal</label>
-              <select className="select" name="skillId" required defaultValue="">
-                <option value="" disabled>Selecione</option>
-                {(skills ?? []).map((skill) => (
-                  <option key={skill.id} value={skill.id}>{skill.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="field">
-            <label>Questão / desafio</label>
-            <textarea className="textarea" name="prompt" placeholder="Escreva o enunciado da questão." required />
-          </div>
-
-          <div className="form-row">
-            <div className="field">
-              <label>Tipo de questão</label>
-              <select className="select" name="questionType" defaultValue="open_text" required>
-                <option value="open_text">Discursiva</option>
-                <option value="multiple_choice">Múltipla escolha</option>
-                <option value="true_false">Verdadeiro ou falso</option>
-              </select>
-            </div>
-            <div className="field">
-              <label>Resposta correta (quando houver alternativas)</label>
-              <input className="input" name="correctAnswer" placeholder="Copie exatamente a alternativa correta" />
-            </div>
-          </div>
-
-          <div className="field">
-            <label>Alternativas para múltipla escolha</label>
-            <textarea className="textarea" name="choices" placeholder={"Uma alternativa por linha.\nEx.: 1/2\n2/4\n3/5"} />
-            <small className="muted">Em verdadeiro/falso, use como resposta correta exatamente “Verdadeiro” ou “Falso”.</small>
-          </div>
-
-          <div className="field">
-            <label>Pista opcional</label>
-            <input className="input" name="hint" placeholder="Ajude sem entregar a resposta." />
-          </div>
-
-          <div className="notice">
-            <strong>Missão = quiz/interação dentro do Curió.</strong> Ela é salva como rascunho e só chega ao aluno quando você publicar. Para atividade de papel/PDF, use Caderno Curió no Gerador/Materiais.
-          </div>
-
-          <button className="button button-primary" type="submit">Salvar Missão Cuca</button>
-        </form>
-      </section>
-    </>
-  );
+  return <>
+    <PageHeader eyebrow="Professor • Missões" title={sourceOutputType === "quiz" ? "Novo Quiz" : "Nova Missão Cuca"} description="Revise as questões antes de salvar. O Quiz reutiliza o mesmo motor seguro de questões e correções das Missões." action={<Link className="button button-secondary" href="/professor/missoes">Voltar às missões</Link>} />
+    {query.erro && <div className="form-message form-error">{query.erro}</div>}
+    <MissionBuilder
+      idempotencyKey={idempotencyKey}
+      subjects={(subjects ?? []).map((item: any) => ({ id: item.id, name: item.name }))}
+      grades={(grades ?? []).map((item: any) => ({ id: item.id, name: item.name }))}
+      skills={(skills ?? []).map((item: any) => ({ id: item.id, name: item.name }))}
+      characters={(characters ?? []).map((item: any) => ({ id: item.id, name: item.name }))}
+      students={students}
+      initialDraft={initialDraft}
+      sourceDraftId={query.rascunho || null}
+      sourceOutputType={sourceOutputType}
+    />
+  </>;
 }

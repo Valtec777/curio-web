@@ -1,0 +1,22 @@
+/* CURIÓ · Central de Indicações */
+.referral-share { display: grid; gap: 14px; margin-top: 6px; }
+.referral-link-box {
+  width: 100%;
+  padding: 15px 17px;
+  border: 1px solid var(--curio-border, #e2e6ef);
+  border-radius: 16px;
+  background: var(--curio-surface-soft, #f7f8fc);
+  color: var(--curio-text, #1e2a44);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.referral-share .button { min-height: 42px; }
+html[data-theme="dark"] .referral-link-box {
+  background: #171d28;
+  color: #f3f6fb;
+  border-color: #46536a;
+}
+
+@media (max-width: 640px) {
+  .referral-share .button { width: 100%; }
+}

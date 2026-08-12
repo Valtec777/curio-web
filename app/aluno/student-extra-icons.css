@@ -1,0 +1,5 @@
+.student-certificate-copy { display:flex; align-items:center; gap:14px; }
+.student-certificate-icon { width:56px; height:56px; display:grid; place-items:center; flex:0 0 56px; border-radius:20px; background:#fff; color:#6a53d8; box-shadow:0 10px 28px rgba(50,57,120,.08); }
+.student-certificate-icon .nav-icon-svg { width:29px; height:29px; }
+html[data-theme="dark"] .student-certificate-icon { background:#252c3b; color:#e5e9ff; }
+@media(max-width:620px){ .student-certificate-copy{align-items:flex-start;} }
