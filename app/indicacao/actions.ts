@@ -5,7 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
 const referralLeadSchema = z.object({
-  referral_code: z.string().trim().min(12).max(40),
+  referral_code: z.string().trim().min(6).max(40),
   guardian_name: z.string().trim().min(2).max(120),
   phone_whatsapp: z.string().trim().min(8).max(40),
   email: z.string().trim().email().max(200),
@@ -36,13 +36,23 @@ export async function createReferralEnrollmentRequest(formData: FormData) {
   if (!parsed.success) return referralReturn(String(formData.get("referral_code") || "invalido"), "erro");
 
   const data = parsed.data;
+  const normalizedCode = data.referral_code.toUpperCase();
   const supabase = await createClient();
-  const [{ data: referralCode }, { data: grade }] = await Promise.all([
-    supabase.from("referral_codes").select("id,code,active").eq("code", data.referral_code).eq("active", true).maybeSingle(),
-    supabase.from("grades").select("id").eq("name", data.grade_name).maybeSingle(),
-  ]);
 
-  if (!referralCode) return referralReturn(data.referral_code, "erro");
+  // Usa a RPC pública existente: ela valida código ativo e programa ativo sem expor
+  // guardian_id/teacher_id na Data API.
+  const { data: landing, error: landingError } = await supabase.rpc("referral_landing", {
+    p_code: normalizedCode,
+  });
+  const landingRow = Array.isArray(landing) ? landing[0] : landing;
+  if (landingError || !landingRow?.program_active) return referralReturn(normalizedCode, "erro");
+
+  const { data: grade } = await supabase
+    .from("grades")
+    .select("id")
+    .eq("name", data.grade_name)
+    .eq("active", true)
+    .maybeSingle();
 
   const { error: enrollmentError } = await supabase.from("enrollment_requests").insert({
     guardian_name: data.guardian_name,
@@ -56,23 +66,16 @@ export async function createReferralEnrollmentRequest(formData: FormData) {
     message: "Interesse recebido por link de indicação.",
     consent_contact: true,
     status: "new",
+    referral_code: normalizedCode,
   });
 
   if (enrollmentError) {
     console.error("Falha ao registrar interesse indicado", enrollmentError.code);
-    return referralReturn(data.referral_code, "erro");
+    return referralReturn(normalizedCode, "erro");
   }
 
-  const { error: referralError } = await supabase.from("referral_leads").insert({
-    referral_code_id: referralCode.id,
-    referred_email: data.email.toLowerCase(),
-  });
-
-  // O interesse comercial já foi registrado. Duplicidade, autoindicação ou outro
-  // bloqueio de elegibilidade não deve apagar o contato; apenas impede recompensa.
-  if (referralError) {
-    console.warn("Indicação registrada sem elegibilidade automática", referralError.code);
-  }
-
-  return referralReturn(data.referral_code, "sucesso");
+  // O trigger trg_capture_referral_lead cria public.referrals e, quando o código é de
+  // professor, liga a solicitação ao professor sem o formulário precisar de acesso
+  // privilegiado às tabelas internas do programa.
+  return referralReturn(normalizedCode, "sucesso");
 }
