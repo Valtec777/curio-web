@@ -209,16 +209,67 @@ export async function assignTeacherResource(formData: FormData) {
   }
   if (!studentIds.length) redirect(`/professor/materiais?erro=${encodeURIComponent("Escolha pelo menos um aluno.")}`);
   const dueAt = bahiaDateTime(parsed.data.dueAt, true);
+  let preservedHistory = 0;
 
   if (parsed.data.kind === "notebook") {
-    const { error } = await supabase.from("notebook_assignments").upsert(
-      studentIds.map((studentId) => ({ activity_id: parsed.data.id, student_id: studentId, assigned_by_teacher_id: teacher.id, due_at: dueAt, status: "assigned" })),
-      { onConflict: "activity_id,student_id" },
-    );
-    if (error) redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível enviar o Caderno Curió.")}`);
+    const { data: existingRows, error: existingError } = await supabase
+      .from("notebook_assignments")
+      .select("student_id,status,submitted_at,submission_photo_path,score,teacher_note,needs_redo")
+      .eq("activity_id", parsed.data.id)
+      .in("student_id", studentIds);
+    if (existingError) redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível verificar o histórico do Caderno Curió antes do envio.")}`);
+
+    const existingByStudent = new Map((existingRows ?? []).map((row: any) => [row.student_id, row]));
+    const payload = studentIds.flatMap((studentId) => {
+      const current: any = existingByStudent.get(studentId);
+      const hasHistory = Boolean(
+        current
+        && (
+          current.submitted_at
+          || current.submission_photo_path
+          || current.score != null
+          || current.teacher_note
+          || current.needs_redo
+          || ["submitted", "reviewed"].includes(current.status)
+        )
+      );
+      if (hasHistory) {
+        preservedHistory += 1;
+        return [];
+      }
+      return [{
+        activity_id: parsed.data.id,
+        student_id: studentId,
+        assigned_by_teacher_id: teacher.id,
+        due_at: dueAt,
+        status: current?.status === "in_progress" ? "in_progress" : "assigned",
+      }];
+    });
+
+    if (payload.length) {
+      const { error } = await supabase.from("notebook_assignments").upsert(payload, { onConflict: "activity_id,student_id" });
+      if (error) redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível enviar o Caderno Curió.")}`);
+    }
   } else {
+    const { data: existingRows, error: existingError } = await supabase
+      .from("material_assignments")
+      .select("student_id,status")
+      .eq("material_id", parsed.data.id)
+      .in("student_id", studentIds);
+    if (existingError) redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível verificar as atribuições atuais do material.")}`);
+
+    const existingByStudent = new Map((existingRows ?? []).map((row: any) => [row.student_id, row.status]));
     const { error } = await supabase.from("material_assignments").upsert(
-      studentIds.map((studentId) => ({ material_id: parsed.data.id, student_id: studentId, assigned_by_teacher_id: teacher.id, due_at: dueAt, status: "assigned" })),
+      studentIds.map((studentId) => {
+        const currentStatus = existingByStudent.get(studentId);
+        return {
+          material_id: parsed.data.id,
+          student_id: studentId,
+          assigned_by_teacher_id: teacher.id,
+          due_at: dueAt,
+          status: currentStatus === "viewed" || currentStatus === "completed" ? currentStatus : "assigned",
+        };
+      }),
       { onConflict: "material_id,student_id" },
     );
     if (error) redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível enviar o material para todos os alunos selecionados.")}`);
@@ -226,7 +277,11 @@ export async function assignTeacherResource(formData: FormData) {
 
   revalidatePath("/professor/materiais");
   revalidatePath("/aluno");
-  redirect(`/professor/materiais?sucesso=${encodeURIComponent(`Enviado para ${studentIds.length} aluno(s).`)}`);
+  const baseMessage = `Enviado para ${studentIds.length - preservedHistory} aluno(s).`;
+  const historyMessage = preservedHistory
+    ? ` ${preservedHistory} aluno(s) já tinham entrega/correção neste Caderno e foram preservados; duplique o Caderno para criar uma nova tentativa independente.`
+    : "";
+  redirect(`/professor/materiais?sucesso=${encodeURIComponent(`${baseMessage}${historyMessage}`)}`);
 }
 
 export async function duplicateTeacherResource(formData: FormData) {
