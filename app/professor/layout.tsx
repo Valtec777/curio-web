@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/app-shell";
+import { CurioFirstVisitGuide } from "@/components/curio-first-visit-guide";
 import { MonthlyInterestPrompt } from "@/components/monthly-interest-prompt";
 import { getCurrentTeacher } from "@/lib/teacher";
 import { shouldShowMonthlyInterest } from "@/lib/monthly-interest";
@@ -32,6 +33,7 @@ export default async function TeacherLayout({ children }: { children: React.Reac
       metricValue={activeStudents ?? 0}
     >
       {children}
+      <CurioFirstVisitGuide role="teacher" viewerId={viewer.user.id} supportHref="/professor/suporte" />
       {showInterest ? <MonthlyInterestPrompt role="teacher" /> : null}
     </AppShell>
   );
