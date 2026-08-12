@@ -12,7 +12,7 @@ export default async function CourseCertificatePage({ params }: { params: Promis
   const { student, supabase } = await getCurrentStudent();
   const { data: certificate } = await supabase
     .from("free_course_certificates")
-    .select("certificate_code,issued_at,free_courses(title,slug,estimated_minutes),students(full_name,preferred_name)")
+    .select("certificate_code,issued_at,free_courses(title,slug,estimated_minutes,certificate_config),students(full_name,preferred_name)")
     .eq("course_id", id)
     .eq("student_id", student.id)
     .maybeSingle();
@@ -20,6 +20,10 @@ export default async function CourseCertificatePage({ params }: { params: Promis
   if (!certificate) notFound();
   const course: any = certificate.free_courses;
   const certificateStudent: any = certificate.students;
+  const config = course?.certificate_config && typeof course.certificate_config === "object" ? course.certificate_config : {};
+  const certificateTitle = config.title || "Certificado de conclusão";
+  const signatoryName = config.signatory_name || null;
+  const signatoryRole = config.signatory_role || null;
   const validationHref = `/certificados/validar?codigo=${encodeURIComponent(certificate.certificate_code)}`;
   const backHref = course?.slug ? `/aluno/modo-pensar/${encodeURIComponent(course.slug)}` : "/aluno/modo-pensar";
 
@@ -33,7 +37,7 @@ export default async function CourseCertificatePage({ params }: { params: Promis
       </div>
       <section className="certificate-sheet">
         <div className="certificate-mark">CURIÓ</div>
-        <div className="eyebrow">Certificado de conclusão</div>
+        <div className="eyebrow">{certificateTitle}</div>
         <h1>Certificamos que</h1>
         <h2 className="certificate-name">{certificateStudent?.full_name || certificateStudent?.preferred_name || student.full_name}</h2>
         <p>concluiu a trilha do Modo Pensar</p>
@@ -42,9 +46,10 @@ export default async function CourseCertificatePage({ params }: { params: Promis
         <div className="certificate-signature">
           <div><span>Emitido em</span><strong>{issueDate(certificate.issued_at)}</strong></div>
           <div><span>Código de validação</span><strong>{certificate.certificate_code}</strong></div>
+          {signatoryName ? <div><span>Responsável</span><strong>{signatoryName}</strong>{signatoryRole ? <small>{signatoryRole}</small> : null}</div> : null}
         </div>
         <p className="certificate-validation no-print"><Link href={validationHref}>Verificar autenticidade deste certificado</Link></p>
-        <footer>CURIÓ · Tecnologia ajuda. Seu cérebro resolve. · curio.educacao@gmail.com</footer>
+        <footer>CURIÓ · Modo Pensar · certificado digital verificável</footer>
       </section>
     </div>
   );
