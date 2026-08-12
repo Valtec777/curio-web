@@ -56,7 +56,7 @@ export async function convertPreparationDraft(formData: FormData) {
     const copied = await copySourceFile({ supabase, userId: viewer.user.id, draft });
     if (copied && "error" in copied) {
       await supabase.from("content_preparation_outputs").delete().eq("draft_id", draft.id).eq("output_type", outputType);
-      back(draft.id, "erro", copied.error);
+      back(draft.id, "erro", copied.error || "Não foi possível copiar o arquivo fonte.");
     }
     filePath = copied?.path || null;
   }
