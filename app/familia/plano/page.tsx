@@ -18,6 +18,10 @@ function intervalLabel(value?: string | null) {
   return "Mensal";
 }
 
+function relationOne<T>(value: T | T[] | null | undefined): T | null {
+  return Array.isArray(value) ? value[0] ?? null : value ?? null;
+}
+
 export default async function FamilyPlanPage({ searchParams }: { searchParams: Promise<{ aluno?: string }> }) {
   const query = await searchParams;
   const { guardian, selectedChild, supabase } = await getFamilyPortal(query.aluno || null);
@@ -33,7 +37,8 @@ export default async function FamilyPlanPage({ searchParams }: { searchParams: P
     supabase.rpc("plan_consumption_for_student", { p_student_id: selectedChild.student_id }),
   ]);
 
-  const current = subscriptions?.find((sub: any) => ["active", "pending", "paused"].includes(sub.status)) || subscriptions?.[0] || null;
+  const current: any = subscriptions?.find((sub: any) => ["active", "pending", "paused"].includes(sub.status)) || subscriptions?.[0] || null;
+  const currentPlan: any = relationOne(current?.plans as any);
   const rows = usageRows ?? [];
   const first: any = rows[0];
 
@@ -47,10 +52,10 @@ export default async function FamilyPlanPage({ searchParams }: { searchParams: P
             <Badge tone={current.status === "active" ? "green" : current.status === "paused" ? "pink" : current.status === "pending" ? "yellow" : "neutral"}>
               {current.status === "active" ? "Ativo" : current.status === "paused" ? "Pausado" : current.status === "pending" ? "Pagamento pendente" : current.status}
             </Badge>
-            <h2>{current.plans?.name || "Plano CURIÓ"}</h2>
-            <p>{current.plans?.description || "Acompanhamento escolar CURIÓ."}</p>
+            <h2>{currentPlan?.name || "Plano CURIÓ"}</h2>
+            <p>{currentPlan?.description || "Acompanhamento escolar CURIÓ."}</p>
           </div>
-          <div><strong style={{ fontSize: 24 }}>{money(current.agreed_monthly_price ?? current.plans?.monthly_price)}</strong><div className="muted text-small">{intervalLabel(current.plans?.billing_interval)}</div></div>
+          <div><strong style={{ fontSize: 24 }}>{money(current.agreed_monthly_price ?? currentPlan?.monthly_price)}</strong><div className="muted text-small">{intervalLabel(currentPlan?.billing_interval)}</div></div>
         </div>
 
         <div className="grid-3 mt-16">
@@ -59,7 +64,7 @@ export default async function FamilyPlanPage({ searchParams }: { searchParams: P
           <article className="family-summary-card"><span>Situação</span><h3>{current.status === "active" ? "Acompanhamento ativo" : current.status === "paused" ? "Temporariamente pausado" : current.status === "pending" ? "Pagamento pendente" : current.status}</h3><p>{current.status === "pending" ? "A confirmação financeira ainda depende da administração." : current.status === "paused" ? "Alguns recursos podem ficar temporariamente indisponíveis." : "Plano em acompanhamento."}</p></article>
         </div>
 
-        {Array.isArray(current.plans?.features) && current.plans.features.length ? <div className="flex gap-8 wrap mt-16">{current.plans.features.map((feature: any, index: number) => <Badge tone="blue" key={`${String(feature)}-${index}`}>{typeof feature === "string" ? feature : feature?.label || feature?.name || "Benefício"}</Badge>)}</div> : null}
+        {Array.isArray(currentPlan?.features) && currentPlan.features.length ? <div className="flex gap-8 wrap mt-16">{currentPlan.features.map((feature: any, index: number) => <Badge tone="blue" key={`${String(feature)}-${index}`}>{typeof feature === "string" ? feature : feature?.label || feature?.name || "Benefício"}</Badge>)}</div> : null}
       </section> : null}
 
       <section className="panel">
@@ -74,7 +79,10 @@ export default async function FamilyPlanPage({ searchParams }: { searchParams: P
 
       {subscriptions && subscriptions.length > 1 ? <section className="panel">
         <div className="panel-head"><div><h2>Histórico de planos</h2><p>Planos anteriores ficam registrados sem apagar o histórico da matrícula.</p></div></div>
-        <div className="form-stack">{subscriptions.filter((sub: any) => sub.id !== current?.id).map((sub: any) => <article className="family-upload-card" key={sub.id}><div className="flex space-between gap-8 wrap"><div><Badge tone="neutral">{sub.status}</Badge><strong>{sub.plans?.name || "Plano CURIÓ"}</strong></div><strong>{money(sub.agreed_monthly_price ?? sub.plans?.monthly_price)}</strong></div><small className="muted">{date(sub.starts_at)} → {sub.ends_at ? date(sub.ends_at) : "—"}</small></article>)}</div>
+        <div className="form-stack">{subscriptions.filter((sub: any) => sub.id !== current?.id).map((sub: any) => {
+          const historicalPlan: any = relationOne(sub.plans as any);
+          return <article className="family-upload-card" key={sub.id}><div className="flex space-between gap-8 wrap"><div><Badge tone="neutral">{sub.status}</Badge><strong>{historicalPlan?.name || "Plano CURIÓ"}</strong></div><strong>{money(sub.agreed_monthly_price ?? historicalPlan?.monthly_price)}</strong></div><small className="muted">{date(sub.starts_at)} → {sub.ends_at ? date(sub.ends_at) : "—"}</small></article>;
+        })}</div>
       </section> : null}
 
       {!subscriptions?.length ? <EmptyState title="Nenhum plano vinculado" description={`Quando o plano de ${selectedChild.student_name} for configurado, ele aparecerá aqui.`} /> : null}
