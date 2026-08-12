@@ -128,6 +128,45 @@ const events: SeasonalEvent[] = [
       "6-8": "Colete uma pequena amostra de dados sobre consumo, resíduos ou mobilidade e escreva uma proposta com indicador para verificar se funcionou.",
     },
   },
+  {
+    slug: "trabalho-profissoes",
+    title: "Profissões que resolvem problemas",
+    eyebrow: "Trabalho e profissões",
+    description: "Uma investigação sobre o que diferentes profissionais fazem, quais problemas resolvem e que conhecimentos usam.",
+    decorations: ["🧰", "🧠", "🩺", "🏗️", "🧰"],
+    fixedWindow: { start: 429, end: 502 },
+    mission: {
+      "1-3": "Escolha uma profissão, desenhe uma situação em que ela ajuda alguém e escreva três coisas que essa pessoa precisa saber fazer.",
+      "4-5": "Entreviste ou pesquise uma profissão e organize: problema que resolve, conhecimentos usados, ferramentas e um mito sobre esse trabalho.",
+      "6-8": "Compare duas profissões que atuam sobre o mesmo problema e explique como conhecimentos, responsabilidades e decisões são diferentes.",
+    },
+  },
+  {
+    slug: "livro-leitura",
+    title: "Detetives de histórias",
+    eyebrow: "Livro e leitura",
+    description: "Leitura ativa para perceber pistas, pontos de vista, escolhas do autor e relações entre texto e imagem.",
+    decorations: ["📚", "🔖", "🔎", "✍️", "📚"],
+    fixedWindow: { start: 416, end: 420 },
+    mission: {
+      "1-3": "Escolha uma história curta, encontre começo, problema e solução e crie uma nova capa que dê uma pista sem contar o final.",
+      "4-5": "Escolha um personagem e reúna três evidências do texto que mostrem como ele pensa, sente ou muda ao longo da história.",
+      "6-8": "Compare como narrador, escolha de palavras e organização de cenas mudam a interpretação de um trecho literário.",
+    },
+  },
+  {
+    slug: "agua",
+    title: "Missão cada gota conta",
+    eyebrow: "Água e ciência",
+    description: "Uma investigação curta sobre uso da água, medidas, ciclo e escolhas cotidianas.",
+    decorations: ["💧", "🔬", "☁️", "🌱", "💧"],
+    fixedWindow: { start: 320, end: 323 },
+    mission: {
+      "1-3": "Liste três usos da água no seu dia, escolha um para observar e desenhe uma forma de evitar desperdício.",
+      "4-5": "Estime e depois meça, quando possível, quanto tempo uma torneira fica aberta em uma tarefa e proponha uma comparação mais econômica.",
+      "6-8": "Crie uma pequena investigação com hipótese e dados sobre consumo ou qualidade da água e separe claramente observação de conclusão.",
+    },
+  },
 ];
 
 function bahiaParts(date: Date) {
@@ -138,7 +177,7 @@ function bahiaParts(date: Date) {
     day: "2-digit",
   });
   const parts = formatter.formatToParts(date);
-  const value = (type: Intl.DateTimeFormatPartTypes) => Number(parts.find((part) => part.type === type)?.value || 0);
+  const value = (type: "year" | "month" | "day") => Number(parts.find((part) => part.type === type)?.value || 0);
   return { year: value("year"), month: value("month"), day: value("day") };
 }
 
