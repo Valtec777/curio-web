@@ -55,6 +55,7 @@ const menus: Record<AppRole, NavItem[]> = {
     { href: "/professor/agenda", label: "Agenda", group: "Visão geral" },
     { href: "/professor/reunioes", label: "Reuniões", group: "Visão geral" },
     { href: "/professor/alunos", label: "Alunos", group: "Acompanhamento" },
+    { href: "/professor/limites", label: "Planos e limites", group: "Acompanhamento" },
     { href: "/professor/turmas", label: "Turmas", group: "Acompanhamento" },
     { href: "/professor/mapa", label: "Mapa Pedagógico", group: "Acompanhamento" },
     { href: "/professor/grupos", label: "Grupos Pedagógicos", group: "Acompanhamento" },
