@@ -1,65 +1,40 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { useCurioSounds } from "@/components/use-curio-sounds";
 import styles from "./curio-playful-sound-effects.module.css";
 
-function normalizedLabel(element: Element) {
-  return (element.getAttribute("aria-label") || element.textContent || "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLocaleLowerCase("pt-BR");
-}
-
-function belongsToCurioHelp(element: Element) {
-  const dialog = element.closest('[role="dialog"]');
-  const dialogLabel = dialog?.getAttribute("aria-labelledby") || "";
-  if (dialogLabel.startsWith("curio-")) return true;
-
-  const menu = element.closest('[role="menu"]');
-  const menuLabel = menu?.getAttribute("aria-label") || "";
-  if (menuLabel.toLocaleLowerCase("pt-BR").includes("cURIÓ".toLocaleLowerCase("pt-BR"))) return true;
-
-  return normalizedLabel(element) === "como usar";
+function normalizedSuccess(params: URLSearchParams) {
+  return (params.get("sucesso") || "").replace(/\s+/g, " ").trim().toLocaleLowerCase("pt-BR");
 }
 
 export function CurioPlayfulSoundEffects({ viewerId }: { viewerId: string }) {
+  const pathname = usePathname();
   const { enabled, play, toggle } = useCurioSounds(viewerId);
+  const playedLocationRef = useRef("");
 
   useEffect(() => {
-    const onClick = (event: MouseEvent) => {
-      const origin = event.target;
-      if (!(origin instanceof Element)) return;
+    if (typeof window === "undefined") return;
+    if (!pathname.startsWith("/aluno/missoes")) return;
 
-      const control = origin.closest("button, a");
-      if (!control || control.hasAttribute("data-curio-sound-toggle")) return;
-      if (!belongsToCurioHelp(control)) return;
+    const params = new URLSearchParams(window.location.search);
+    const success = normalizedSuccess(params);
+    const missionCompleted = success.includes("missão enviada") || success.includes("missão concluída");
+    if (!missionCompleted) return;
 
-      const label = normalizedLabel(control);
+    const locationKey = `${window.location.pathname}${window.location.search}`;
+    if (playedLocationRef.current === locationKey) return;
+    playedLocationRef.current = locationKey;
 
-      if (label.includes("concluir")) {
-        play("celebrate");
-        return;
-      }
-      if (label.includes("próximo")) {
-        play("step");
-        return;
-      }
-      if (label.includes("começar tour") || label.includes("ver tour completo") || label.includes("explicar esta página")) {
-        play("discover");
-        return;
-      }
-      if (label === "entendi") {
-        play("success");
-        return;
-      }
+    play("mission-complete");
 
-      play("tap");
-    };
-
-    document.addEventListener("click", onClick, true);
-    return () => document.removeEventListener("click", onClick, true);
-  }, [play]);
+    const achievementCount = Math.max(0, Number(params.get("conquistas") || 0));
+    if (achievementCount > 0) {
+      const timer = window.setTimeout(() => play("achievement"), 560);
+      return () => window.clearTimeout(timer);
+    }
+  }, [pathname, play]);
 
   return (
     <button
@@ -68,8 +43,8 @@ export function CurioPlayfulSoundEffects({ viewerId }: { viewerId: string }) {
       data-curio-sound-toggle
       data-enabled={enabled ? "true" : "false"}
       aria-pressed={enabled}
-      aria-label={enabled ? "Desativar sons do CURIÓ" : "Ativar sons do CURIÓ"}
-      title={enabled ? "Sons ligados · clique para desligar" : "Sons desligados · clique para ligar"}
+      aria-label={enabled ? "Desativar sons de Missões e Conquistas" : "Ativar sons de Missões e Conquistas"}
+      title={enabled ? "Sons de Missões e Conquistas ligados · clique para desligar" : "Sons de Missões e Conquistas desligados · clique para ligar"}
       onClick={toggle}
     >
       <span aria-hidden="true">{enabled ? "🔊" : "🔇"}</span>
