@@ -18,6 +18,7 @@ import "./final-polish.css";
 import "./referrals.css";
 import "./mobile-tablet-final.css";
 import "./mobile-tablet-complete.css";
+import "./mobile-targeted-fixes.css";
 import "./dark-mode-safety.css";
 
 const fredoka = Fredoka({ subsets: ["latin"], variable: "--font-curio-display", weight: ["500", "600", "700"], display: "swap" });
