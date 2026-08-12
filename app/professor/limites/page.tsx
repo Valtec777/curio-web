@@ -11,7 +11,7 @@ function date(value?: string | null) {
 
 export default async function TeacherPlanLimitsPage() {
   const { teacher, supabase } = await getCurrentTeacher();
-  if (!teacher) return <EmptyState title="Perfil incompleto" description="A administração precisa concluir seu perfil de professor." />;
+  if (!teacher) return <EmptyState title="Perfil incompleto" description="Seu perfil de professor ainda precisa ser concluído para exibir os alunos vinculados." />;
 
   const [{ data: links }, { data: usageRows }] = await Promise.all([
     supabase
@@ -30,11 +30,11 @@ export default async function TeacherPlanLimitsPage() {
     <PageHeader
       eyebrow="Professor • Acompanhamento"
       title="Planos e limites"
-      description="Veja o que cada aluno já utilizou neste ciclo antes de agendar, enviar ou liberar um novo recurso."
+      description="Veja o que cada aluno ainda tem disponível no ciclo atual antes de agendar encontros ou liberar novos recursos."
     />
 
     <div className="notice">
-      Os limites vêm do plano configurado pelo Admin. O Professor não precisa acessar valores financeiros para saber o que ainda está disponível.
+      Os limites acompanham o plano atual do aluno. Quando o plano é atualizado, esta tela passa a considerar a nova configuração automaticamente.
     </div>
 
     {visible.length ? <div className="form-stack mt-16">{visible.map((link: any) => {
@@ -42,8 +42,8 @@ export default async function TeacherPlanLimitsPage() {
       const rows = byStudent.get(link.student_id) || [];
       if (!rows.length) {
         return <article className="mission-card" key={link.student_id}>
-          <div className="flex space-between gap-8 wrap"><div><strong>{student.preferred_name || student.full_name}</strong><p>{student.grades?.name || "Ano não informado"} · {student.school_name || "Escola não informada"}</p></div><Badge tone="neutral">Sem plano configurado</Badge></div>
-          <p className="muted">O acompanhamento pedagógico continua visível, mas não há um ciclo comercial para calcular limites deste aluno.</p>
+          <div className="flex space-between gap-8 wrap"><div><strong>{student.preferred_name || student.full_name}</strong><p>{student.grades?.name || "Ano não informado"} · {student.school_name || "Escola não informada"}</p></div><Badge tone="neutral">Plano a confirmar</Badge></div>
+          <p className="muted">Assim que o plano deste aluno estiver ativo, os recursos e limites do ciclo aparecerão aqui.</p>
           <Link className="button button-secondary button-small" href={`/professor/alunos/${link.student_id}`}>Ver aluno</Link>
         </article>;
       }
@@ -52,10 +52,10 @@ export default async function TeacherPlanLimitsPage() {
       const warningCount = rows.filter((row: any) => ["warning", "reached", "blocked", "paused"].includes(row.usage_state)).length;
       return <article className="mission-card" key={link.student_id}>
         <div className="flex space-between gap-8 wrap">
-          <div><strong>{student.preferred_name || student.full_name}</strong><p>{first.plan_name} · ciclo {date(first.cycle_start)} a {date(first.cycle_end)}</p></div>
+          <div><strong>{student.preferred_name || student.full_name}</strong><p>{first.plan_name} · {date(first.cycle_start)} a {date(first.cycle_end)}</p></div>
           <div className="flex gap-8 wrap">
             <Badge tone={first.subscription_status === "active" ? "green" : first.subscription_status === "paused" ? "pink" : "yellow"}>{first.subscription_status === "active" ? "Plano ativo" : first.subscription_status === "paused" ? "Plano pausado" : "Pagamento pendente"}</Badge>
-            <Badge tone={warningCount ? "yellow" : "blue"}>{warningCount ? `${warningCount} atenção` : `Renova em ${date(first.renews_on)}`}</Badge>
+            <Badge tone={warningCount ? "yellow" : "blue"}>{warningCount ? `${warningCount} item(ns) pedem atenção` : `Renova em ${date(first.renews_on)}`}</Badge>
           </div>
         </div>
 
@@ -63,7 +63,7 @@ export default async function TeacherPlanLimitsPage() {
           <Badge tone={planUsageTone(row.usage_state)}>{planUsageStateLabel(row.usage_state)}</Badge>
           <h3>{!row.enabled ? "—" : row.limit_per_cycle == null ? `${row.used_units}` : `${row.used_units}/${row.limit_per_cycle}`}</h3>
           <p>{planResourceLabel(row.resource_key)}</p>
-          {row.limit_per_cycle != null && row.enabled ? <small className="muted">{row.remaining_units > 0 ? `${row.remaining_units} restante(s)` : "Nenhum restante neste ciclo"}</small> : row.enabled ? <small className="muted">Uso acompanhado, sem teto configurado</small> : <small className="muted">O plano atual não inclui este recurso</small>}
+          {row.limit_per_cycle != null && row.enabled ? <small className="muted">{row.remaining_units > 0 ? `${row.remaining_units} restante(s)` : "Limite do ciclo atingido"}</small> : row.enabled ? <small className="muted">Sem limite definido neste plano</small> : <small className="muted">Recurso não incluído no plano atual</small>}
         </div>)}</div>
 
         <div className="flex gap-8 wrap mt-16"><Link className="button button-secondary button-small" href={`/professor/alunos/${link.student_id}`}>Ver aluno</Link><Link className="button button-ghost button-small" href="/professor/agenda#novo">Ir para Agenda</Link></div>
