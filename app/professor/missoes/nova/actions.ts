@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getCurrentTeacher } from "@/lib/teacher";
+import { planLimitErrorMessage } from "@/lib/plan-usage";
 
 const baseSchema = z.object({
   idempotencyKey: z.string().min(8).max(160),
@@ -134,7 +135,8 @@ export async function createMissionWithQuestions(formData: FormData) {
     const { error: assignmentError } = await supabase.rpc("assign_mission_to_students", { p_mission_id: missionId, p_student_ids: studentIds, p_due_at: bahiaDueDate(String(formData.get("dueAt") || "")) });
     if (assignmentError) {
       console.error("Falha ao publicar missão para alunos", assignmentError.code);
-      redirect(`/professor/missoes?erro=${encodeURIComponent("A missão ficou salva como rascunho, mas não foi publicada. Abra ‘Enviar / atualizar alunos’ e escolha somente alunos ativos.")}`);
+      const planMessage = planLimitErrorMessage(assignmentError);
+      redirect(`/professor/missoes?erro=${encodeURIComponent(planMessage || "A missão ficou salva como rascunho, mas não foi publicada. Revise os alunos selecionados e tente novamente.")}`);
     }
   }
 
@@ -142,6 +144,7 @@ export async function createMissionWithQuestions(formData: FormData) {
   revalidatePath("/professor/criar");
   if (parsed.data.sourceDraftId) revalidatePath(`/professor/criar/revisao/${parsed.data.sourceDraftId}`);
   revalidatePath("/professor/missoes");
+  revalidatePath("/professor/limites");
   revalidatePath("/professor/conteudos");
   revalidatePath("/aluno/missoes");
   const typeLabel = parsed.data.sourceOutputType === "quiz" ? "Quiz" : "Missão";
