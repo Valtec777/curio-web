@@ -89,7 +89,7 @@ export async function submitMission(formData: FormData) {
       ? "Missão enviada!"
       : `Missão enviada e corrigida automaticamente: ${score}% nas questões objetivas.`;
 
-  const query = new URLSearchParams({ sucesso: message });
+  const query = new URLSearchParams({ sucesso: message, evento: submission.id });
   if (newAchievements > 0) query.set("conquistas", String(newAchievements));
   redirect(`/aluno/missoes?${query.toString()}`);
 }
