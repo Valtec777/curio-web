@@ -96,6 +96,41 @@
   color: rgba(255, 255, 255, .82);
 }
 
+:global(html[data-theme="dark"]) .section {
+  background: linear-gradient(180deg, #171d27 0%, #1b2230 100%);
+  color: #eef2f8;
+}
+
+:global(html[data-theme="dark"]) .section::before {
+  background: rgba(126, 111, 255, .10);
+}
+
+:global(html[data-theme="dark"]) .intro h2,
+:global(html[data-theme="dark"]) .card h3 {
+  color: #f7f9fc;
+}
+
+:global(html[data-theme="dark"]) .intro > p,
+:global(html[data-theme="dark"]) .card p {
+  color: #b9c3d4;
+}
+
+:global(html[data-theme="dark"]) .card {
+  background: #202733;
+  border-color: #3d485b;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .16);
+}
+
+:global(html[data-theme="dark"]) .number {
+  background: #303a55;
+  color: #dcd8ff;
+}
+
+:global(html[data-theme="dark"]) .note {
+  background: #0f1520;
+  border: 1px solid #364155;
+}
+
 @media (max-width: 960px) {
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -114,6 +149,7 @@
 
   .card {
     min-height: 0;
+    padding: 20px;
   }
 
   .note {
