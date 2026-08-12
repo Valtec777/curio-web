@@ -36,10 +36,6 @@
   box-shadow: 0 12px 30px rgba(30,37,100,.16);
 }
 
-.family-sidebar-child-mobile {
-  display: none;
-}
-
 .family-sidebar-child label {
   color: #6b7894;
   font-size: 10px;
@@ -230,14 +226,7 @@ html[data-theme="dark"] .family-chat-list { background: #181e2a; border-color: #
 }
 
 @media (max-width: 820px) {
-  .family-sidebar-child-sidebar { display: none; }
-  .family-sidebar-child-mobile {
-    display: grid;
-    margin: 0 0 16px;
-    border-color: #dfe4ef;
-    background: #fff;
-    box-shadow: 0 10px 28px rgba(30,37,100,.08);
-  }
+  .family-sidebar-child { display: none; }
   .family-overview-hero,
   .family-chat-shell { grid-template-columns: 1fr; }
   .family-chat-list { border-right: 0; border-bottom: 1px solid #e8eaf1; }
