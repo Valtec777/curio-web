@@ -16,7 +16,7 @@ const referralLeadSchema = z.object({
   consent_contact: z.literal("on"),
 });
 
-function referralReturn(code: string, state: "sucesso" | "erro") {
+function referralReturn(code: string, state: "sucesso" | "erro"): never {
   redirect(`/indicacao/${encodeURIComponent(code)}?lead=${state}`);
 }
 
@@ -33,7 +33,7 @@ export async function createReferralEnrollmentRequest(formData: FormData) {
     consent_contact: formData.get("consent_contact"),
   });
 
-  if (!parsed.success) referralReturn(String(formData.get("referral_code") || "invalido"), "erro");
+  if (!parsed.success) return referralReturn(String(formData.get("referral_code") || "invalido"), "erro");
 
   const data = parsed.data;
   const supabase = await createClient();
@@ -42,7 +42,7 @@ export async function createReferralEnrollmentRequest(formData: FormData) {
     supabase.from("grades").select("id").eq("name", data.grade_name).maybeSingle(),
   ]);
 
-  if (!referralCode) referralReturn(data.referral_code, "erro");
+  if (!referralCode) return referralReturn(data.referral_code, "erro");
 
   const { error: enrollmentError } = await supabase.from("enrollment_requests").insert({
     guardian_name: data.guardian_name,
@@ -60,7 +60,7 @@ export async function createReferralEnrollmentRequest(formData: FormData) {
 
   if (enrollmentError) {
     console.error("Falha ao registrar interesse indicado", enrollmentError.code);
-    referralReturn(data.referral_code, "erro");
+    return referralReturn(data.referral_code, "erro");
   }
 
   const { error: referralError } = await supabase.from("referral_leads").insert({
@@ -74,5 +74,5 @@ export async function createReferralEnrollmentRequest(formData: FormData) {
     console.warn("Indicação registrada sem elegibilidade automática", referralError.code);
   }
 
-  referralReturn(data.referral_code, "sucesso");
+  return referralReturn(data.referral_code, "sucesso");
 }
