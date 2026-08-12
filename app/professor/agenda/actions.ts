@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getCurrentTeacher } from "@/lib/teacher";
+import { planLimitErrorMessage } from "@/lib/plan-usage";
 
 const agendaSchema = z.object({
   idempotencyKey: z.string().min(8).max(160),
@@ -175,7 +176,8 @@ export async function createAgendaEvent(formData: FormData) {
 
   if (error || !eventId) {
     console.error("Falha ao criar evento da agenda", error?.code);
-    redirect(`/professor/agenda?erro=${encodeURIComponent("Não foi possível criar o encontro. Verifique o vínculo do aluno e tente novamente.")}`);
+    const planMessage = planLimitErrorMessage(error);
+    redirect(`/professor/agenda?erro=${encodeURIComponent(planMessage || "Não foi possível criar o encontro. Verifique o vínculo do aluno e tente novamente.")}`);
   }
 
   if (parsed.data.status !== "scheduled") {
@@ -184,7 +186,10 @@ export async function createAgendaEvent(formData: FormData) {
       .update({ status: parsed.data.status, updated_at: new Date().toISOString() })
       .eq("id", eventId)
       .eq("created_by_teacher_id", teacher.id);
-    if (statusError) redirect(`/professor/agenda?erro=${encodeURIComponent("O encontro foi criado, mas o status precisa ser atualizado novamente.")}`);
+    if (statusError) {
+      const planMessage = planLimitErrorMessage(statusError);
+      redirect(`/professor/agenda?erro=${encodeURIComponent(planMessage || "O encontro foi criado, mas o status precisa ser atualizado novamente.")}`);
+    }
   }
 
   let noticeFailed = 0;
@@ -206,6 +211,7 @@ export async function createAgendaEvent(formData: FormData) {
   revalidatePath("/professor/agenda");
   revalidatePath("/professor");
   revalidatePath("/professor/alunos");
+  revalidatePath("/professor/limites");
   revalidatePath("/aluno/agenda");
   revalidatePath("/aluno");
   revalidatePath("/familia/agenda");
@@ -249,7 +255,10 @@ export async function setAgendaEventStatus(formData: FormData) {
     .eq("id", parsed.data.eventId)
     .eq("created_by_teacher_id", teacher.id);
 
-  if (error) redirect(`/professor/agenda?erro=${encodeURIComponent("Não foi possível atualizar o encontro.")}`);
+  if (error) {
+    const planMessage = planLimitErrorMessage(error);
+    redirect(`/professor/agenda?erro=${encodeURIComponent(planMessage || "Não foi possível atualizar o encontro.")}`);
+  }
 
   let noticeFailed = 0;
   if (event.visible_to_guardian && ["confirmed", "cancelled"].includes(parsed.data.status)) {
@@ -284,6 +293,7 @@ export async function setAgendaEventStatus(formData: FormData) {
   revalidatePath("/professor/agenda");
   revalidatePath("/professor");
   revalidatePath("/professor/alunos");
+  revalidatePath("/professor/limites");
   revalidatePath("/aluno/agenda");
   revalidatePath("/familia/agenda");
   revalidatePath("/familia/mensagens");
