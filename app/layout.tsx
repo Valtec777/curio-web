@@ -21,6 +21,7 @@ import "./mobile-tablet-final.css";
 import "./mobile-tablet-complete.css";
 import "./mobile-targeted-fixes.css";
 import "./dark-mode-safety.css";
+import "./onboarding-launcher-compact.css";
 
 const fredoka = Fredoka({ subsets: ["latin"], variable: "--font-curio-display", weight: ["500", "600", "700"], display: "swap" });
 const nunito = Nunito_Sans({ subsets: ["latin"], variable: "--font-curio-body", weight: ["400", "600", "700", "800", "900"], display: "swap" });
