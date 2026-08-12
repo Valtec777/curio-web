@@ -14,22 +14,21 @@ export default async function ReferralLandingPage({
 }) {
   const { code } = await params;
   const { lead } = await searchParams;
+  const normalizedCode = decodeURIComponent(code).trim().toUpperCase();
   const supabase = await createClient();
-  const { data: referralCode } = await supabase
-    .from("referral_codes")
-    .select("id,code,owner_role,active")
-    .eq("code", code)
-    .eq("active", true)
-    .maybeSingle();
+  const { data: landing, error } = await supabase.rpc("referral_landing", {
+    p_code: normalizedCode,
+  });
+  const referral = Array.isArray(landing) ? landing[0] : landing;
 
-  if (!referralCode) {
+  if (error || !referral?.program_active) {
     return (
       <main className="referral-public-page">
         <div className="site-shell">
           <Logo />
           <section className="referral-public-card">
             <div className="eyebrow">Indicação CURIÓ</div>
-            <h1>Este link não está mais ativo.</h1>
+            <h1>Este link não está disponível agora.</h1>
             <p className="muted">Você ainda pode conhecer o CURIÓ pelo site e conversar com a equipe normalmente.</p>
             <Link className="button button-primary" href="/#quero-conhecer">Conhecer o CURIÓ</Link>
           </section>
@@ -38,12 +37,16 @@ export default async function ReferralLandingPage({
     );
   }
 
+  const originText = referral.owner_type === "teacher"
+    ? `Indicação de ${referral.owner_name || "um professor Curió"}`
+    : "Indicação de uma família Curió";
+
   return (
     <main className="referral-public-page">
       <div className="site-shell">
         <Logo />
         <section className="referral-public-card">
-          <div className="eyebrow">Você recebeu uma indicação para o CURIÓ</div>
+          <div className="eyebrow">{originText}</div>
           <h1>Vamos entender como seu filho aprende.</h1>
           <p className="muted">
             Preencha seus dados para a equipe entrar em contato. O link registra a origem da indicação, mas não altera automaticamente preço, plano ou condições comerciais.
@@ -53,7 +56,7 @@ export default async function ReferralLandingPage({
           {lead === "erro" && <div className="form-message form-error">Não foi possível enviar agora. Confira os campos e tente novamente ou fale com a equipe pelo site.</div>}
 
           <form action={createReferralEnrollmentRequest} className="form-stack">
-            <input type="hidden" name="referral_code" value={referralCode.code} />
+            <input type="hidden" name="referral_code" value={normalizedCode} />
             <div className="form-row">
               <div className="field"><label>Nome do responsável *</label><input className="input" name="guardian_name" autoComplete="name" required /></div>
               <div className="field"><label>WhatsApp *</label><input className="input" name="phone_whatsapp" autoComplete="tel" required /></div>
@@ -75,7 +78,7 @@ export default async function ReferralLandingPage({
             <button className="button button-primary button-block" type="submit">Quero conhecer o CURIÓ</button>
           </form>
 
-          <p className="text-small muted">Código de origem: {referralCode.code}. A recompensa de quem indicou depende de conversão, permanência mínima e regras de elegibilidade.</p>
+          <p className="text-small muted">{referral.public_rules || "A recompensa de quem indicou depende de matrícula, pagamento, permanência e regras de elegibilidade."}</p>
         </section>
       </div>
     </main>
