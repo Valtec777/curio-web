@@ -2,20 +2,23 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const jsonHeaders = { "Content-Type": "application/json" };
-const fallbackAppOrigin = "https://curioeducacao.vercel.app";
+const fallbackAppOrigin = "https://curio-web-nu.vercel.app";
 
 function reply(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), { status, headers: jsonHeaders });
 }
 
 function cleanOrigin(value: unknown) {
-  const configured = String(Deno.env.get("CURIO_APP_URL") || "").trim().replace(/\/$/, "");
-  if (configured.startsWith("https://")) return configured;
-
   const candidate = String(value || "").trim().replace(/\/$/, "");
   try {
     const url = new URL(candidate);
     if ((url.hostname === "localhost" || url.hostname === "127.0.0.1") && Deno.env.get("CURIO_ALLOW_LOCAL_REDIRECTS") === "true") return url.origin;
+    if (url.protocol === "https:" && url.origin === fallbackAppOrigin) return url.origin;
+  } catch {}
+
+  const configured = String(Deno.env.get("CURIO_APP_URL") || "").trim().replace(/\/$/, "");
+  try {
+    const url = new URL(configured);
     if (url.protocol === "https:" && url.origin === fallbackAppOrigin) return url.origin;
   } catch {}
 
@@ -24,6 +27,104 @@ function cleanOrigin(value: unknown) {
 
 function cleanText(value: unknown) {
   return String(value || "").trim();
+}
+
+function emailErrorMessage(code?: string, message?: string) {
+  if (code === "over_email_send_rate_limit" || code === "over_request_rate_limit") {
+    return "Muitas tentativas de envio foram feitas em pouco tempo. Aguarde cerca de um minuto e tente novamente.";
+  }
+  return message || "Não foi possível enviar o e-mail de acesso agora.";
+}
+
+async function sendAccessLink(
+  authClient: ReturnType<typeof createClient>,
+  email: string,
+  origin: string,
+) {
+  return authClient.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: false,
+      emailRedirectTo: `${origin}/auth/confirm?next=/definir-senha`,
+    },
+  });
+}
+
+async function findAuthUserByEmail(
+  admin: ReturnType<typeof createClient>,
+  email: string,
+) {
+  for (let page = 1; page <= 10; page++) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 100 });
+    if (error) return { user: null, error };
+    const user = data.users.find((item) => (item.email || "").toLowerCase() === email);
+    if (user) return { user, error: null };
+    if (data.users.length < 100) break;
+  }
+  return { user: null, error: null };
+}
+
+async function prepareAccessUser(
+  admin: ReturnType<typeof createClient>,
+  input: {
+    email: string;
+    fullName: string;
+    preferredName: string | null;
+    phone: string | null;
+    role: string;
+  },
+) {
+  const found = await findAuthUserByEmail(admin, input.email);
+  if (found.error) {
+    return { authUserId: null, error: found.error.message || "Não foi possível consultar o usuário de acesso." };
+  }
+
+  let authUserId = found.user?.id || null;
+  if (!authUserId) {
+    const { data: created, error: createError } = await admin.auth.admin.createUser({
+      email: input.email,
+      user_metadata: {
+        full_name: input.fullName,
+        preferred_name: input.preferredName,
+        phone_whatsapp: input.phone,
+      },
+    });
+    if (createError || !created.user) {
+      return { authUserId: null, error: createError?.message || "Não foi possível criar o usuário de acesso." };
+    }
+    authUserId = created.user.id;
+  }
+
+  const { error: profileError } = await admin.from("profiles").upsert({
+    id: authUserId,
+    full_name: input.fullName,
+    preferred_name: input.preferredName || input.fullName,
+    phone_whatsapp: input.phone,
+    updated_at: new Date().toISOString(),
+  });
+  if (profileError) return { authUserId, error: "Não foi possível preparar o perfil de acesso." };
+
+  const { error: roleError } = await admin.from("user_roles").upsert(
+    { user_id: authUserId, role: input.role },
+    { onConflict: "user_id,role" },
+  );
+  if (roleError) return { authUserId, error: "Não foi possível vincular o papel do usuário." };
+
+  if (input.role === "guardian") {
+    const { error: guardianError } = await admin.from("guardians").upsert(
+      { profile_id: authUserId },
+      { onConflict: "profile_id" },
+    );
+    if (guardianError) return { authUserId, error: "Não foi possível preparar o perfil da família." };
+  } else if (input.role === "teacher") {
+    const { error: teacherError } = await admin.from("teachers").upsert(
+      { profile_id: authUserId, phone_whatsapp: input.phone, active: true },
+      { onConflict: "profile_id" },
+    );
+    if (teacherError) return { authUserId, error: "Não foi possível preparar o perfil do professor." };
+  }
+
+  return { authUserId, error: null };
 }
 
 async function sha256Hex(value: string) {
@@ -64,6 +165,7 @@ Deno.serve(async (req: Request) => {
       auth: { persistSession: false },
     });
     const admin = createClient(supabaseUrl, serviceRole, { auth: { persistSession: false } });
+    const authClient = createClient(supabaseUrl, anonKey, { auth: { persistSession: false } });
 
     const { data: userData, error: userError } = await caller.auth.getUser();
     if (userError || !userData.user) return reply(401, { error: "Sessão inválida." });
@@ -125,15 +227,39 @@ Deno.serve(async (req: Request) => {
         .single();
       if (error || !invitation) return reply(404, { error: "Convite não encontrado." });
 
-      const authClient = createClient(supabaseUrl, anonKey, { auth: { persistSession: false } });
-      const { error: resetError } = await authClient.auth.resetPasswordForEmail(invitation.email, {
-        redirectTo: `${origin}/auth/confirm?next=/definir-senha`,
+      const prepared = await prepareAccessUser(admin, {
+        email: String(invitation.email || "").toLowerCase(),
+        fullName: cleanText(invitation.full_name) || "Usuário Curió",
+        preferredName: cleanText(invitation.preferred_name) || null,
+        phone: cleanText(invitation.phone_whatsapp) || null,
+        role: cleanText(invitation.role || "guardian"),
       });
-      if (resetError) {
-        await admin.from("access_invitations").update({ status: "error", last_error: resetError.message, updated_at: new Date().toISOString() }).eq("id", invitation.id);
-        return reply(400, { error: resetError.message });
+      if (prepared.error || !prepared.authUserId) {
+        const message = prepared.error || "Não foi possível preparar o usuário de acesso.";
+        await admin.from("access_invitations").update({ status: "error", last_error: message, updated_at: new Date().toISOString() }).eq("id", invitation.id);
+        return reply(400, { error: message });
       }
-      await admin.from("access_invitations").update({ status: "sent", sent_at: new Date().toISOString(), last_error: null, updated_at: new Date().toISOString() }).eq("id", invitation.id);
+
+      if (invitation.role === "guardian" && invitation.student_id) {
+        const { data: guardian } = await admin.from("guardians").select("id").eq("profile_id", prepared.authUserId).maybeSingle();
+        if (guardian) {
+          await admin.from("guardian_students").upsert({
+            guardian_id: guardian.id,
+            student_id: invitation.student_id,
+            relationship: invitation.relationship || "Responsável",
+            can_view_progress: true,
+            can_manage_access: true,
+          }, { onConflict: "guardian_id,student_id" });
+        }
+      }
+
+      const { error: accessError } = await sendAccessLink(authClient, invitation.email, origin);
+      if (accessError) {
+        const message = emailErrorMessage(accessError.code, accessError.message);
+        await admin.from("access_invitations").update({ status: "error", auth_user_id: prepared.authUserId, last_error: message, updated_at: new Date().toISOString() }).eq("id", invitation.id);
+        return reply(400, { error: message });
+      }
+      await admin.from("access_invitations").update({ auth_user_id: prepared.authUserId, status: "sent", sent_at: new Date().toISOString(), last_error: null, updated_at: new Date().toISOString() }).eq("id", invitation.id);
       return reply(200, { ok: true, invitation_id: invitation.id, student_id: invitation.student_id || null });
     }
 
@@ -250,54 +376,13 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    let existingUser = null as null | { id: string; email?: string | null };
-    for (let page = 1; page <= 10 && !existingUser; page++) {
-      const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 100 });
-      if (error) break;
-      existingUser = data.users.find((u) => (u.email || "").toLowerCase() === email) || null;
-      if (data.users.length < 100) break;
+    const prepared = await prepareAccessUser(admin, { email, fullName, preferredName, phone, role });
+    if (prepared.error || !prepared.authUserId) {
+      const message = prepared.error || "Não foi possível preparar o usuário de acesso.";
+      await admin.from("access_invitations").update({ status: "error", last_error: message, updated_at: new Date().toISOString() }).eq("id", invitation.id);
+      return reply(400, { error: message });
     }
-
-    let authUserId: string;
-    if (existingUser) {
-      authUserId = existingUser.id;
-      const { error: profileError } = await admin.from("profiles").upsert({ id: authUserId, full_name: fullName, preferred_name: preferredName || fullName, phone_whatsapp: phone, updated_at: new Date().toISOString() });
-      if (profileError) {
-        await admin.from("access_invitations").update({ status: "error", auth_user_id: authUserId, last_error: profileError.message, updated_at: new Date().toISOString() }).eq("id", invitation.id);
-        return reply(400, { error: "Não foi possível atualizar o perfil do acesso existente." });
-      }
-      const { error: roleError } = await admin.from("user_roles").upsert({ user_id: authUserId, role }, { onConflict: "user_id,role" });
-      if (roleError) {
-        await admin.from("access_invitations").update({ status: "error", auth_user_id: authUserId, last_error: roleError.message, updated_at: new Date().toISOString() }).eq("id", invitation.id);
-        return reply(400, { error: "Não foi possível vincular o papel do usuário." });
-      }
-      if (role === "guardian") {
-        const { error: guardianError } = await admin.from("guardians").upsert({ profile_id: authUserId }, { onConflict: "profile_id" });
-        if (guardianError) return reply(400, { error: "Não foi possível preparar o perfil da família." });
-      } else if (role === "teacher") {
-        const { error: teacherError } = await admin.from("teachers").upsert({ profile_id: authUserId, phone_whatsapp: phone, active: true }, { onConflict: "profile_id" });
-        if (teacherError) return reply(400, { error: "Não foi possível preparar o perfil do professor." });
-      }
-
-      const authClient = createClient(supabaseUrl, anonKey, { auth: { persistSession: false } });
-      const { error: resetError } = await authClient.auth.resetPasswordForEmail(email, {
-        redirectTo: `${origin}/auth/confirm?next=/definir-senha`,
-      });
-      if (resetError) {
-        await admin.from("access_invitations").update({ status: "error", auth_user_id: authUserId, last_error: resetError.message, updated_at: new Date().toISOString() }).eq("id", invitation.id);
-        return reply(400, { error: resetError.message });
-      }
-    } else {
-      const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
-        data: { full_name: fullName, preferred_name: preferredName, phone_whatsapp: phone },
-        redirectTo: `${origin}/auth/confirm?next=/definir-senha`,
-      });
-      if (inviteError || !invited.user) {
-        await admin.from("access_invitations").update({ status: "error", last_error: inviteError?.message || "Falha ao criar convite", updated_at: new Date().toISOString() }).eq("id", invitation.id);
-        return reply(400, { error: inviteError?.message || "Falha ao criar convite." });
-      }
-      authUserId = invited.user.id;
-    }
+    const authUserId = prepared.authUserId;
 
     if (role === "guardian" && studentId) {
       const { data: guardian, error: guardianLookupError } = await admin.from("guardians").select("id").eq("profile_id", authUserId).maybeSingle();
@@ -316,6 +401,13 @@ Deno.serve(async (req: Request) => {
         await admin.from("access_invitations").update({ status: "error", auth_user_id: authUserId, last_error: guardianStudentError.message, updated_at: new Date().toISOString() }).eq("id", invitation.id);
         return reply(400, { error: "O acesso foi criado, mas o vínculo responsável-aluno falhou." });
       }
+    }
+
+    const { error: accessError } = await sendAccessLink(authClient, email, origin);
+    if (accessError) {
+      const message = emailErrorMessage(accessError.code, accessError.message);
+      await admin.from("access_invitations").update({ status: "error", auth_user_id: authUserId, last_error: message, updated_at: new Date().toISOString() }).eq("id", invitation.id);
+      return reply(400, { error: message });
     }
 
     const { error: finalizeError } = await admin.from("access_invitations").update({
