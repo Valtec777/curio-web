@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getCurrentStudent } from "@/lib/student";
-import { EmptyState, Badge, StatCard } from "@/components/ui";
+import { getSeasonalExperience } from "@/lib/seasonal";
+import { EmptyState, Badge } from "@/components/ui";
 
 function shortDate(value?: string | null) {
   if (!value) return "—";
@@ -13,6 +14,7 @@ export default async function StudentHome() {
   if (!student) return <EmptyState title="Sua conta ainda não está ligada ao perfil de aluno" description="A administração precisa concluir esse vínculo antes de liberar o seu espaço." />;
 
   const now = new Date().toISOString();
+  const seasonal = getSeasonalExperience(new Date(), student.grades?.name);
   const [
     { data: missions }, { data: states }, { data: game }, { data: assessments }, { data: achievements }, { data: tips },
   ] = await Promise.all([
@@ -32,6 +34,19 @@ export default async function StudentHome() {
         <div className="kid-hero-copy"><div className="eyebrow" style={{ color: "#dfffa8" }}>Meu dia no CURIÓ</div><h1>Oi, {student.preferred_name}! 👋</h1><p>Escolha um desafio, tente primeiro e use as pistas quando precisar.</p><div className="kid-mini-stats"><span>★ {game?.stars ?? 0} estrelas</span><span>🔥 {game?.streak_days ?? 0} dia(s)</span><span>🧭 {game?.level_name || "Explorador Curió"}</span></div></div>
         <Image src="/mascotes/curio_capivara_principal_acolhendo.png" alt="Capivara do Curió" width={210} height={240} priority />
       </section>
+
+      {seasonal && (
+        <section className={`panel seasonal-mission seasonal-${seasonal.slug}`} data-decor={seasonal.decorations[0]}>
+          <div className="eyebrow">{seasonal.eyebrow} · desafio especial</div>
+          <h2>{seasonal.title}</h2>
+          <p>{seasonal.description}</p>
+          <div className="mission-card">
+            <strong>Missão especial para {seasonal.band === "1-3" ? "1º ao 3º ano" : seasonal.band === "4-5" ? "4º e 5º ano" : "6º ao 8º ano"}</strong>
+            <p>{seasonal.missionText}</p>
+          </div>
+          <span className="seasonal-note">Conteúdo editorial Curió · opcional · não substitui nem publica uma missão em nome da professora</span>
+        </section>
+      )}
 
       <div className="grid-2">
         <section className="panel">
