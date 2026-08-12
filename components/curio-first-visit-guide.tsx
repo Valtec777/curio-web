@@ -83,6 +83,10 @@ function pageKey(role: TutorialRole, viewerId: string, pathname: string) {
   return `curio:onboarding:page:v2:${role}:${viewerId}:${pathname}`;
 }
 
+function automaticPreferenceKey(role: TutorialRole, viewerId: string) {
+  return `curio:onboarding:auto:v3:${role}:${viewerId}`;
+}
+
 function legacyStorageKey(role: TutorialRole) {
   return `curio:onboarding:v1:${role}`;
 }
@@ -108,36 +112,74 @@ export function CurioFirstVisitGuide({
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    const onHelpAction = (event: MouseEvent) => {
+      const origin = event.target;
+      if (!(origin instanceof Element)) return;
+      const control = origin.closest("button");
+      if (!control) return;
+
+      const label = (control.textContent || "").replace(/\s+/g, " ").trim().toLocaleLowerCase("pt-BR");
+      const autoKey = automaticPreferenceKey(role, viewerId);
+
+      if (label === "não mostrar automaticamente" || label === "não mostrar novamente") {
+        window.localStorage.setItem(autoKey, "disabled");
+        setFirstVisitOpen(false);
+        return;
+      }
+
+      const helpMenu = control.closest('[role="menu"][aria-label="Ajuda de uso do CURIÓ"]');
+      if (helpMenu && label.startsWith("fazer tour do")) {
+        window.localStorage.setItem(autoKey, "enabled");
+        if (window.localStorage.getItem(legacyStorageKey(role)) === "disabled") {
+          window.localStorage.removeItem(legacyStorageKey(role));
+        }
+      }
+    };
+
+    document.addEventListener("click", onHelpAction);
+    return () => document.removeEventListener("click", onHelpAction);
+  }, [role, viewerId]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
     setTourReady(false);
     setFirstVisitOpen(false);
 
     const isHome = pathname === HOME_PATH[role];
     const userEntryKey = entryKey(role, viewerId);
+    const currentPageKey = pageKey(role, viewerId, pathname);
+    const autoKey = automaticPreferenceKey(role, viewerId);
     const hasEnteredBefore = window.localStorage.getItem(userEntryKey) === "seen";
+    const hasSeenPage = window.localStorage.getItem(currentPageKey) === "seen";
+    const legacyPreference = window.localStorage.getItem(legacyStorageKey(role));
+    let automaticDisabled = window.localStorage.getItem(autoKey) === "disabled";
 
     if (!hasEnteredBefore && isHome) {
-      // A chave anterior do tour era por perfil. Esta camada acrescenta o ID do
-      // usuário para que duas contas no mesmo computador tenham onboarding próprio.
-      window.localStorage.removeItem(legacyStorageKey(role));
+      // Uma conta nova no mesmo dispositivo não herda a decisão de outra pessoa.
+      if (legacyPreference === "disabled") window.localStorage.removeItem(legacyStorageKey(role));
       window.sessionStorage.removeItem(legacySessionKey(role));
       window.localStorage.setItem(userEntryKey, "seen");
-      window.localStorage.setItem(pageKey(role, viewerId, pathname), "seen");
-    } else if (hasEnteredBefore && !window.localStorage.getItem(legacyStorageKey(role))) {
-      // Se a pessoa escolheu "Agora não" no primeiro acesso, não insistimos
-      // em logins futuros. O tour continua disponível manualmente em Como usar.
+    } else if (hasEnteredBefore && legacyPreference === "disabled" && window.localStorage.getItem(autoKey) !== "enabled") {
+      // Migra a preferência antiga para uma chave por usuário + perfil.
+      window.localStorage.setItem(autoKey, "disabled");
+      automaticDisabled = true;
+    } else if (hasEnteredBefore && !legacyPreference && !automaticDisabled) {
+      // Impede que o tour principal volte sozinho em logins futuros.
       window.localStorage.setItem(legacyStorageKey(role), "entry-seen");
     }
 
+    // Entrar na página conta como visita mesmo com ajuda automática desligada.
+    // Assim, reativar depois não faz páginas já visitadas começarem a aparecer.
+    if (!hasSeenPage) window.localStorage.setItem(currentPageKey, "seen");
+
     setTourReady(true);
 
-    if (!guide || isHome) return;
-
-    const currentPageKey = pageKey(role, viewerId, pathname);
-    if (window.localStorage.getItem(currentPageKey) === "seen") return;
-
-    // A ajuda automática é exatamente uma vez por usuário + página. Atualizar,
-    // voltar ou entrar novamente não faz o cartão reaparecer.
-    window.localStorage.setItem(currentPageKey, "seen");
+    if (!guide || isHome || hasSeenPage || automaticDisabled) return;
+    if (window.localStorage.getItem(legacyStorageKey(role)) === "disabled") {
+      window.localStorage.setItem(autoKey, "disabled");
+      return;
+    }
 
     let attempts = 0;
     let timer: number | undefined;
@@ -182,7 +224,7 @@ export function CurioFirstVisitGuide({
             </ol>
             <div className={styles.actions}>
               <button type="button" className={styles.primary} onClick={() => setFirstVisitOpen(false)}>Entendi</button>
-              <span>Você não verá esta explicação automaticamente de novo. Se precisar, use <strong>Como usar</strong>.</span>
+              <span>Esta explicação aparece automaticamente só na primeira visita. Se desativar a ajuda, o botão <strong>Como usar</strong> continua disponível manualmente.</span>
             </div>
           </section>
         </div>
