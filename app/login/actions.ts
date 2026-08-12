@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
-const OFFICIAL_SITE_ORIGIN = "https://curioeducacao.vercel.app";
+const OFFICIAL_SITE_ORIGIN = "https://curio-web-nu.vercel.app";
 
 const loginSchema = z.object({
   email: z.string().email("Informe um e-mail válido."),
@@ -55,10 +55,12 @@ function isLocalOrigin(origin?: string | null) {
 
 function siteOrigin() {
   const configured = normalizedOrigin(process.env.NEXT_PUBLIC_SITE_URL);
+  const productionUrl = normalizedOrigin(process.env.VERCEL_PROJECT_PRODUCTION_URL);
   const branchUrl = normalizedOrigin(process.env.VERCEL_BRANCH_URL);
   const deploymentUrl = normalizedOrigin(process.env.VERCEL_URL);
   const runningOnVercel = process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV);
 
+  if (productionUrl && !isLocalOrigin(productionUrl)) return productionUrl;
   if (configured && !isLocalOrigin(configured)) return configured;
   if (runningOnVercel) return OFFICIAL_SITE_ORIGIN;
   if (configured) return configured;
@@ -73,6 +75,13 @@ function portalFor(roles: string[]) {
   if (roles.includes("guardian")) return "/familia";
   if (roles.includes("student")) return "/aluno";
   return "/dashboard";
+}
+
+function emailSendErrorMessage(code?: string) {
+  if (code === "over_email_send_rate_limit") {
+    return "Muitas tentativas de envio foram feitas em pouco tempo. Aguarde um instante e tente novamente.";
+  }
+  return "Não foi possível enviar o e-mail agora. Aguarde um pouco e tente novamente.";
 }
 
 export async function login(formData: FormData) {
@@ -90,9 +99,6 @@ export async function login(formData: FormData) {
     redirect(queryError("Não foi possível entrar. Confira e-mail e senha."));
   }
 
-  // Convites criados para contas que já existiam podem ter sido enviados depois
-  // de a pessoa definir a senha. Um login válido é evidência suficiente de que
-  // esse acesso institucional já está ativo; sincronizamos o painel do Admin.
   const { error: invitationSyncError } = await supabase.rpc("mark_access_invitation_accepted");
   if (invitationSyncError) {
     console.error("Falha ao sincronizar situação do convite após login", invitationSyncError.code);
@@ -110,6 +116,24 @@ export async function login(formData: FormData) {
   redirect(destination);
 }
 
+async function sendFirstAccessLink(email: string) {
+  const supabase = await createClient();
+  const origin = siteOrigin();
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: false,
+      emailRedirectTo: `${origin}/auth/confirm?next=/definir-senha`,
+    },
+  });
+
+  if (error) {
+    console.error("Falha no envio do primeiro acesso", error.code);
+    redirect(`/primeiro-acesso?erro=${encodeURIComponent(emailSendErrorMessage(error.code))}`);
+  }
+  redirect("/primeiro-acesso?sucesso=1");
+}
+
 async function sendPasswordLink(email: string, successPath: string) {
   const supabase = await createClient();
   const origin = siteOrigin();
@@ -118,8 +142,8 @@ async function sendPasswordLink(email: string, successPath: string) {
   });
 
   if (error) {
-    console.error("Falha no envio do link de acesso/recuperação", error.code);
-    redirect(`${successPath}?erro=${encodeURIComponent("Não foi possível enviar o e-mail agora. Aguarde um pouco e tente novamente.")}`);
+    console.error("Falha no envio do link de recuperação", error.code);
+    redirect(`${successPath}?erro=${encodeURIComponent(emailSendErrorMessage(error.code))}`);
   }
   redirect(`${successPath}?sucesso=1`);
 }
@@ -129,7 +153,7 @@ export async function requestFirstAccess(formData: FormData) {
   if (!parsed.success) {
     redirect(`/primeiro-acesso?erro=${encodeURIComponent(parsed.error.issues[0].message)}`);
   }
-  await sendPasswordLink(parsed.data.email, "/primeiro-acesso");
+  await sendFirstAccessLink(parsed.data.email);
 }
 
 export async function requestPasswordReset(formData: FormData) {
