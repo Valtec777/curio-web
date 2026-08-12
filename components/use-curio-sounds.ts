@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export type CurioSoundName = "tap" | "step" | "discover" | "success" | "celebrate";
+export type CurioSoundName = "mission-complete" | "achievement";
 
 type Note = {
   at: number;
@@ -21,28 +21,17 @@ type SoundPreferenceEvent = {
 const SOUND_EVENT = "curio:sound-preference";
 
 const SOUND_PATTERNS: Record<CurioSoundName, Note[]> = {
-  tap: [
-    { at: 0, frequency: 620, endFrequency: 760, duration: 0.055, volume: 0.025, type: "sine" },
+  "mission-complete": [
+    { at: 0, frequency: 523.25, duration: 0.09, volume: 0.028, type: "triangle" },
+    { at: 0.085, frequency: 659.25, duration: 0.11, volume: 0.03, type: "triangle" },
+    { at: 0.18, frequency: 783.99, duration: 0.16, volume: 0.034, type: "sine" },
   ],
-  step: [
-    { at: 0, frequency: 440, endFrequency: 520, duration: 0.07, volume: 0.026, type: "triangle" },
-    { at: 0.055, frequency: 660, endFrequency: 740, duration: 0.08, volume: 0.023, type: "sine" },
-  ],
-  discover: [
-    { at: 0, frequency: 523.25, duration: 0.09, volume: 0.025, type: "sine" },
-    { at: 0.075, frequency: 659.25, duration: 0.1, volume: 0.027, type: "sine" },
-    { at: 0.15, frequency: 783.99, duration: 0.13, volume: 0.03, type: "triangle" },
-  ],
-  success: [
-    { at: 0, frequency: 659.25, duration: 0.09, volume: 0.028, type: "triangle" },
-    { at: 0.08, frequency: 880, duration: 0.15, volume: 0.032, type: "sine" },
-  ],
-  celebrate: [
-    { at: 0, frequency: 523.25, duration: 0.09, volume: 0.03, type: "triangle" },
-    { at: 0.075, frequency: 659.25, duration: 0.09, volume: 0.032, type: "triangle" },
-    { at: 0.15, frequency: 783.99, duration: 0.1, volume: 0.034, type: "triangle" },
-    { at: 0.23, frequency: 1046.5, duration: 0.12, volume: 0.037, type: "sine" },
-    { at: 0.34, frequency: 1318.51, duration: 0.2, volume: 0.032, type: "sine" },
+  achievement: [
+    { at: 0, frequency: 659.25, duration: 0.08, volume: 0.026, type: "triangle" },
+    { at: 0.07, frequency: 830.61, duration: 0.09, volume: 0.029, type: "triangle" },
+    { at: 0.14, frequency: 987.77, duration: 0.11, volume: 0.031, type: "triangle" },
+    { at: 0.23, frequency: 1318.51, duration: 0.18, volume: 0.034, type: "sine" },
+    { at: 0.29, frequency: 1975.53, endFrequency: 2093, duration: 0.2, volume: 0.018, type: "sine" },
   ],
 };
 
@@ -111,7 +100,9 @@ export function useCurioSounds(viewerId: string) {
   }, []);
 
   const play = useCallback((sound: CurioSoundName) => {
-    if (!enabled) return;
+    if (!enabled || typeof document === "undefined") return;
+    if (document.documentElement.dataset.accessEpilepsy === "true") return;
+
     const context = getContext();
     if (!context) return;
 
