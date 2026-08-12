@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Fredoka, Nunito_Sans } from "next/font/google";
 import { ExperiencePreferences } from "@/components/experience-preferences";
 import { ReferralTeacherPrefill } from "@/components/referral-teacher-prefill";
+import { SeasonalDecor } from "@/components/seasonal-decor";
 import "./globals.css";
 import "./responsive.css";
 import "./accessibility.css";
@@ -22,6 +23,7 @@ import "./mobile-tablet-complete.css";
 import "./mobile-targeted-fixes.css";
 import "./dark-mode-safety.css";
 import "./onboarding-launcher-compact.css";
+import "./seasonal.css";
 
 const fredoka = Fredoka({ subsets: ["latin"], variable: "--font-curio-display", weight: ["500", "600", "700"], display: "swap" });
 const nunito = Nunito_Sans({ subsets: ["latin"], variable: "--font-curio-body", weight: ["400", "600", "700", "800", "900"], display: "swap" });
@@ -51,6 +53,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="pt-BR" className={`${fredoka.variable} ${nunito.variable}`} suppressHydrationWarning>
       <body>
         <ExperiencePreferences />
+        <SeasonalDecor />
         <Suspense fallback={null}><ReferralTeacherPrefill /></Suspense>
         {children}
       </body>

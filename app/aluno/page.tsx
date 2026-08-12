@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getCurrentStudent } from "@/lib/student";
+import { getSeasonalExperience } from "@/lib/seasonal";
 import { EmptyState, Badge } from "@/components/ui";
 import { NavIcon } from "@/components/nav-icon";
 import { StudentMascotMoment } from "@/components/student-mascot-moment";
@@ -36,6 +37,7 @@ export default async function StudentHome() {
   const weekDone=weekRows.filter((row:any)=>row.status==="reviewed").length;
   const weekProgress=weekRows.length?Math.round(weekDone/weekRows.length*100):0;
   const grade:any=relation((student as any).grades);
+  const seasonal=getSeasonalExperience(now,grade?.name);
 
   const upcomingAssessments=(assessments??[]).map((row:any)=>({row,assessment:relation(row.assessments)})).filter((item:any)=>item.assessment?.scheduled_for&&new Date(item.assessment.scheduled_for)>=now).sort((a:any,b:any)=>+new Date(a.assessment.scheduled_for)-+new Date(b.assessment.scheduled_for));
   const nextAssessment=upcomingAssessments[0]?.assessment;
@@ -70,6 +72,19 @@ export default async function StudentHome() {
       streakDays={game?.streak_days ?? 0}
       pendingMissions={pendingMissions.length}
     />
+
+    {seasonal ? (
+      <section className={`panel seasonal-mission seasonal-${seasonal.slug}`} data-decor={seasonal.decorations[0]}>
+        <div className="eyebrow">{seasonal.eyebrow} · desafio especial</div>
+        <h2>{seasonal.title}</h2>
+        <p>{seasonal.description}</p>
+        <div className="mission-card">
+          <strong>Missão especial para {seasonal.band === "1-3" ? "1º ao 3º ano" : seasonal.band === "4-5" ? "4º e 5º ano" : "6º ano em diante"}</strong>
+          <p>{seasonal.missionText}</p>
+        </div>
+        <span className="seasonal-note">Conteúdo editorial CURIÓ · opcional · não publica uma missão em nome do professor</span>
+      </section>
+    ) : null}
 
     <div className="student-home-stats">
       <article><UiIcon label="Missões"/><strong>{game?.stars??0}</strong><small>Estrelas</small></article>
