@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
-import { CurioOnboardingTour } from "@/components/curio-onboarding-tour";
+import { CurioFirstVisitGuide } from "@/components/curio-first-visit-guide";
 import { FamilyPinGate } from "@/components/family-pin-gate";
 import { MonthlyInterestPrompt } from "@/components/monthly-interest-prompt";
 import { requireRole } from "@/lib/auth";
@@ -62,7 +62,7 @@ export default async function FamilyLayout({ children }: { children: React.React
           </div>
         ) : null}
         {children}
-        <CurioOnboardingTour role="guardian" supportHref="/familia/suporte" />
+        <CurioFirstVisitGuide role="guardian" viewerId={viewer.user.id} supportHref="/familia/suporte" />
         {showInterest ? <MonthlyInterestPrompt role="guardian" /> : null}
       </FamilyPinGate>
     </AppShell>
