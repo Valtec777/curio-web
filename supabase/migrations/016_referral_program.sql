@@ -1,315 +1,759 @@
--- CURIÓ — programa de indicação sustentável
--- Família e professor recebem links próprios. A recompensa só pode ser marcada
--- após conversão + janela de retenção, com teto por período e controle administrativo.
+-- CURIÓ — programa de indicação alinhado ao banco real e com proteção de margem.
+-- Esta migration é intencionalmente idempotente porque o núcleo de indicação já
+-- existe no projeto Supabase, mas as migrations originais não estavam no GitHub.
 
-create table if not exists public.referral_program_rules (
-  owner_role public.app_role primary key,
-  reward_value numeric(10,2) not null check (reward_value >= 0),
-  qualification_days integer not null default 30 check (qualification_days between 1 and 365),
-  max_rewards_period integer not null check (max_rewards_period between 1 and 100),
-  period_days integer not null check (period_days between 1 and 366),
-  active boolean not null default true,
+-- -----------------------------------------------------------------------------
+-- 1. Baseline do programa já existente no Supabase
+-- -----------------------------------------------------------------------------
+
+create table if not exists public.referral_program_settings (
+  id uuid primary key default gen_random_uuid(),
+  active boolean not null default false,
+  benefit_type text not null default 'none' check (benefit_type in ('none','percent_discount','fixed_discount','extra_resource')),
+  benefit_percent numeric(5,2) null check (benefit_percent is null or (benefit_percent > 0 and benefit_percent <= 100)),
+  benefit_amount numeric(12,2) null check (benefit_amount is null or benefit_amount > 0),
+  extra_resource_key text null,
+  required_confirmed_referrals integer not null default 1 check (required_confirmed_referrals between 1 and 100),
+  starts_at date null,
+  ends_at date null,
+  public_rules text null,
+  updated_by_user_id uuid null references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  check (owner_role in ('guardian'::public.app_role, 'teacher'::public.app_role))
+  check (ends_at is null or starts_at is null or ends_at >= starts_at)
 );
 
-insert into public.referral_program_rules (owner_role, reward_value, qualification_days, max_rewards_period, period_days, active)
-values
-  ('guardian'::public.app_role, 30.00, 30, 3, 365, true),
-  ('teacher'::public.app_role, 40.00, 30, 5, 30, true)
-on conflict (owner_role) do nothing;
+create unique index if not exists referral_program_singleton
+  on public.referral_program_settings ((true));
+
+insert into public.referral_program_settings(active, benefit_type, required_confirmed_referrals, public_rules)
+select false, 'none', 1, 'A indicação é validada após matrícula, pagamento e permanência mínima.'
+where not exists (select 1 from public.referral_program_settings);
 
 create table if not exists public.referral_codes (
   id uuid primary key default gen_random_uuid(),
-  owner_user_id uuid not null references public.profiles(id) on delete cascade,
-  owner_role public.app_role not null,
   code text not null unique,
+  owner_type text not null check (owner_type in ('guardian','teacher')),
+  guardian_id uuid null references public.guardians(id) on delete cascade,
+  teacher_id uuid null references public.teachers(id) on delete cascade,
   active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  unique (owner_user_id, owner_role),
-  check (owner_role in ('guardian'::public.app_role, 'teacher'::public.app_role)),
-  check (char_length(code) between 12 and 40)
-);
-
-create index if not exists referral_codes_owner_idx
-  on public.referral_codes(owner_user_id, owner_role, active);
-
-create table if not exists public.referral_leads (
-  id uuid primary key default gen_random_uuid(),
-  referral_code_id uuid not null references public.referral_codes(id) on delete restrict,
-  enrollment_request_id uuid,
-  referred_email citext not null,
-  status text not null default 'new' check (status in ('new','converted','qualified','rewarded','rejected')),
-  reward_value numeric(10,2) not null default 0 check (reward_value >= 0),
-  created_at timestamptz not null default now(),
-  converted_at timestamptz,
-  qualified_at timestamptz,
-  rewarded_at timestamptz,
-  updated_at timestamptz not null default now()
-);
-
-create index if not exists referral_leads_code_created_idx
-  on public.referral_leads(referral_code_id, created_at desc);
-create index if not exists referral_leads_status_idx
-  on public.referral_leads(status, created_at desc);
-create unique index if not exists referral_leads_unique_active_email_idx
-  on public.referral_leads(lower(referred_email::text))
-  where status <> 'rejected';
-
-alter table public.referral_program_rules enable row level security;
-alter table public.referral_codes enable row level security;
-alter table public.referral_leads enable row level security;
-
--- Desde 2026, projetos Supabase podem exigir GRANT explícito para novas tabelas
--- aparecerem na Data API. Os GRANTs abaixo são mínimos para cada fluxo.
-revoke all on public.referral_program_rules from anon, authenticated;
-revoke all on public.referral_codes from anon, authenticated;
-revoke all on public.referral_leads from anon, authenticated;
-
-grant select, update on public.referral_program_rules to authenticated;
-grant select on public.referral_codes to authenticated;
-grant select (id, code, owner_role, active) on public.referral_codes to anon;
-grant insert on public.referral_leads to anon, authenticated;
-grant select, update on public.referral_leads to authenticated;
-
--- Regras: visíveis para usuários autenticados; só admin altera.
-drop policy if exists referral_rules_read on public.referral_program_rules;
-create policy referral_rules_read
-on public.referral_program_rules for select to authenticated
-using (true);
-
-drop policy if exists referral_rules_admin_update on public.referral_program_rules;
-create policy referral_rules_admin_update
-on public.referral_program_rules for update to authenticated
-using ((select private.has_role('admin'::public.app_role)))
-with check ((select private.has_role('admin'::public.app_role)));
-
--- Código: cada titular vê o próprio; admin vê todos; público só valida códigos ativos.
-drop policy if exists referral_codes_owner_read on public.referral_codes;
-create policy referral_codes_owner_read
-on public.referral_codes for select to authenticated
-using (
-  owner_user_id = (select auth.uid())
-  or (select private.has_role('admin'::public.app_role))
-);
-
-drop policy if exists referral_codes_public_active_read on public.referral_codes;
-create policy referral_codes_public_active_read
-on public.referral_codes for select to anon
-using (active = true);
-
--- Leads: o público só registra; somente admin lê ou altera dados pessoais/status.
-drop policy if exists referral_leads_public_insert on public.referral_leads;
-create policy referral_leads_public_insert
-on public.referral_leads for insert to anon, authenticated
-with check (
-  status = 'new'
-  and reward_value = 0
-  and exists (
-    select 1
-    from public.referral_codes rc
-    where rc.id = referral_code_id
-      and rc.active = true
+  check (
+    (owner_type='guardian' and guardian_id is not null and teacher_id is null)
+    or (owner_type='teacher' and teacher_id is not null and guardian_id is null)
   )
 );
 
-drop policy if exists referral_leads_admin_read on public.referral_leads;
-create policy referral_leads_admin_read
-on public.referral_leads for select to authenticated
-using ((select private.has_role('admin'::public.app_role)));
+create unique index if not exists referral_codes_guardian_unique
+  on public.referral_codes(guardian_id) where guardian_id is not null;
+create unique index if not exists referral_codes_teacher_unique
+  on public.referral_codes(teacher_id) where teacher_id is not null;
 
-drop policy if exists referral_leads_admin_update on public.referral_leads;
-create policy referral_leads_admin_update
-on public.referral_leads for update to authenticated
+alter table public.enrollment_requests
+  add column if not exists referral_code text null;
+
+create table if not exists public.referrals (
+  id uuid primary key default gen_random_uuid(),
+  referral_code_id uuid not null references public.referral_codes(id) on delete restrict,
+  enrollment_request_id uuid not null unique references public.enrollment_requests(id) on delete restrict,
+  referred_guardian_id uuid null references public.guardians(id) on delete set null,
+  referred_student_id uuid null references public.students(id) on delete set null,
+  subscription_id uuid null unique references public.subscriptions(id) on delete set null,
+  first_payment_id uuid null unique references public.payments(id) on delete set null,
+  status text not null default 'lead' check (status in ('lead','enrolled','payment_confirmed','cancelled')),
+  enrolled_at timestamptz null,
+  confirmed_at timestamptz null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists referrals_code_status_idx
+  on public.referrals(referral_code_id, status, created_at desc);
+
+create table if not exists public.referral_benefits (
+  id uuid primary key default gen_random_uuid(),
+  referral_id uuid not null unique references public.referrals(id) on delete restrict,
+  beneficiary_guardian_id uuid not null references public.guardians(id) on delete restrict,
+  benefit_type text not null check (benefit_type in ('percent_discount','fixed_discount','extra_resource')),
+  benefit_percent numeric(5,2) null,
+  benefit_amount numeric(12,2) null,
+  extra_resource_key text null,
+  status text not null default 'available' check (status in ('available','applied','cancelled')),
+  available_at timestamptz not null default now(),
+  applied_at timestamptz null,
+  applied_by_user_id uuid null references auth.users(id) on delete set null,
+  admin_note text null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.referral_program_settings enable row level security;
+alter table public.referral_codes enable row level security;
+alter table public.referrals enable row level security;
+alter table public.referral_benefits enable row level security;
+
+drop policy if exists referral_settings_admin_all on public.referral_program_settings;
+create policy referral_settings_admin_all on public.referral_program_settings
+for all to authenticated
 using ((select private.has_role('admin'::public.app_role)))
 with check ((select private.has_role('admin'::public.app_role)));
 
--- Gera/desativa código junto com o papel do usuário.
-create or replace function private.sync_referral_code_for_role()
-returns trigger
-language plpgsql
-security definer
-set search_path = public, private, pg_temp
+drop policy if exists referral_codes_admin_all on public.referral_codes;
+create policy referral_codes_admin_all on public.referral_codes
+for all to authenticated
+using ((select private.has_role('admin'::public.app_role)))
+with check ((select private.has_role('admin'::public.app_role)));
+
+drop policy if exists referral_codes_owner_read on public.referral_codes;
+create policy referral_codes_owner_read on public.referral_codes
+for select to authenticated
+using (
+  (owner_type='guardian' and guardian_id=(select private.guardian_id_for_user()))
+  or (owner_type='teacher' and teacher_id=(select private.teacher_id_for_user()))
+);
+
+drop policy if exists referrals_admin_all on public.referrals;
+create policy referrals_admin_all on public.referrals
+for all to authenticated
+using ((select private.has_role('admin'::public.app_role)))
+with check ((select private.has_role('admin'::public.app_role)));
+
+drop policy if exists referrals_owner_read on public.referrals;
+create policy referrals_owner_read on public.referrals
+for select to authenticated
+using (
+  exists (
+    select 1
+    from public.referral_codes rc
+    where rc.id=referrals.referral_code_id
+      and (
+        (rc.owner_type='guardian' and rc.guardian_id=(select private.guardian_id_for_user()))
+        or (rc.owner_type='teacher' and rc.teacher_id=(select private.teacher_id_for_user()))
+      )
+  )
+);
+
+drop policy if exists referral_benefits_admin_all on public.referral_benefits;
+create policy referral_benefits_admin_all on public.referral_benefits
+for all to authenticated
+using ((select private.has_role('admin'::public.app_role)))
+with check ((select private.has_role('admin'::public.app_role)));
+
+drop policy if exists referral_benefits_guardian_read on public.referral_benefits;
+create policy referral_benefits_guardian_read on public.referral_benefits
+for select to authenticated
+using (beneficiary_guardian_id=(select private.guardian_id_for_user()));
+
+revoke all on public.referral_program_settings, public.referral_codes, public.referrals, public.referral_benefits from anon;
+grant select, insert, update, delete on public.referral_program_settings, public.referral_codes, public.referrals, public.referral_benefits to authenticated;
+
+-- O formulário público precisa ler apenas o catálogo não sensível de séries ativas.
+grant select on public.grades to anon;
+drop policy if exists grades_public_active_read on public.grades;
+create policy grades_public_active_read on public.grades
+for select to anon
+using (active = true);
+
+-- -----------------------------------------------------------------------------
+-- 2. Regras sustentáveis, separadas para família e professor
+-- -----------------------------------------------------------------------------
+
+create table if not exists public.referral_reward_rules (
+  owner_type text primary key check (owner_type in ('guardian','teacher')),
+  reward_amount numeric(12,2) not null check (reward_amount > 0),
+  qualification_days integer not null check (qualification_days between 1 and 365),
+  max_rewards_period integer not null check (max_rewards_period between 1 and 100),
+  period_days integer not null check (period_days between 1 and 366),
+  active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+insert into public.referral_reward_rules(owner_type, reward_amount, qualification_days, max_rewards_period, period_days, active)
+values
+  ('guardian', 30.00, 30, 3, 365, true),
+  ('teacher', 40.00, 30, 5, 30, true)
+on conflict (owner_type) do update set
+  reward_amount=excluded.reward_amount,
+  qualification_days=excluded.qualification_days,
+  max_rewards_period=excluded.max_rewards_period,
+  period_days=excluded.period_days,
+  active=excluded.active,
+  updated_at=now();
+
+create table if not exists public.referral_teacher_rewards (
+  id uuid primary key default gen_random_uuid(),
+  referral_id uuid not null unique references public.referrals(id) on delete restrict,
+  teacher_id uuid not null references public.teachers(id) on delete restrict,
+  reward_amount numeric(12,2) not null check (reward_amount > 0),
+  status text not null default 'available' check (status in ('available','paid','cancelled')),
+  available_at timestamptz not null default now(),
+  paid_at timestamptz null,
+  paid_by_user_id uuid null references auth.users(id) on delete set null,
+  admin_note text null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists referral_teacher_rewards_teacher_status_idx
+  on public.referral_teacher_rewards(teacher_id, status, available_at desc);
+
+alter table public.referral_reward_rules enable row level security;
+alter table public.referral_teacher_rewards enable row level security;
+
+drop policy if exists referral_reward_rules_authenticated_read on public.referral_reward_rules;
+create policy referral_reward_rules_authenticated_read on public.referral_reward_rules
+for select to authenticated using (true);
+
+drop policy if exists referral_reward_rules_admin_all on public.referral_reward_rules;
+create policy referral_reward_rules_admin_all on public.referral_reward_rules
+for all to authenticated
+using ((select private.has_role('admin'::public.app_role)))
+with check ((select private.has_role('admin'::public.app_role)));
+
+drop policy if exists referral_teacher_rewards_admin_all on public.referral_teacher_rewards;
+create policy referral_teacher_rewards_admin_all on public.referral_teacher_rewards
+for all to authenticated
+using ((select private.has_role('admin'::public.app_role)))
+with check ((select private.has_role('admin'::public.app_role)));
+
+drop policy if exists referral_teacher_rewards_teacher_read on public.referral_teacher_rewards;
+create policy referral_teacher_rewards_teacher_read on public.referral_teacher_rewards
+for select to authenticated
+using (teacher_id=(select private.teacher_id_for_user()));
+
+revoke all on public.referral_reward_rules, public.referral_teacher_rewards from anon;
+grant select on public.referral_reward_rules, public.referral_teacher_rewards to authenticated;
+grant insert, update, delete on public.referral_reward_rules, public.referral_teacher_rewards to authenticated;
+
+-- -----------------------------------------------------------------------------
+-- 3. RPCs já existentes no banco, agora versionadas no GitHub
+-- -----------------------------------------------------------------------------
+
+create or replace function private.referral_program_is_active(s public.referral_program_settings)
+returns boolean
+language sql
+stable
+set search_path=public,private,pg_temp
 as $$
-declare
-  prefix text;
-begin
-  if tg_op = 'INSERT' and new.role in ('guardian'::public.app_role, 'teacher'::public.app_role) then
-    prefix := case when new.role = 'guardian'::public.app_role then 'FAM' else 'PROF' end;
-    insert into public.referral_codes (owner_user_id, owner_role, code, active)
-    values (
-      new.user_id,
-      new.role,
-      prefix || '-' || upper(encode(gen_random_bytes(8), 'hex')),
-      true
-    )
-    on conflict (owner_user_id, owner_role)
-    do update set active = true, updated_at = now();
-  elsif tg_op = 'DELETE' and old.role in ('guardian'::public.app_role, 'teacher'::public.app_role) then
-    update public.referral_codes
-    set active = false, updated_at = now()
-    where owner_user_id = old.user_id and owner_role = old.role;
-  end if;
-  return coalesce(new, old);
-end;
+  select s.active
+    and (s.starts_at is null or current_date >= s.starts_at)
+    and (s.ends_at is null or current_date <= s.ends_at)
 $$;
 
-revoke all on function private.sync_referral_code_for_role() from public, anon, authenticated;
-
-drop trigger if exists sync_referral_code_for_role on public.user_roles;
-create trigger sync_referral_code_for_role
-after insert or delete on public.user_roles
-for each row execute function private.sync_referral_code_for_role();
-
--- Backfill para famílias/professores já existentes.
-insert into public.referral_codes (owner_user_id, owner_role, code, active)
-select
-  ur.user_id,
-  ur.role,
-  (case when ur.role = 'guardian'::public.app_role then 'FAM' else 'PROF' end)
-    || '-' || upper(encode(gen_random_bytes(8), 'hex')),
-  true
-from public.user_roles ur
-where ur.role in ('guardian'::public.app_role, 'teacher'::public.app_role)
-on conflict (owner_user_id, owner_role) do update set active = true, updated_at = now();
-
--- Proteções na entrada: normaliza e-mail, bloqueia autoindicação e força estado inicial.
-create or replace function private.guard_referral_lead_insert()
-returns trigger
+create or replace function public.ensure_my_referral_code(p_owner_type text)
+returns table(code text, owner_type text)
 language plpgsql
 security definer
-set search_path = public, auth, private, pg_temp
+set search_path=public,private,pg_temp
 as $$
 declare
-  owner_id uuid;
-  owner_email text;
-  code_active boolean;
+  v_guardian uuid;
+  v_teacher uuid;
+  v_code text;
 begin
-  new.referred_email := lower(trim(new.referred_email::text))::citext;
-  new.status := 'new';
-  new.reward_value := 0;
-  new.converted_at := null;
-  new.qualified_at := null;
-  new.rewarded_at := null;
+  if auth.uid() is null then raise exception 'authentication required'; end if;
 
-  select rc.owner_user_id, rc.active
-    into owner_id, code_active
+  if p_owner_type='guardian' then
+    v_guardian := private.guardian_id_for_user();
+    if v_guardian is null then raise exception 'guardian profile required'; end if;
+    select rc.code into v_code from public.referral_codes rc where rc.guardian_id=v_guardian limit 1;
+    if v_code is null then
+      loop
+        v_code := upper(substr(replace(gen_random_uuid()::text,'-',''),1,10));
+        begin
+          insert into public.referral_codes(code,owner_type,guardian_id) values(v_code,'guardian',v_guardian);
+          exit;
+        exception when unique_violation then
+          select rc.code into v_code from public.referral_codes rc where rc.guardian_id=v_guardian limit 1;
+          if v_code is not null then exit; end if;
+        end;
+      end loop;
+    end if;
+  elsif p_owner_type='teacher' then
+    v_teacher := private.teacher_id_for_user();
+    if v_teacher is null then raise exception 'teacher profile required'; end if;
+    select rc.code into v_code from public.referral_codes rc where rc.teacher_id=v_teacher limit 1;
+    if v_code is null then
+      loop
+        v_code := upper(substr(replace(gen_random_uuid()::text,'-',''),1,10));
+        begin
+          insert into public.referral_codes(code,owner_type,teacher_id) values(v_code,'teacher',v_teacher);
+          exit;
+        exception when unique_violation then
+          select rc.code into v_code from public.referral_codes rc where rc.teacher_id=v_teacher limit 1;
+          if v_code is not null then exit; end if;
+        end;
+      end loop;
+    end if;
+  else
+    raise exception 'invalid owner type';
+  end if;
+
+  return query select v_code, p_owner_type;
+end
+$$;
+
+revoke all on function public.ensure_my_referral_code(text) from public, anon;
+grant execute on function public.ensure_my_referral_code(text) to authenticated;
+
+create or replace function public.referral_landing(p_code text)
+returns table(owner_type text, owner_name text, program_active boolean, public_rules text)
+language plpgsql
+stable
+security definer
+set search_path=public,private,pg_temp
+as $$
+declare
+  v_settings public.referral_program_settings%rowtype;
+begin
+  select * into v_settings from public.referral_program_settings limit 1;
+  return query
+  select rc.owner_type,
+    case
+      when rc.owner_type='guardian' then 'Uma família Curió'::text
+      else coalesce(tp.preferred_name,tp.full_name,'Professor Curió')
+    end,
+    private.referral_program_is_active(v_settings),
+    v_settings.public_rules
   from public.referral_codes rc
-  where rc.id = new.referral_code_id;
-
-  if owner_id is null or code_active is not true then
-    raise exception 'Código de indicação inválido ou inativo.';
-  end if;
-
-  select lower(trim(u.email)) into owner_email
-  from auth.users u
-  where u.id = owner_id;
-
-  if owner_email is not null and owner_email = lower(trim(new.referred_email::text)) then
-    raise exception 'Autoindicação não é elegível.';
-  end if;
-
-  return new;
-end;
+  left join public.teachers t on t.id=rc.teacher_id
+  left join public.profiles tp on tp.id=t.profile_id
+  where rc.code=upper(trim(p_code))
+    and rc.active
+    and private.referral_program_is_active(v_settings)
+  limit 1;
+end
 $$;
 
-revoke all on function private.guard_referral_lead_insert() from public, anon, authenticated;
+revoke all on function public.referral_landing(text) from public;
+grant execute on function public.referral_landing(text) to anon, authenticated;
 
-drop trigger if exists guard_referral_lead_insert on public.referral_leads;
-create trigger guard_referral_lead_insert
-before insert on public.referral_leads
-for each row execute function private.guard_referral_lead_insert();
+create or replace function public.my_referral_activity(p_owner_type text)
+returns table(
+  referral_id uuid,
+  guardian_name text,
+  child_name text,
+  status text,
+  created_at timestamptz,
+  enrolled_at timestamptz,
+  confirmed_at timestamptz
+)
+language plpgsql
+stable
+security definer
+set search_path=public,private,pg_temp
+as $$
+declare
+  v_guardian uuid;
+  v_teacher uuid;
+begin
+  if auth.uid() is null then raise exception 'authentication required'; end if;
+  if p_owner_type='guardian' then
+    v_guardian := private.guardian_id_for_user();
+    if v_guardian is null then raise exception 'guardian profile required'; end if;
+  elsif p_owner_type='teacher' then
+    v_teacher := private.teacher_id_for_user();
+    if v_teacher is null then raise exception 'teacher profile required'; end if;
+  else
+    raise exception 'invalid owner type';
+  end if;
 
--- Proteção de margem: recompensa só após retenção mínima e nunca acima do teto.
-create or replace function private.guard_referral_reward_update()
+  return query
+  select r.id,
+    case when p_owner_type='teacher' then er.guardian_name else null end,
+    er.child_name,
+    r.status,
+    r.created_at,
+    r.enrolled_at,
+    r.confirmed_at
+  from public.referrals r
+  join public.referral_codes rc on rc.id=r.referral_code_id
+  join public.enrollment_requests er on er.id=r.enrollment_request_id
+  where (p_owner_type='guardian' and rc.guardian_id=v_guardian)
+     or (p_owner_type='teacher' and rc.teacher_id=v_teacher)
+  order by r.created_at desc
+  limit 100;
+end
+$$;
+
+revoke all on function public.my_referral_activity(text) from public, anon;
+grant execute on function public.my_referral_activity(text) to authenticated;
+
+create or replace function public.my_referral_rule(p_owner_type text)
+returns table(
+  reward_amount numeric,
+  qualification_days integer,
+  max_rewards_period integer,
+  period_days integer,
+  active boolean,
+  public_rules text
+)
+language plpgsql
+stable
+security definer
+set search_path=public,private,pg_temp
+as $$
+declare
+  v_settings public.referral_program_settings%rowtype;
+begin
+  if auth.uid() is null then raise exception 'authentication required'; end if;
+
+  if p_owner_type='guardian' and private.guardian_id_for_user() is null then
+    raise exception 'guardian profile required';
+  elsif p_owner_type='teacher' and private.teacher_id_for_user() is null then
+    raise exception 'teacher profile required';
+  elsif p_owner_type not in ('guardian','teacher') then
+    raise exception 'invalid owner type';
+  end if;
+
+  select * into v_settings from public.referral_program_settings limit 1;
+  return query
+  select rr.reward_amount,
+    rr.qualification_days,
+    rr.max_rewards_period,
+    rr.period_days,
+    rr.active and coalesce(private.referral_program_is_active(v_settings),false),
+    v_settings.public_rules
+  from public.referral_reward_rules rr
+  where rr.owner_type=p_owner_type;
+end
+$$;
+
+revoke all on function public.my_referral_rule(text) from public, anon;
+grant execute on function public.my_referral_rule(text) to authenticated;
+
+-- -----------------------------------------------------------------------------
+-- 4. Captura e vínculo automáticos da indicação
+-- -----------------------------------------------------------------------------
+
+create or replace function private.capture_referral_lead()
 returns trigger
 language plpgsql
 security definer
-set search_path = public, private, pg_temp
+set search_path=public,private,pg_temp
 as $$
 declare
-  rule_row public.referral_program_rules%rowtype;
-  owner_role_value public.app_role;
-  already_rewarded integer;
+  v_code public.referral_codes%rowtype;
+  v_settings public.referral_program_settings%rowtype;
 begin
-  if old.status = 'rewarded' and new.status <> 'rewarded' then
-    raise exception 'Uma indicação já recompensada não pode voltar de status.';
+  if new.referral_code is null or trim(new.referral_code)='' then return new; end if;
+
+  select * into v_settings from public.referral_program_settings limit 1;
+  if not coalesce(private.referral_program_is_active(v_settings),false) then return new; end if;
+
+  select * into v_code
+  from public.referral_codes
+  where code=upper(trim(new.referral_code)) and active
+  limit 1;
+
+  if v_code.id is null then return new; end if;
+
+  insert into public.referrals(referral_code_id,enrollment_request_id,status)
+  values(v_code.id,new.id,'lead')
+  on conflict(enrollment_request_id) do nothing;
+
+  if v_code.owner_type='teacher' and new.assigned_to_teacher_id is null then
+    update public.enrollment_requests
+    set assigned_to_teacher_id=v_code.teacher_id, updated_at=now()
+    where id=new.id;
   end if;
 
-  select rc.owner_role into owner_role_value
-  from public.referral_codes rc
-  where rc.id = new.referral_code_id;
-
-  select * into rule_row
-  from public.referral_program_rules r
-  where r.owner_role = owner_role_value and r.active = true;
-
-  if rule_row.owner_role is null then
-    raise exception 'Programa de indicação inativo para este perfil.';
-  end if;
-
-  if new.status = 'converted' and old.status <> 'converted' then
-    new.converted_at := coalesce(new.converted_at, now());
-  end if;
-
-  if new.status in ('qualified', 'rewarded') then
-    new.converted_at := coalesce(new.converted_at, old.converted_at);
-    if new.converted_at is null then
-      raise exception 'Marque a conversão antes de qualificar a indicação.';
-    end if;
-    if new.converted_at > now() - make_interval(days => rule_row.qualification_days) then
-      raise exception 'A indicação ainda não cumpriu a janela mínima de retenção.';
-    end if;
-    new.qualified_at := coalesce(new.qualified_at, now());
-  end if;
-
-  if new.status = 'rewarded' and old.status <> 'rewarded' then
-    select count(*) into already_rewarded
-    from public.referral_leads rl
-    where rl.referral_code_id = new.referral_code_id
-      and rl.status = 'rewarded'
-      and rl.rewarded_at >= now() - make_interval(days => rule_row.period_days)
-      and rl.id <> new.id;
-
-    if already_rewarded >= rule_row.max_rewards_period then
-      raise exception 'Teto de recompensas atingido neste período.';
-    end if;
-
-    new.reward_value := rule_row.reward_value;
-    new.rewarded_at := coalesce(new.rewarded_at, now());
-  elsif new.status <> 'rewarded' then
-    new.reward_value := 0;
-    new.rewarded_at := null;
-  end if;
-
-  new.updated_at := now();
   return new;
-end;
+end
 $$;
 
-revoke all on function private.guard_referral_reward_update() from public, anon, authenticated;
+revoke all on function private.capture_referral_lead() from public, anon, authenticated;
 
-drop trigger if exists guard_referral_reward_update on public.referral_leads;
-create trigger guard_referral_reward_update
-before update on public.referral_leads
-for each row execute function private.guard_referral_reward_update();
+drop trigger if exists trg_capture_referral_lead on public.enrollment_requests;
+create trigger trg_capture_referral_lead
+after insert on public.enrollment_requests
+for each row execute function private.capture_referral_lead();
 
--- Mantém updated_at da configuração sem depender de trigger legado.
-create or replace function private.touch_referral_rule()
+create or replace function private.auto_link_referral_after_enrollment()
 returns trigger
 language plpgsql
-set search_path = public, private, pg_temp
+security definer
+set search_path=public,private,pg_temp
 as $$
+declare
+  v_student_id uuid;
+  v_guardian_id uuid;
+  v_subscription_id uuid;
 begin
-  new.updated_at := now();
+  if new.status <> 'enrolled' or old.status is not distinct from new.status then return new; end if;
+  if not exists (
+    select 1 from public.referrals r
+    where r.enrollment_request_id=new.id and r.status='lead'
+  ) then return new; end if;
+
+  select ai.student_id, g.id, s.id
+    into v_student_id, v_guardian_id, v_subscription_id
+  from public.access_invitations ai
+  join public.guardians g on g.profile_id=ai.auth_user_id and g.active
+  join public.subscriptions s on s.student_id=ai.student_id and s.guardian_id=g.id and s.status in ('pending','active','paused')
+  where ai.role='guardian'
+    and ai.deleted_at is null
+    and ai.enrollment_finalized_at is not null
+    and lower(ai.email::text)=lower(new.email::text)
+  order by ai.enrollment_finalized_at desc, s.created_at desc
+  limit 1;
+
+  if v_student_id is null or v_guardian_id is null or v_subscription_id is null then return new; end if;
+
+  update public.referrals
+  set referred_guardian_id=v_guardian_id,
+      referred_student_id=v_student_id,
+      subscription_id=v_subscription_id,
+      status='enrolled',
+      enrolled_at=coalesce(enrolled_at,now()),
+      updated_at=now()
+  where enrollment_request_id=new.id and status='lead';
+
   return new;
-end;
+end
 $$;
 
-revoke all on function private.touch_referral_rule() from public, anon, authenticated;
+revoke all on function private.auto_link_referral_after_enrollment() from public, anon, authenticated;
 
-drop trigger if exists touch_referral_program_rules_updated_at on public.referral_program_rules;
-create trigger touch_referral_program_rules_updated_at
-before update on public.referral_program_rules
-for each row execute function private.touch_referral_rule();
+drop trigger if exists trg_auto_link_referral_after_enrollment on public.enrollment_requests;
+create trigger trg_auto_link_referral_after_enrollment
+after update of status on public.enrollment_requests
+for each row execute function private.auto_link_referral_after_enrollment();
+
+-- -----------------------------------------------------------------------------
+-- 5. Retenção mínima + teto de custo. O primeiro pagamento confirma a conversão,
+--    mas NÃO cria desconto/bonificação imediatamente.
+-- -----------------------------------------------------------------------------
+
+create or replace function private.release_eligible_referral_rewards()
+returns integer
+language plpgsql
+security definer
+set search_path=public,private,pg_temp
+as $$
+declare
+  v_item record;
+  v_count integer;
+  v_released integer := 0;
+begin
+  for v_item in
+    select
+      r.id as referral_id,
+      r.referred_guardian_id,
+      r.confirmed_at,
+      rc.owner_type,
+      rc.guardian_id,
+      rc.teacher_id,
+      rr.reward_amount,
+      rr.qualification_days,
+      rr.max_rewards_period,
+      rr.period_days
+    from public.referrals r
+    join public.referral_codes rc on rc.id=r.referral_code_id and rc.active
+    join public.referral_reward_rules rr on rr.owner_type=rc.owner_type and rr.active
+    join public.subscriptions s on s.id=r.subscription_id and s.status='active'
+    where r.status='payment_confirmed'
+      and r.confirmed_at is not null
+      and r.confirmed_at <= now() - make_interval(days => rr.qualification_days)
+    order by r.confirmed_at
+  loop
+    if v_item.owner_type='guardian' then
+      if v_item.guardian_id is null then continue; end if;
+      if v_item.referred_guardian_id is not null and v_item.referred_guardian_id=v_item.guardian_id then continue; end if;
+      if exists (select 1 from public.referral_benefits b where b.referral_id=v_item.referral_id) then continue; end if;
+
+      select count(*)::int into v_count
+      from public.referral_benefits b
+      where b.beneficiary_guardian_id=v_item.guardian_id
+        and b.status<>'cancelled'
+        and b.available_at >= now() - make_interval(days => v_item.period_days);
+
+      if v_count >= v_item.max_rewards_period then continue; end if;
+
+      insert into public.referral_benefits(
+        referral_id,
+        beneficiary_guardian_id,
+        benefit_type,
+        benefit_amount,
+        status,
+        admin_note
+      ) values (
+        v_item.referral_id,
+        v_item.guardian_id,
+        'fixed_discount',
+        v_item.reward_amount,
+        'available',
+        'Crédito de indicação liberado após retenção mínima; aplicação financeira é manual.'
+      )
+      on conflict(referral_id) do nothing;
+
+      if found then v_released := v_released + 1; end if;
+
+    elsif v_item.owner_type='teacher' then
+      if v_item.teacher_id is null then continue; end if;
+      if exists (select 1 from public.referral_teacher_rewards tr where tr.referral_id=v_item.referral_id) then continue; end if;
+
+      select count(*)::int into v_count
+      from public.referral_teacher_rewards tr
+      where tr.teacher_id=v_item.teacher_id
+        and tr.status<>'cancelled'
+        and tr.available_at >= now() - make_interval(days => v_item.period_days);
+
+      if v_count >= v_item.max_rewards_period then continue; end if;
+
+      insert into public.referral_teacher_rewards(referral_id,teacher_id,reward_amount,status,admin_note)
+      values(
+        v_item.referral_id,
+        v_item.teacher_id,
+        v_item.reward_amount,
+        'available',
+        'Bônus de indicação liberado após retenção mínima; pagamento é manual.'
+      )
+      on conflict(referral_id) do nothing;
+
+      if found then v_released := v_released + 1; end if;
+    end if;
+  end loop;
+
+  return v_released;
+end
+$$;
+
+revoke all on function private.release_eligible_referral_rewards() from public, anon, authenticated;
+
+create or replace function private.confirm_referral_from_payment()
+returns trigger
+language plpgsql
+security definer
+set search_path=public,private,pg_temp
+as $$
+declare
+  v_ref public.referrals%rowtype;
+begin
+  if new.status<>'paid' or (old.status='paid' and old.paid_at is not distinct from new.paid_at) then
+    return new;
+  end if;
+
+  select * into v_ref
+  from public.referrals
+  where subscription_id=new.subscription_id and status='enrolled'
+  limit 1
+  for update;
+
+  if v_ref.id is not null then
+    update public.referrals
+    set status='payment_confirmed',
+        first_payment_id=new.id,
+        confirmed_at=coalesce(new.paid_at,now()),
+        updated_at=now()
+    where id=v_ref.id;
+  end if;
+
+  -- Cada pagamento também faz uma varredura barata de indicações antigas já elegíveis.
+  -- Assim a liberação não depende de um desconto imediato nem de cron externo.
+  perform private.release_eligible_referral_rewards();
+  return new;
+end
+$$;
+
+revoke all on function private.confirm_referral_from_payment() from public, anon, authenticated;
+
+drop trigger if exists trg_confirm_referral_from_payment on public.payments;
+create trigger trg_confirm_referral_from_payment
+after update of status, paid_at on public.payments
+for each row execute function private.confirm_referral_from_payment();
+
+create or replace function public.admin_release_eligible_referral_rewards()
+returns integer
+language plpgsql
+security definer
+set search_path=public,private,pg_temp
+as $$
+begin
+  if not private.has_role('admin'::public.app_role) then
+    raise exception 'admin required';
+  end if;
+  return private.release_eligible_referral_rewards();
+end
+$$;
+
+revoke all on function public.admin_release_eligible_referral_rewards() from public, anon, authenticated;
+grant execute on function public.admin_release_eligible_referral_rewards() to authenticated;
+
+create or replace function public.my_referral_summary(p_owner_type text)
+returns table(
+  code text,
+  total_referrals integer,
+  confirmed_referrals integer,
+  available_benefits integer,
+  program_active boolean,
+  public_rules text
+)
+language plpgsql
+security definer
+set search_path=public,private,pg_temp
+as $$
+declare
+  v_guardian uuid;
+  v_teacher uuid;
+  v_code_id uuid;
+  v_code text;
+  v_settings public.referral_program_settings%rowtype;
+begin
+  if auth.uid() is null then raise exception 'authentication required'; end if;
+
+  if p_owner_type='guardian' then
+    v_guardian := private.guardian_id_for_user();
+    if v_guardian is null then raise exception 'guardian profile required'; end if;
+    select id,rc.code into v_code_id,v_code
+    from public.referral_codes rc
+    where rc.guardian_id=v_guardian and rc.active
+    limit 1;
+  elsif p_owner_type='teacher' then
+    v_teacher := private.teacher_id_for_user();
+    if v_teacher is null then raise exception 'teacher profile required'; end if;
+    select id,rc.code into v_code_id,v_code
+    from public.referral_codes rc
+    where rc.teacher_id=v_teacher and rc.active
+    limit 1;
+  else
+    raise exception 'invalid owner type';
+  end if;
+
+  select * into v_settings from public.referral_program_settings limit 1;
+
+  return query
+  select v_code,
+    (select count(*)::int from public.referrals r where r.referral_code_id=v_code_id and r.status<>'cancelled'),
+    (select count(*)::int from public.referrals r where r.referral_code_id=v_code_id and r.status='payment_confirmed'),
+    case
+      when p_owner_type='guardian' then
+        (select count(*)::int from public.referral_benefits b where b.beneficiary_guardian_id=v_guardian and b.status='available')
+      else
+        (select count(*)::int from public.referral_teacher_rewards tr where tr.teacher_id=v_teacher and tr.status='available')
+    end,
+    coalesce(private.referral_program_is_active(v_settings),false),
+    v_settings.public_rules;
+end
+$$;
+
+revoke all on function public.my_referral_summary(text) from public, anon;
+grant execute on function public.my_referral_summary(text) to authenticated;
+
+-- -----------------------------------------------------------------------------
+-- 6. Ativação conservadora: sem desconto automático para a família indicada.
+-- -----------------------------------------------------------------------------
+
+update public.referral_program_settings
+set active=true,
+    benefit_type='fixed_discount',
+    benefit_percent=null,
+    benefit_amount=30.00,
+    extra_resource_key=null,
+    required_confirmed_referrals=1,
+    starts_at=null,
+    ends_at=null,
+    public_rules='A indicação é registrada pelo link. A recompensa só fica disponível após a primeira mensalidade confirmada e pelo menos 30 dias com assinatura ativa. O convidado não recebe desconto automático. Família: crédito de R$ 30, limitado a 3 recompensas em 12 meses. Professor: bônus de R$ 40, limitado a 5 recompensas em 30 dias.',
+    updated_at=now();
