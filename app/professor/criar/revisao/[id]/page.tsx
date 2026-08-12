@@ -20,10 +20,6 @@ const formatOptions = [
 ];
 const outputLabels: Record<string, string> = { mission: "Missão", quiz: "Quiz", activity: "Atividade", material: "Material", assessment: "Avaliação", notebook_pdf: "Caderno / PDF" };
 
-function difficultyLabel(value: string) {
-  return value === "easy" ? "Mais acessível" : value === "hard" ? "Desafiadora" : "Intermediária";
-}
-
 export default async function ContentPreparationReviewPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ erro?: string; sucesso?: string }> }) {
   const { id } = await params;
   const query = await searchParams;
@@ -46,7 +42,7 @@ export default async function ContentPreparationReviewPage({ params, searchParam
   const outputTypes = new Set((outputs ?? []).map((item: any) => item.output_type));
 
   return <>
-    <PageHeader eyebrow="Professor • Preparação" title={draft.title || "Revisar conteúdo"} description="Edite a estrutura antes de transformá-la em Missão, material, avaliação ou Caderno." action={<Link className="button button-secondary" href="/professor/criar">Voltar a Criar conteúdo</Link>} />
+    <PageHeader eyebrow="Professor • Preparação" title={draft.title || "Revisar conteúdo"} description="Edite a estrutura antes de transformá-la em Missão, Quiz, atividade, material, avaliação ou Caderno." action={<Link className="button button-secondary" href="/professor/criar">Voltar a Criar conteúdo</Link>} />
     {query.erro && <div className="form-message form-error">{query.erro}</div>}
     {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
 
@@ -56,7 +52,7 @@ export default async function ContentPreparationReviewPage({ params, searchParam
     </section>
 
     <section className="panel">
-      <div className="panel-head"><div><h2>Contexto e instruções</h2><p>O processador futuro preencherá estes campos; o Professor sempre poderá corrigir tudo aqui.</p></div></div>
+      <div className="panel-head"><div><h2>Contexto e instruções</h2><p>O processador futuro poderá preencher estes campos; o Professor sempre poderá corrigir tudo aqui.</p></div></div>
       <form action={updateContentPreparationDraft} className="form-stack">
         <input type="hidden" name="draftId" value={draft.id} />
         <div className="form-row"><div className="field"><label>Título</label><input className="input" name="title" defaultValue={draft.title || ""} required /></div><div className="field"><label>Tema</label><input className="input" name="theme" defaultValue={draft.theme || ""} /></div></div>
@@ -80,10 +76,11 @@ export default async function ContentPreparationReviewPage({ params, searchParam
     </section>
 
     <section className="panel">
-      <div className="panel-head"><div><h2>Transformar em conteúdo final</h2><p>Todos os destinos nascem como rascunho. Missão/Quiz abre o editor final; os demais formatos criam um rascunho no fluxo já existente.</p></div></div>
+      <div className="panel-head"><div><h2>Transformar em conteúdo final</h2><p>Todos os destinos nascem como rascunho. Missão e Quiz usam o mesmo motor seguro de questões; os demais formatos entram nos fluxos já existentes.</p></div></div>
       <div className="teacher-create-launch-grid teacher-create-launch-grid-clean">
-        <article className="teacher-create-launch is-mission"><strong>Missão / Quiz</strong><span>Carrega título, matéria, série, objetivo e questões compatíveis no editor de Missão.</span>{outputTypes.has("mission") || outputTypes.has("quiz") ? <Badge tone="green">Já criado</Badge> : <Link className="button button-primary button-small" href={`/professor/missoes/nova?rascunho=${draft.id}`}>Abrir no editor de Missão</Link>}</article>
-        {(["material", "activity", "assessment", "notebook_pdf"] as const).map((type) => <article className="teacher-create-launch" key={type}><strong>{outputLabels[type]}</strong><span>{type === "notebook_pdf" ? "Usa o PDF/imagem fonte como Caderno em rascunho. Texto puro aguardará o gerador visual CURIÓ." : "Cria um rascunho no módulo final, sem publicar nem escolher alunos automaticamente."}</span>{outputTypes.has(type) ? <Badge tone="green">Já criado</Badge> : <form action={convertPreparationDraft}><input type="hidden" name="draftId" value={draft.id} /><input type="hidden" name="outputType" value={type} /><button className="button button-secondary button-small" type="submit">Criar rascunho de {outputLabels[type]}</button></form>}</article>)}
+        <article className="teacher-create-launch is-mission"><strong>Missão</strong><span>Carrega título, matéria, série, objetivo e questões compatíveis no editor de Missão.</span>{outputTypes.has("mission") ? <Badge tone="green">Já criada</Badge> : <Link className="button button-primary button-small" href={`/professor/missoes/nova?rascunho=${draft.id}&saida=mission`}>Criar Missão</Link>}</article>
+        <article className="teacher-create-launch is-assessment"><strong>Quiz</strong><span>Reutiliza o motor de Missões para perguntas, gabarito e correções, sem criar um segundo sistema de quiz.</span>{outputTypes.has("quiz") ? <Badge tone="green">Já criado</Badge> : <Link className="button button-primary button-small" href={`/professor/missoes/nova?rascunho=${draft.id}&saida=quiz`}>Criar Quiz</Link>}</article>
+        {(["material", "activity", "assessment", "notebook_pdf"] as const).map((type) => <article className="teacher-create-launch" key={type}><strong>{outputLabels[type]}</strong><span>{type === "notebook_pdf" ? "Usa o PDF/imagem fonte como Caderno em rascunho. Texto puro aguardará o gerador visual CURIÓ." : type === "activity" ? "Cria uma atividade corrigível no fluxo de Caderno/Correções, sem publicar para aluno automaticamente." : "Cria um rascunho no módulo final, sem publicar nem escolher alunos automaticamente."}</span>{outputTypes.has(type) ? <Badge tone="green">Já criado</Badge> : <form action={convertPreparationDraft}><input type="hidden" name="draftId" value={draft.id} /><input type="hidden" name="outputType" value={type} /><button className="button button-secondary button-small" type="submit">Criar rascunho de {outputLabels[type]}</button></form>}</article>)}
       </div>
       {outputs?.length ? <div className="notice mt-16"><strong>Saídas já criadas:</strong> {(outputs ?? []).map((item: any) => outputLabels[item.output_type] || item.output_type).join(", ")}. O rascunho de preparação continua disponível para outras versões.</div> : null}
     </section>
