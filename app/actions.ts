@@ -14,11 +14,17 @@ const leadSchema = z.object({
   grade_name: z.string().trim().min(1),
   main_difficulties: z.string().trim().optional(),
   message: z.string().trim().optional(),
+  referral_code: z.string().trim().regex(/^[A-Za-z0-9]{6,24}$/).optional(),
   consent_contact: z.literal("on"),
 });
 
 function requestFingerprint(payload: Record<string, unknown>) {
   return `public-lead-v1:${createHash("sha256").update(JSON.stringify(payload)).digest("hex")}`;
+}
+
+function leadDestination(referralCode: string | null, kind: "sucesso" | "erro") {
+  if (referralCode) return `/convite/${encodeURIComponent(referralCode)}?lead=${kind}#quero-conhecer`;
+  return `/?lead=${kind}#quero-conhecer`;
 }
 
 export async function createEnrollmentRequest(formData: FormData) {
@@ -31,11 +37,15 @@ export async function createEnrollmentRequest(formData: FormData) {
     grade_name: formData.get("grade_name"),
     main_difficulties: formData.get("main_difficulties") || undefined,
     message: formData.get("message") || undefined,
+    referral_code: formData.get("referral_code") || undefined,
     consent_contact: formData.get("consent_contact"),
   });
 
+  const rawReferralCode = String(formData.get("referral_code") || "").trim().toUpperCase();
+  const referralCode = /^[A-Z0-9]{6,24}$/.test(rawReferralCode) ? rawReferralCode : null;
+
   if (!parsed.success) {
-    redirect("/?lead=erro#quero-conhecer");
+    redirect(leadDestination(referralCode, "erro"));
   }
 
   const supabase = await createClient();
@@ -78,13 +88,14 @@ export async function createEnrollmentRequest(formData: FormData) {
     status: "new",
     idempotency_key: idempotencyKey,
     request_day: requestDay,
+    referral_code: referralCode,
     deleted_at: null,
   });
 
   if (error && error.code !== "23505") {
     console.error("Falha ao registrar interesse no CURIÓ", error.code);
-    redirect("/?lead=erro#quero-conhecer");
+    redirect(leadDestination(referralCode, "erro"));
   }
 
-  redirect("/?lead=sucesso#quero-conhecer");
+  redirect(leadDestination(referralCode, "sucesso"));
 }
