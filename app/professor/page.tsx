@@ -53,29 +53,15 @@ export default async function TeacherHome() {
   const todayStart = `${today}T00:00:00-03:00`;
   const todayEnd = `${today}T23:59:59-03:00`;
   const nowIso = new Date().toISOString();
-  const nextWeek = new Date();
-  nextWeek.setDate(nextWeek.getDate() + 7);
-
-  const { data: studentLinks } = await supabase
-    .from("teacher_students")
-    .select("student_id,students(id,preferred_name,full_name,deleted_at,status)")
-    .eq("teacher_id", teacher.id)
-    .eq("active", true);
-
-  const activeLinks = (studentLinks ?? []).filter((link: any) => link.students && !link.students.deleted_at && link.students.status === "active");
-  const studentIds = activeLinks.map((link: any) => link.student_id);
 
   const [
+    { data: dashboardRows },
     { data: todayEvents },
     { data: upcomingEvents },
-    { count: missionPending },
-    { count: notebookPending },
-    { count: waitingMission },
-    { count: upcomingAssessments },
     { data: recentMaterials },
     { data: recentNotebooks },
-    { data: participantRows },
   ] = await Promise.all([
+    supabase.rpc("teacher_dashboard_counts"),
     supabase
       .from("agenda_events")
       .select("id,title,event_type,starts_at,ends_at,status,meeting_url,agenda_event_students(student_id,students(preferred_name,full_name))")
@@ -92,22 +78,6 @@ export default async function TeacherHome() {
       .neq("status", "cancelled")
       .order("starts_at")
       .limit(8),
-    studentIds.length
-      ? supabase.from("submissions").select("id", { count: "exact", head: true }).in("student_id", studentIds).eq("review_status", "pending")
-      : Promise.resolve({ count: 0 } as any),
-    studentIds.length
-      ? supabase.from("notebook_assignments").select("id", { count: "exact", head: true }).in("student_id", studentIds).eq("status", "submitted")
-      : Promise.resolve({ count: 0 } as any),
-    studentIds.length
-      ? supabase.from("mission_students").select("id", { count: "exact", head: true }).eq("assigned_by_teacher_id", teacher.id).in("student_id", studentIds).in("status", ["assigned", "in_progress"])
-      : Promise.resolve({ count: 0 } as any),
-    supabase
-      .from("assessments")
-      .select("id", { count: "exact", head: true })
-      .eq("created_by_teacher_id", teacher.id)
-      .gte("scheduled_for", nowIso)
-      .lte("scheduled_for", nextWeek.toISOString())
-      .neq("status", "archived"),
     supabase
       .from("materials")
       .select("id,title,material_type,status,created_at,subjects(name)")
@@ -120,29 +90,17 @@ export default async function TeacherHome() {
       .eq("created_by_teacher_id", teacher.id)
       .order("created_at", { ascending: false })
       .limit(4),
-    supabase
-      .from("message_thread_participants")
-      .select("thread_id,last_read_at")
-      .eq("user_id", viewer.user.id)
-      .limit(80),
   ]);
 
-  const threadIds = (participantRows ?? []).map((item: any) => item.thread_id);
-  const { data: incomingMessages } = threadIds.length
-    ? await supabase
-        .from("messages")
-        .select("id,thread_id,created_at,sender_user_id")
-        .in("thread_id", threadIds)
-        .neq("sender_user_id", viewer.user.id)
-        .is("deleted_at", null)
-        .order("created_at", { ascending: false })
-        .limit(200)
-    : { data: [] as any[] };
-
-  const lastReadByThread = new Map((participantRows ?? []).map((item: any) => [item.thread_id, item.last_read_at ? new Date(item.last_read_at).getTime() : 0]));
-  const unreadMessages = (incomingMessages ?? []).filter((message: any) => new Date(message.created_at).getTime() > (lastReadByThread.get(message.thread_id) || 0)).length;
+  const dashboard: any = dashboardRows?.[0] || {};
+  const activeStudents = Number(dashboard.active_students || 0);
+  const missionPending = Number(dashboard.mission_pending || 0);
+  const notebookPending = Number(dashboard.notebook_pending || 0);
+  const waitingMission = Number(dashboard.waiting_missions || 0);
+  const upcomingAssessments = Number(dashboard.upcoming_assessments || 0);
+  const unreadMessages = Number(dashboard.unread_messages || 0);
   const todayClasses = (todayEvents ?? []).filter((event: any) => ["class", "review"].includes(event.event_type));
-  const correctionCount = (missionPending ?? 0) + (notebookPending ?? 0);
+  const correctionCount = missionPending + notebookPending;
   const nextEvent = upcomingEvents?.[0];
 
   const recentItems = [
@@ -171,12 +129,12 @@ export default async function TeacherHome() {
         </div>
 
         <div className="teacher-metric-grid" aria-label="Resumo do professor">
-          <div className="teacher-metric"><strong>{activeLinks.length}</strong><span>Alunos ativos</span></div>
+          <div className="teacher-metric"><strong>{activeStudents}</strong><span>Alunos ativos</span></div>
           <div className="teacher-metric"><strong>{todayClasses.length}</strong><span>Aulas hoje</span></div>
           <div className="teacher-metric"><strong>{correctionCount}</strong><span>Correções pendentes</span></div>
           <div className="teacher-metric"><strong>{unreadMessages}</strong><span>Mensagens não lidas</span></div>
-          <div className="teacher-metric"><strong>{waitingMission ?? 0}</strong><span>Aguardando aluno</span></div>
-          <div className="teacher-metric"><strong>{upcomingAssessments ?? 0}</strong><span>Avaliações próximas</span></div>
+          <div className="teacher-metric"><strong>{waitingMission}</strong><span>Aguardando aluno</span></div>
+          <div className="teacher-metric"><strong>{upcomingAssessments}</strong><span>Avaliações próximas</span></div>
         </div>
 
         <div className="teacher-quick-actions">
@@ -249,7 +207,7 @@ export default async function TeacherHome() {
           <div className="teacher-recent-list">
             <Link className="teacher-recent-item" href="/professor/correcoes"><div><strong>{correctionCount} correção(ões)</strong><small>Missões discursivas e atividades do Caderno enviadas</small></div><span>→</span></Link>
             <Link className="teacher-recent-item" href="/professor/mensagens"><div><strong>{unreadMessages} mensagem(ns) não lida(s)</strong><small>Conversas com famílias, alunos e recados da equipe</small></div><span>→</span></Link>
-            <Link className="teacher-recent-item" href="/professor/missoes"><div><strong>{waitingMission ?? 0} atividade(s) aguardando aluno</strong><small>Publicadas e ainda não finalizadas</small></div><span>→</span></Link>
+            <Link className="teacher-recent-item" href="/professor/missoes"><div><strong>{waitingMission} atividade(s) aguardando aluno</strong><small>Publicadas e ainda não finalizadas</small></div><span>→</span></Link>
           </div>
         </section>
 

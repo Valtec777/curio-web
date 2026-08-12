@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - codex/estabilizacao-curio-prioridade-1
+      - agent/performance-scalability
   pull_request:
     branches:
       - main
+      - codex/estabilizacao-curio-prioridade-1
   workflow_dispatch:
 
 permissions:
