@@ -25,7 +25,7 @@ function relationOne<T>(value: T | T[] | null | undefined): T | null {
 export default async function FamilyPlanPage({ searchParams }: { searchParams: Promise<{ aluno?: string }> }) {
   const query = await searchParams;
   const { guardian, selectedChild, supabase } = await getFamilyPortal(query.aluno || null);
-  if (!guardian?.active || !selectedChild) return <EmptyState title="Plano indisponível" description="A administração precisa concluir o vínculo da família e da criança." />;
+  if (!guardian?.active || !selectedChild) return <EmptyState title="Plano indisponível" description="O vínculo da família com a criança ainda precisa ser concluído." />;
 
   const [{ data: subscriptions }, { data: usageRows }] = await Promise.all([
     supabase
@@ -44,7 +44,7 @@ export default async function FamilyPlanPage({ searchParams }: { searchParams: P
 
   return (
     <>
-      <PageHeader eyebrow="Ninho da Família" title={`Plano de ${selectedChild.student_name}`} description="Plano contratado, ciclo atual e recursos disponíveis no acompanhamento." />
+      <PageHeader eyebrow="Ninho da Família" title={`Plano de ${selectedChild.student_name}`} description="Veja o plano atual, a próxima renovação e os recursos disponíveis para este período." />
 
       {current ? <section className="panel family-highlight">
         <div className="flex space-between gap-8 wrap">
@@ -59,26 +59,26 @@ export default async function FamilyPlanPage({ searchParams }: { searchParams: P
         </div>
 
         <div className="grid-3 mt-16">
-          <article className="family-summary-card"><span>Ciclo atual</span><h3>{first ? `${date(first.cycle_start)} → ${date(first.cycle_end)}` : `${date(current.starts_at)} → ${current.ends_at ? date(current.ends_at) : "em andamento"}`}</h3><p>Período usado para calcular os recursos do plano.</p></article>
-          <article className="family-summary-card"><span>Próxima renovação</span><h3>{first ? date(first.renews_on) : "A confirmar"}</h3><p>Os limites reiniciam quando começa o próximo ciclo.</p></article>
-          <article className="family-summary-card"><span>Situação</span><h3>{current.status === "active" ? "Acompanhamento ativo" : current.status === "paused" ? "Temporariamente pausado" : current.status === "pending" ? "Pagamento pendente" : current.status}</h3><p>{current.status === "pending" ? "A confirmação financeira ainda depende da administração." : current.status === "paused" ? "Alguns recursos podem ficar temporariamente indisponíveis." : "Plano em acompanhamento."}</p></article>
+          <article className="family-summary-card"><span>Período atual</span><h3>{first ? `${date(first.cycle_start)} → ${date(first.cycle_end)}` : `${date(current.starts_at)} → ${current.ends_at ? date(current.ends_at) : "em andamento"}`}</h3><p>Os recursos do plano são acompanhados dentro deste período.</p></article>
+          <article className="family-summary-card"><span>Próxima renovação</span><h3>{first ? date(first.renews_on) : "A confirmar"}</h3><p>Os limites do plano são renovados quando começa o próximo período.</p></article>
+          <article className="family-summary-card"><span>Situação</span><h3>{current.status === "active" ? "Acompanhamento ativo" : current.status === "paused" ? "Temporariamente pausado" : current.status === "pending" ? "Pagamento pendente" : current.status}</h3><p>{current.status === "pending" ? "A confirmação do pagamento ainda está em andamento." : current.status === "paused" ? "Alguns recursos podem ficar temporariamente indisponíveis." : "Tudo certo para seguir com o acompanhamento."}</p></article>
         </div>
 
         {Array.isArray(currentPlan?.features) && currentPlan.features.length ? <div className="flex gap-8 wrap mt-16">{currentPlan.features.map((feature: any, index: number) => <Badge tone="blue" key={`${String(feature)}-${index}`}>{typeof feature === "string" ? feature : feature?.label || feature?.name || "Benefício"}</Badge>)}</div> : null}
       </section> : null}
 
       <section className="panel">
-        <div className="panel-head"><div><h2>Uso do plano neste ciclo</h2><p>Acompanhe o que já foi utilizado e o que ainda está disponível.</p></div></div>
+        <div className="panel-head"><div><h2>Uso do plano</h2><p>Acompanhe o que já foi utilizado e o que ainda está disponível neste período.</p></div></div>
         {rows.length ? <div className="grid-3">{rows.map((row: any) => <article className="family-summary-card" key={row.resource_key}>
           <Badge tone={planUsageTone(row.usage_state)}>{planUsageStateLabel(row.usage_state)}</Badge>
           <h3>{!row.enabled ? "Não incluído" : row.limit_per_cycle == null ? `${row.used_units} utilizado(s)` : `${row.used_units}/${row.limit_per_cycle}`}</h3>
           <p>{planResourceLabel(row.resource_key)}</p>
-          {row.enabled && row.limit_per_cycle != null ? <small className="muted">{row.remaining_units > 0 ? `${row.remaining_units} restante(s) neste ciclo` : `Novo ciclo em ${date(row.renews_on)}`}</small> : row.enabled ? <small className="muted">Sem teto definido no plano atual</small> : null}
-        </article>)}</div> : <EmptyState title="Consumo ainda não iniciado" description="Os recursos utilizados aparecerão aqui conforme o acompanhamento avançar." />}
+          {row.enabled && row.limit_per_cycle != null ? <small className="muted">{row.remaining_units > 0 ? `${row.remaining_units} restante(s) neste período` : `Renova em ${date(row.renews_on)}`}</small> : row.enabled ? <small className="muted">Sem limite definido no plano atual</small> : null}
+        </article>)}</div> : <EmptyState title="Uso ainda não iniciado" description="Os recursos utilizados aparecerão aqui conforme o acompanhamento avançar." />}
       </section>
 
       {subscriptions && subscriptions.length > 1 ? <section className="panel">
-        <div className="panel-head"><div><h2>Histórico de planos</h2><p>Planos anteriores ficam registrados sem apagar o histórico da matrícula.</p></div></div>
+        <div className="panel-head"><div><h2>Histórico de planos</h2><p>Planos anteriores continuam registrados para manter o histórico do acompanhamento.</p></div></div>
         <div className="form-stack">{subscriptions.filter((sub: any) => sub.id !== current?.id).map((sub: any) => {
           const historicalPlan: any = relationOne(sub.plans as any);
           return <article className="family-upload-card" key={sub.id}><div className="flex space-between gap-8 wrap"><div><Badge tone="neutral">{sub.status}</Badge><strong>{historicalPlan?.name || "Plano CURIÓ"}</strong></div><strong>{money(sub.agreed_monthly_price ?? historicalPlan?.monthly_price)}</strong></div><small className="muted">{date(sub.starts_at)} → {sub.ends_at ? date(sub.ends_at) : "—"}</small></article>;
