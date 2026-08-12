@@ -1,6 +1,6 @@
 import { getCurrentTeacher } from "@/lib/teacher";
 import { PageHeader, EmptyState, Badge } from "@/components/ui";
-import { reviewAnswer, reviewNotebookAssignment } from "./actions";
+import { reviewAnswer, reviewAssessmentAssignment, reviewNotebookAssignment } from "./actions";
 
 function dt(value?: string | null) {
   if (!value) return "—";
@@ -22,7 +22,7 @@ export default async function CorrectionsPage({ searchParams }: { searchParams: 
   const { teacher, supabase } = await getCurrentTeacher();
   if (!teacher) return <EmptyState title="Perfil incompleto" description="Falta o registro de professor." />;
 
-  const [{ data: submissions }, { data: notebooks }] = await Promise.all([
+  const [{ data: submissions }, { data: notebooks }, { data: assessmentRows }] = await Promise.all([
     supabase
       .from("submissions")
       .select(`
@@ -39,22 +39,44 @@ export default async function CorrectionsPage({ searchParams }: { searchParams: 
       .eq("assigned_by_teacher_id", teacher.id)
       .eq("status", "submitted")
       .order("submitted_at", { ascending: true }),
+    supabase
+      .from("assessment_students")
+      .select("id,student_id,status,score,teacher_note,reviewed_at,created_at,students(preferred_name,full_name),assessments!inner(id,title,scheduled_for,instructions,created_by_teacher_id,subjects(name))")
+      .eq("assessments.created_by_teacher_id", teacher.id)
+      .neq("status", "cancelled")
+      .order("created_at", { ascending: true }),
   ]);
 
   const missionPending = (submissions ?? []).filter((submission: any) => (submission.answers ?? []).some((answer: any) => !answer.reviewed_at));
-  const total = missionPending.length + (notebooks?.length ?? 0);
+  const now = Date.now();
+  const assessmentPending = (assessmentRows ?? []).filter((item: any) => {
+    if (item.reviewed_at || item.status === "reviewed") return false;
+    const relation = item.assessments;
+    const assessment = Array.isArray(relation) ? relation[0] : relation;
+    if (!assessment?.scheduled_for) return true;
+    return new Date(assessment.scheduled_for).getTime() <= now;
+  });
+
+  const notebookFiles = new Map<string, string>();
+  for (const assignment of notebooks ?? []) {
+    if (!assignment.submission_photo_path) continue;
+    const { data } = await supabase.storage.from("family-uploads").createSignedUrl(assignment.submission_photo_path, 60 * 20);
+    if (data?.signedUrl) notebookFiles.set(assignment.id, data.signedUrl);
+  }
+
+  const total = missionPending.length + (notebooks?.length ?? 0) + assessmentPending.length;
 
   return (
     <>
       <PageHeader
         eyebrow="Professor • Revisar"
         title="Correções"
-        description="Veja quando o aluno entregou, se estava no prazo e o que realmente precisa de correção humana. Questões objetivas são conferidas automaticamente pelo gabarito."
+        description="Revise respostas abertas, Caderno Curió e registre resultados de avaliações. Questões objetivas com gabarito continuam sendo conferidas automaticamente."
       />
       {params.erro && <div className="form-message form-error">{params.erro}</div>}
       {params.sucesso && <div className="form-message form-success">{params.sucesso}</div>}
 
-      <div className="notice">A correção automática vale somente para múltipla escolha e verdadeiro/falso com gabarito. Respostas abertas e Caderno Curió continuam sob decisão do professor.</div>
+      <div className="notice">A automação vale somente para múltipla escolha e verdadeiro/falso com gabarito. Respostas abertas, Caderno Curió e resultados de avaliação permanecem sob decisão do professor.</div>
 
       {total ? (
         <div className="form-stack mt-16">
@@ -109,7 +131,7 @@ export default async function CorrectionsPage({ searchParams }: { searchParams: 
             <section className="panel" key={`notebook-${assignment.id}`}>
               <div className="panel-head"><div><div className="flex gap-8 wrap"><Badge tone="pink">{assignment.students?.preferred_name || assignment.students?.full_name || "Aluno"}</Badge><Badge tone={deliveryTone(assignment.submitted_at, assignment.due_at)}>{deliveryLabel(assignment.submitted_at, assignment.due_at)}</Badge><Badge tone="purple">Caderno Curió</Badge></div><h2>{assignment.notebook_activities?.title || "Atividade de caderno"}</h2><p>Enviado em {dt(assignment.submitted_at)}{assignment.due_at ? ` · prazo ${dt(assignment.due_at)}` : ""}</p></div></div>
               {assignment.notebook_activities?.description && <p>{assignment.notebook_activities.description}</p>}
-              {assignment.submission_photo_path && <div className="asset-path">Entrega anexada: {assignment.submission_photo_path}</div>}
+              {notebookFiles.get(assignment.id) ? <p><a className="button button-secondary button-small" href={notebookFiles.get(assignment.id)} target="_blank" rel="noreferrer">Abrir entrega ↗</a></p> : assignment.submission_photo_path ? <div className="form-message form-error">O arquivo foi registrado, mas não pôde ser aberto agora.</div> : null}
               <form action={reviewNotebookAssignment} className="form-stack mt-12">
                 <input type="hidden" name="assignmentId" value={assignment.id}/>
                 <input type="hidden" name="studentId" value={assignment.student_id}/>
@@ -120,8 +142,26 @@ export default async function CorrectionsPage({ searchParams }: { searchParams: 
               </form>
             </section>
           ))}
+
+          {assessmentPending.map((assignment: any) => {
+            const relation = assignment.assessments;
+            const assessment = Array.isArray(relation) ? relation[0] : relation;
+            return (
+              <section className="panel" key={`assessment-${assignment.id}`}>
+                <div className="panel-head"><div><div className="flex gap-8 wrap"><Badge tone="pink">{assignment.students?.preferred_name || assignment.students?.full_name || "Aluno"}</Badge><Badge tone="blue">Avaliação</Badge>{assessment?.subjects?.name ? <Badge tone="neutral">{assessment.subjects.name}</Badge> : null}</div><h2>{assessment?.title || "Avaliação"}</h2><p>Data prevista: {dt(assessment?.scheduled_for)}</p></div></div>
+                {assessment?.instructions ? <p>{assessment.instructions}</p> : null}
+                <form action={reviewAssessmentAssignment} className="form-stack mt-12">
+                  <input type="hidden" name="assignmentId" value={assignment.id}/>
+                  <input type="hidden" name="studentId" value={assignment.student_id}/>
+                  <div className="field"><label>Nota 0–100</label><input className="input" type="number" name="score" min="0" max="100" step="0.1" required /></div>
+                  <div className="field"><label>Devolutiva para aluno e família <span className="field-optional">opcional</span></label><textarea className="textarea" name="note" maxLength={2500} placeholder="Registre uma observação curta sobre o resultado, quando fizer sentido." /></div>
+                  <button className="button button-primary" type="submit">Registrar resultado</button>
+                </form>
+              </section>
+            );
+          })}
         </div>
-      ) : <EmptyState title="Nenhuma correção pendente" description="Quando um aluno enviar uma resposta aberta ou atividade de caderno, ela aparecerá aqui." />}
+      ) : <EmptyState title="Nenhuma correção pendente" description="Quando houver resposta aberta, Caderno Curió enviado ou avaliação aguardando resultado, ela aparecerá aqui." />}
     </>
   );
 }
