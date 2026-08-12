@@ -4,10 +4,11 @@ import { PageHeader } from "@/components/ui";
 import { getCurrentTeacher } from "@/lib/teacher";
 import { MissionBuilder } from "./mission-builder";
 
-export default async function NewMissionPage({ searchParams }: { searchParams: Promise<{ erro?: string; rascunho?: string }> }) {
+export default async function NewMissionPage({ searchParams }: { searchParams: Promise<{ erro?: string; rascunho?: string; saida?: string }> }) {
   const query = await searchParams;
   const { teacher, supabase } = await getCurrentTeacher();
   if (!teacher) return null;
+  const sourceOutputType = query.saida === "quiz" ? "quiz" : "mission";
 
   const [{ data: subjects }, { data: grades }, { data: skills }, { data: characters }, { data: studentLinks }] = await Promise.all([
     supabase.from("subjects").select("id,name").eq("active", true).order("name"),
@@ -45,11 +46,10 @@ export default async function NewMissionPage({ searchParams }: { searchParams: P
     name: link.students.preferred_name || link.students.full_name || "Aluno",
     detail: link.students.grades?.name || link.students.school_name || "",
   }));
-
-  const idempotencyKey = query.rascunho ? `content-draft:${query.rascunho}` : randomUUID();
+  const idempotencyKey = query.rascunho ? `content-draft:${query.rascunho}:${sourceOutputType}` : randomUUID();
 
   return <>
-    <PageHeader eyebrow="Professor • Missões" title="Nova Missão Cuca" description="Monte a missão em uma página própria e adicione quantas questões precisar, até 20 por missão." action={<Link className="button button-secondary" href="/professor/missoes">Voltar às missões</Link>} />
+    <PageHeader eyebrow="Professor • Missões" title={sourceOutputType === "quiz" ? "Novo Quiz" : "Nova Missão Cuca"} description="Revise as questões antes de salvar. O Quiz reutiliza o mesmo motor seguro de questões e correções das Missões." action={<Link className="button button-secondary" href="/professor/missoes">Voltar às missões</Link>} />
     {query.erro && <div className="form-message form-error">{query.erro}</div>}
     <MissionBuilder
       idempotencyKey={idempotencyKey}
@@ -59,6 +59,8 @@ export default async function NewMissionPage({ searchParams }: { searchParams: P
       characters={(characters ?? []).map((item: any) => ({ id: item.id, name: item.name }))}
       students={students}
       initialDraft={initialDraft}
+      sourceDraftId={query.rascunho || null}
+      sourceOutputType={sourceOutputType}
     />
   </>;
 }
