@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import { CURIO_SOUND_KEY, playCurioSound } from "@/lib/curio-sounds";
 
 type ThemeMode = "system" | "light" | "dark";
 type TextSize = "default" | "large" | "extra";
@@ -13,8 +11,9 @@ type Preferences = {
   visual: boolean;
   epilepsy: boolean;
   focus: boolean;
-  sound: boolean;
 };
+
+const EXPERIENCE_PREFERENCES_KEY = "curio:experience-preferences:v1";
 
 const defaults: Preferences = {
   theme: "system",
@@ -22,13 +21,12 @@ const defaults: Preferences = {
   visual: false,
   epilepsy: false,
   focus: false,
-  sound: false,
 };
 
 function readPreferences(): Preferences {
   if (typeof window === "undefined") return defaults;
   try {
-    const stored = window.localStorage.getItem(CURIO_SOUND_KEY);
+    const stored = window.localStorage.getItem(EXPERIENCE_PREFERENCES_KEY);
     return stored ? { ...defaults, ...(JSON.parse(stored) as Partial<Preferences>) } : defaults;
   } catch {
     return defaults;
@@ -48,7 +46,6 @@ function applyPreferences(preferences: Preferences) {
   root.dataset.accessVisual = String(preferences.visual);
   root.dataset.accessEpilepsy = String(preferences.epilepsy);
   root.dataset.accessFocus = String(preferences.focus);
-  root.dataset.sound = String(preferences.sound && !preferences.epilepsy);
   root.style.colorScheme = root.dataset.theme;
 
   if (preferences.epilepsy) {
@@ -62,8 +59,6 @@ function applyPreferences(preferences: Preferences) {
 export function ExperiencePreferences() {
   const [open, setOpen] = useState(false);
   const [preferences, setPreferences] = useState<Preferences>(defaults);
-  const pathname = usePathname();
-  const isStudentArea = pathname.startsWith("/aluno") && pathname !== "/aluno/desbloquear-familia";
 
   useEffect(() => {
     const initial = readPreferences();
@@ -77,19 +72,13 @@ export function ExperiencePreferences() {
     };
     media.addEventListener?.("change", syncSystemTheme);
 
-    const params = new URLSearchParams(window.location.search);
-    const success = (params.get("sucesso") || "").toLocaleLowerCase("pt-BR");
-    if (isStudentArea && !initial.epilepsy && (success.includes("missão enviada") || success.includes("missão concluída"))) {
-      window.setTimeout(() => playCurioSound("mission-complete"), 250);
-    }
-
     return () => media.removeEventListener?.("change", syncSystemTheme);
-  }, [isStudentArea, pathname]);
+  }, []);
 
   function update(patch: Partial<Preferences>) {
     const next = { ...preferences, ...patch };
     setPreferences(next);
-    window.localStorage.setItem(CURIO_SOUND_KEY, JSON.stringify(next));
+    window.localStorage.setItem(EXPERIENCE_PREFERENCES_KEY, JSON.stringify(next));
     applyPreferences(next);
   }
 
@@ -154,11 +143,11 @@ export function ExperiencePreferences() {
           </label>
 
           <label className="preference-toggle">
-            <span><strong>Reduzir estímulos</strong><small>Reduz animações, transições, movimentos decorativos, autoplay e sons.</small></span>
+            <span><strong>Reduzir estímulos</strong><small>Reduz animações, transições, movimentos decorativos, autoplay e também silencia os sons de Missões e Conquistas.</small></span>
             <input
               type="checkbox"
               checked={preferences.epilepsy}
-              onChange={(event) => update(event.target.checked ? { epilepsy: true, sound: false } : { epilepsy: false })}
+              onChange={(event) => update({ epilepsy: event.target.checked })}
             />
           </label>
 
@@ -166,28 +155,6 @@ export function ExperiencePreferences() {
             <span><strong>Foco e simplicidade</strong><small>Prioriza o conteúdo essencial e reduz distrações visuais sem esconder funções.</small></span>
             <input type="checkbox" checked={preferences.focus} onChange={(event) => update({ focus: event.target.checked })} />
           </label>
-
-          {isStudentArea && (
-            <>
-              <label className="preference-toggle">
-                <span><strong>Sons rápidos do Curió</strong><small>Feedback curto para acertos, erros e conclusão. Vem desligado por padrão.</small></span>
-                <input
-                  type="checkbox"
-                  checked={preferences.sound}
-                  disabled={preferences.epilepsy}
-                  onChange={(event) => update({ sound: event.target.checked })}
-                />
-              </label>
-
-              {preferences.sound && !preferences.epilepsy && (
-                <div className="sound-preview" aria-label="Testar sons">
-                  <button type="button" onClick={() => playCurioSound("correct")}>Acerto</button>
-                  <button type="button" onClick={() => playCurioSound("incorrect")}>Erro</button>
-                  <button type="button" onClick={() => playCurioSound("mission-complete")}>Missão concluída</button>
-                </div>
-              )}
-            </>
-          )}
         </section>
       )}
     </div>
