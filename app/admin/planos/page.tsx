@@ -40,19 +40,21 @@ export default async function AdminPlansPage({ searchParams }: { searchParams: P
   const studentName = new Map((students ?? []).map((student: any) => [student.id, student.preferred_name || student.full_name || "Aluno"]));
 
   const usageByStudent = new Map<string, any[]>();
-  for (const row of usageRows ?? []) {
-    usageByStudent.set(row.student_id, [...(usageByStudent.get(row.student_id) || []), row]);
-  }
+  for (const row of usageRows ?? []) usageByStudent.set(row.student_id, [...(usageByStudent.get(row.student_id) || []), row]);
 
   const activeCount = (plans ?? []).filter((plan: any) => plan.active && !plan.archived_at).length;
   const configuredLimits = (plans ?? []).reduce((count: number, plan: any) => count + (plan.plan_entitlements || []).filter((item: any) => item.limit_per_cycle !== null || !item.enabled).length, 0);
 
   return <>
-    <PageHeader eyebrow="Admin • Operação" title="Planos e consumo" description="Configure o que cada plano inclui e acompanhe o uso do ciclo sem depender da memória do professor." />
+    <PageHeader eyebrow="Admin • Operação" title="Planos e consumo" description="Configure o que cada plano oferece e acompanhe o uso de cada aluno no ciclo atual." />
     {query.erro && <div className="form-message form-error">{query.erro}</div>}
     {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
 
-    <div className="stats-grid">
+    <div className="notice">
+      Alterações nos limites passam a valer imediatamente para as matrículas ligadas ao plano. O valor já acordado em uma matrícula continua preservado até que essa matrícula seja alterada pela administração.
+    </div>
+
+    <div className="stats-grid mt-16">
       <StatCard value={plans?.length ?? 0} label="Planos cadastrados" />
       <StatCard value={activeCount} label="Planos ativos" />
       <StatCard value={activeSubscriptions ?? 0} label="Matrículas em acompanhamento" />
@@ -60,14 +62,14 @@ export default async function AdminPlansPage({ searchParams }: { searchParams: P
     </div>
 
     <section className="panel">
-      <div className="panel-head"><div><h2>Novo plano</h2><p>O plano nasce com o limite de encontros informado; os demais recursos começam sem limite definido e podem ser configurados logo abaixo.</p></div></div>
+      <div className="panel-head"><div><h2>Novo plano</h2><p>Defina as informações comerciais e o número inicial de encontros. Os demais recursos podem ser ajustados logo depois.</p></div></div>
       <details className="plan-editor"><summary className="button button-primary button-small">Criar novo plano</summary>
         <form action={createCommercialPlan} className="form-stack plan-form">
           <div className="form-row"><div className="field"><label>Nome *</label><input className="input" name="name" required /></div><div className="field"><label>Preço mensal *</label><input className="input" name="monthlyPrice" type="number" min="0" step="0.01" required /></div></div>
           <div className="field"><label>Descrição *</label><textarea className="textarea" name="description" required /></div>
-          <div className="form-row"><div className="field"><label>Encontros pedagógicos por ciclo</label><input className="input" name="meetingsPerMonth" type="number" min="0" defaultValue="4" /></div><div className="field"><label>Modalidade</label><select className="select" name="deliveryMode" defaultValue="online"><option value="online">Online</option><option value="hybrid">Híbrido</option><option value="presential">Presencial</option></select></div></div>
+          <div className="form-row"><div className="field"><label>Encontros por ciclo</label><input className="input" name="meetingsPerMonth" type="number" min="0" defaultValue="4" /></div><div className="field"><label>Modalidade</label><select className="select" name="deliveryMode" defaultValue="online"><option value="online">Online</option><option value="hybrid">Híbrido</option><option value="presential">Presencial</option></select></div></div>
           <div className="form-row"><div className="field"><label>Selo</label><input className="input" name="badge" placeholder="Piloto, Recomendado..." /></div><div className="field"><label>Ordem</label><input className="input" name="sortOrder" type="number" defaultValue="60" /></div></div>
-          <div className="field"><label>Benefícios comerciais</label><textarea className="textarea" name="features" placeholder="Um por linha" /></div>
+          <div className="field"><label>Benefícios visíveis</label><textarea className="textarea" name="features" placeholder="Um por linha" /></div>
           <div className="plan-check-row"><label><input type="checkbox" name="active" /> Ativo</label><label><input type="checkbox" name="visibleOnLanding" /> Visível no site</label><label><input type="checkbox" name="availableForEnrollment" defaultChecked /> Disponível para matrícula</label></div>
           <button className="button button-primary" type="submit">Criar plano</button>
         </form>
@@ -75,7 +77,7 @@ export default async function AdminPlansPage({ searchParams }: { searchParams: P
     </section>
 
     <section className="panel">
-      <div className="panel-head"><div><h2>Regras dos planos</h2><p>Em branco significa sem limite definido. Zero significa que o recurso não está incluído. Um número positivo vira limite real do ciclo.</p></div></div>
+      <div className="panel-head"><div><h2>Regras dos planos</h2><p>Em branco: sem limite definido. Zero: recurso não incluído. Número positivo: limite do ciclo. Ao salvar, a nova regra já passa a ser usada.</p></div></div>
       <div className="plan-management-grid">{(plans ?? []).map((plan: any) => {
         const entitlements = new Map((plan.plan_entitlements || []).map((item: any) => [item.resource_key, item]));
         const lifecycle = plan.archived_at ? "Arquivado" : plan.active ? "Ativo" : "Rascunho";
@@ -92,7 +94,7 @@ export default async function AdminPlansPage({ searchParams }: { searchParams: P
             })}
           </div>
 
-          <details className="plan-editor mt-16"><summary>Editar limites</summary>
+          <details className="plan-editor mt-16"><summary>Limites e recursos</summary>
             <form action={updatePlanEntitlements} className="form-stack plan-form">
               <input type="hidden" name="planId" value={plan.id} />
               {resourceOrder.map((key) => {
@@ -104,14 +106,14 @@ export default async function AdminPlansPage({ searchParams }: { searchParams: P
             </form>
           </details>
 
-          <details className="plan-editor"><summary>Editar informações comerciais</summary>
+          <details className="plan-editor"><summary>Informações do plano</summary>
             <form action={updateCommercialPlan} className="form-stack plan-form">
               <input type="hidden" name="planId" value={plan.id} />
               <div className="field"><label>Nome</label><input className="input" name="name" defaultValue={plan.name} required /></div>
               <div className="field"><label>Descrição</label><textarea className="textarea" name="description" defaultValue={plan.description || ""} required /></div>
-              <div className="form-row"><div className="field"><label>Preço mensal</label><input className="input" name="monthlyPrice" type="number" step="0.01" defaultValue={Number(plan.monthly_price || 0)} required /></div><div className="field"><label>Encontros/mês</label><input className="input" name="meetingsPerMonth" type="number" min="0" defaultValue={plan.meetings_per_month || 0} /></div></div>
+              <div className="form-row"><div className="field"><label>Preço mensal</label><input className="input" name="monthlyPrice" type="number" step="0.01" defaultValue={Number(plan.monthly_price || 0)} required /></div><div className="field"><label>Encontros por ciclo</label><input className="input" name="meetingsPerMonth" type="number" min="0" defaultValue={plan.meetings_per_month || 0} /></div></div>
               <div className="form-row"><div className="field"><label>Modalidade</label><select className="select" name="deliveryMode" defaultValue={plan.delivery_mode || "online"}><option value="online">Online</option><option value="hybrid">Híbrido</option><option value="presential">Presencial</option></select></div><div className="field"><label>Selo</label><input className="input" name="badge" defaultValue={plan.badge || ""} /></div></div>
-              <div className="field"><label>Benefícios</label><textarea className="textarea" name="features" defaultValue={(plan.features || []).join("\n")} /></div><input type="hidden" name="sortOrder" value={plan.sort_order || 0} />
+              <div className="field"><label>Benefícios visíveis</label><textarea className="textarea" name="features" defaultValue={(plan.features || []).join("\n")} /></div><input type="hidden" name="sortOrder" value={plan.sort_order || 0} />
               <div className="plan-check-row"><label><input type="checkbox" name="active" defaultChecked={plan.active} /> Ativo</label><label><input type="checkbox" name="visibleOnLanding" defaultChecked={plan.visible_on_landing} /> Visível no site</label><label><input type="checkbox" name="availableForEnrollment" defaultChecked={plan.available_for_enrollment} /> Matrícula</label></div>
               <button className="button button-secondary button-small" type="submit">Salvar informações</button>
             </form>
@@ -128,11 +130,11 @@ export default async function AdminPlansPage({ searchParams }: { searchParams: P
     </section>
 
     <section className="panel">
-      <div className="panel-head"><div><h2>Consumo do ciclo atual</h2><p>Visão administrativa dos direitos e do uso real de cada matrícula. Pagamento pendente aparece como situação, mas não inventa bloqueio financeiro automático.</p></div></div>
+      <div className="panel-head"><div><h2>Consumo do ciclo atual</h2><p>Acompanhe os recursos utilizados por cada matrícula e a próxima renovação.</p></div></div>
       {usageByStudent.size ? <div className="form-stack">{[...usageByStudent.entries()].map(([studentId, rows]) => {
         const first = rows[0];
         return <article className="mission-card" key={studentId}>
-          <div className="flex space-between gap-8 wrap"><div><strong>{studentName.get(studentId) || "Aluno"}</strong><p>{first.plan_name} · ciclo {date(first.cycle_start)} a {date(first.cycle_end)}</p></div><div className="flex gap-8 wrap"><Badge tone={first.subscription_status === "active" ? "green" : first.subscription_status === "paused" ? "pink" : "yellow"}>{first.subscription_status === "active" ? "Ativa" : first.subscription_status === "paused" ? "Pausada" : "Pagamento pendente"}</Badge><Badge tone="blue">Renova em {date(first.renews_on)}</Badge></div></div>
+          <div className="flex space-between gap-8 wrap"><div><strong>{studentName.get(studentId) || "Aluno"}</strong><p>{first.plan_name} · {date(first.cycle_start)} a {date(first.cycle_end)}</p></div><div className="flex gap-8 wrap"><Badge tone={first.subscription_status === "active" ? "green" : first.subscription_status === "paused" ? "pink" : "yellow"}>{first.subscription_status === "active" ? "Ativa" : first.subscription_status === "paused" ? "Pausada" : "Pagamento pendente"}</Badge><Badge tone="blue">Renova em {date(first.renews_on)}</Badge></div></div>
           <div className="grid-3 mt-12">{rows.map((row: any) => <div className="family-summary-card" key={row.resource_key}><Badge tone={planUsageTone(row.usage_state)}>{planUsageStateLabel(row.usage_state)}</Badge><h3>{row.enabled ? row.limit_per_cycle == null ? `${row.used_units}` : `${row.used_units}/${row.limit_per_cycle}` : "—"}</h3><p>{planResourceLabel(row.resource_key)}</p></div>)}</div>
         </article>;
       })}</div> : <EmptyState title="Sem consumo registrado" description="Quando houver matrículas com plano e uso de recursos, elas aparecerão aqui." />}
