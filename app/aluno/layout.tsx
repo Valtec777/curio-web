@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/app-shell";
 import { CurioFirstVisitGuide } from "@/components/curio-first-visit-guide";
+import { CurioPlayfulSoundEffects } from "@/components/curio-playful-sound-effects";
 import { MonthlyInterestPrompt } from "@/components/monthly-interest-prompt";
 import { getCurrentStudent } from "@/lib/student";
 import { shouldShowMonthlyInterest } from "@/lib/monthly-interest";
@@ -41,6 +42,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
       >
         {children}
         <CurioFirstVisitGuide role="student" viewerId={viewer.user.id} />
+        <CurioPlayfulSoundEffects viewerId={viewer.user.id} />
         {showInterest ? <MonthlyInterestPrompt role="student" /> : null}
       </AppShell>
     </div>
