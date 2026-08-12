@@ -1,34 +1,23 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { z } from "zod";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
-const statusSchema = z.enum(["new", "converted", "qualified", "rewarded", "rejected"]);
-
-export async function setReferralStatus(formData: FormData) {
+export async function releaseEligibleReferralRewards() {
   await requireRole("admin");
-  const id = String(formData.get("id") || "");
-  const parsed = statusSchema.safeParse(formData.get("status"));
-  if (!id || !parsed.success) redirect("/admin/indicacoes?erro=Dados+inválidos");
-
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("referral_leads")
-    .update({ status: parsed.data })
-    .eq("id", id);
+  const { data, error } = await supabase.rpc("admin_release_eligible_referral_rewards");
 
   if (error) {
-    const message = error.message.includes("janela mínima")
-      ? "A indicação ainda não completou os 30 dias mínimos após a conversão."
-      : error.message.includes("Teto de recompensas")
-        ? "O teto de recompensas deste indicador já foi atingido no período."
-        : error.message.includes("conversão")
-          ? "Registre a conversão antes de qualificar ou recompensar."
-          : "Não foi possível alterar a indicação.";
-    redirect(`/admin/indicacoes?erro=${encodeURIComponent(message)}`);
+    console.error("Falha ao liberar recompensas elegíveis", error.code);
+    redirect(`/admin/indicacoes?erro=${encodeURIComponent("Não foi possível atualizar as recompensas elegíveis.")}`);
   }
 
-  redirect(`/admin/indicacoes?sucesso=${encodeURIComponent(`Indicação atualizada para ${parsed.data}.`)}`);
+  const released = Number(data || 0);
+  redirect(`/admin/indicacoes?sucesso=${encodeURIComponent(
+    released > 0
+      ? `${released} recompensa(s) elegível(is) liberada(s).`
+      : "Nenhuma nova recompensa estava elegível agora."
+  )}`);
 }
