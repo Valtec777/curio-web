@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const jsonHeaders = { "Content-Type": "application/json" };
-const fallbackAppOrigin = "https://curio-web-nu.vercel.app";
+const fallbackAppOrigin = "https://curioeducacao.vercel.app";
 
 function reply(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), { status, headers: jsonHeaders });
@@ -17,7 +17,7 @@ function cleanOrigin(value: unknown) {
   try {
     const url = new URL(candidate);
     if ((url.hostname === "localhost" || url.hostname === "127.0.0.1") && Deno.env.get("CURIO_ALLOW_LOCAL_REDIRECTS") === "true") return url.origin;
-    if (url.protocol === "https:" && (url.origin === fallbackAppOrigin || url.hostname.endsWith(".vercel.app"))) return url.origin;
+    if (url.protocol === "https:" && url.origin === fallbackAppOrigin) return url.origin;
   } catch {}
   return fallbackAppOrigin;
 }
