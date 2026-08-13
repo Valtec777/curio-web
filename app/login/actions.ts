@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
@@ -84,6 +85,33 @@ function emailSendErrorMessage(code?: string) {
   return "Não foi possível enviar o e-mail agora. Aguarde um pouco e tente novamente.";
 }
 
+/**
+ * E-mails de primeiro acesso/recuperação precisam funcionar mesmo quando a
+ * pessoa solicita o link em um navegador e abre o e-mail em outro navegador,
+ * app de e-mail ou dispositivo. O cliente SSR usa PKCE por padrão e, nesse
+ * cenário, o code_verifier fica preso ao navegador que iniciou o fluxo.
+ *
+ * Para este handoff curto e de uso único, enviamos o link em implicit flow.
+ * O Supabase devolve access/refresh tokens somente no fragmento (#...), que
+ * não é enviado ao servidor. /auth/confirm repassa o fragmento para
+ * /definir-senha, a tela cria a sessão no navegador, remove o fragmento da
+ * URL, salva a senha e encerra a sessão logo depois.
+ */
+function createEmailAuthClient() {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    {
+      auth: {
+        flowType: "implicit",
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+      },
+    },
+  );
+}
+
 export async function login(formData: FormData) {
   const parsed = loginSchema.safeParse({
     email: formData.get("email"),
@@ -116,8 +144,8 @@ export async function login(formData: FormData) {
   redirect(destination);
 }
 
-async function sendAccessLink(email: string, successPath: string, logLabel: string) {
-  const supabase = await createClient();
+async function sendFirstAccessLink(email: string) {
+  const supabase = createEmailAuthClient();
   const origin = siteOrigin();
   const { error } = await supabase.auth.signInWithOtp({
     email,
@@ -128,10 +156,24 @@ async function sendAccessLink(email: string, successPath: string, logLabel: stri
   });
 
   if (error) {
-    console.error(`Falha no envio do ${logLabel}`, error.code);
-    redirect(`${successPath}?erro=${encodeURIComponent(emailSendErrorMessage(error.code))}`);
+    console.error("Falha no envio do primeiro acesso", error.code);
+    redirect(`/primeiro-acesso?erro=${encodeURIComponent(emailSendErrorMessage(error.code))}`);
   }
-  redirect(`${successPath}?sucesso=1`);
+  redirect("/primeiro-acesso?sucesso=1");
+}
+
+async function sendPasswordResetLink(email: string) {
+  const supabase = createEmailAuthClient();
+  const origin = siteOrigin();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/confirm?next=/definir-senha`,
+  });
+
+  if (error) {
+    console.error("Falha no envio da recuperação de senha", error.code);
+    redirect(`/esqueci-senha?erro=${encodeURIComponent(emailSendErrorMessage(error.code))}`);
+  }
+  redirect("/esqueci-senha?sucesso=1");
 }
 
 export async function requestFirstAccess(formData: FormData) {
@@ -139,7 +181,7 @@ export async function requestFirstAccess(formData: FormData) {
   if (!parsed.success) {
     redirect(`/primeiro-acesso?erro=${encodeURIComponent(parsed.error.issues[0].message)}`);
   }
-  await sendAccessLink(parsed.data.email, "/primeiro-acesso", "primeiro acesso");
+  await sendFirstAccessLink(parsed.data.email);
 }
 
 export async function requestPasswordReset(formData: FormData) {
@@ -147,7 +189,7 @@ export async function requestPasswordReset(formData: FormData) {
   if (!parsed.success) {
     redirect(`/esqueci-senha?erro=${encodeURIComponent(parsed.error.issues[0].message)}`);
   }
-  await sendAccessLink(parsed.data.email, "/esqueci-senha", "link para redefinir senha");
+  await sendPasswordResetLink(parsed.data.email);
 }
 
 export async function updatePassword(formData: FormData) {
