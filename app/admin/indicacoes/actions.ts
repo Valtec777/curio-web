@@ -19,6 +19,7 @@ function refresh() {
 export async function updateReferralProgram(formData: FormData) {
   await requireRole("admin");
   const parsed = z.object({
+    ownerType: z.enum(["guardian", "teacher"]),
     benefitType: z.enum(["none", "percent_discount", "fixed_discount", "extra_resource"]),
     benefitPercent: optionalPercent,
     benefitAmount: optionalMoney,
@@ -28,6 +29,7 @@ export async function updateReferralProgram(formData: FormData) {
     endsAt: optionalDate,
     publicRules: z.string().trim().max(1500).optional(),
   }).safeParse({
+    ownerType: formData.get("ownerType"),
     benefitType: formData.get("benefitType"),
     benefitPercent: formData.get("benefitPercent"),
     benefitAmount: formData.get("benefitAmount"),
@@ -46,7 +48,11 @@ export async function updateReferralProgram(formData: FormData) {
 
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
-  const { data: current } = await supabase.from("referral_program_settings").select("id").limit(1).maybeSingle();
+  const { data: current } = await supabase
+    .from("referral_program_settings")
+    .select("id")
+    .eq("owner_type", parsed.data.ownerType)
+    .maybeSingle();
   if (!current) redirect(`/admin/indicacoes?erro=${encodeURIComponent("A configuração de indicações não foi encontrada.")}`);
 
   const { error } = await supabase.from("referral_program_settings").update({
@@ -65,7 +71,8 @@ export async function updateReferralProgram(formData: FormData) {
 
   if (error) redirect(`/admin/indicacoes?erro=${encodeURIComponent("Não foi possível salvar as regras do programa.")}`);
   refresh();
-  redirect(`/admin/indicacoes?sucesso=${encodeURIComponent("Programa de indicações atualizado. Os links passam a obedecer esta configuração.")}`);
+  const label = parsed.data.ownerType === "teacher" ? "Professor" : "Família";
+  redirect("/admin/indicacoes?sucesso=" + encodeURIComponent("Campanha de indicação para " + label + " atualizada."));
 }
 
 export async function reviewReferralBenefit(formData: FormData) {
