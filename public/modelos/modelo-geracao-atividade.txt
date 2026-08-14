@@ -1,0 +1,34 @@
+MODELO UNIVERSAL — GERAÇÃO DE ATIVIDADES
+
+Preencha os campos abaixo. Você pode deixar em branco o que quiser que o gerador sugira.
+Este mesmo modelo pode ser usado para Missão, Quiz, Atividade, Material, Avaliação ou Caderno.
+
+TIPO: Missão | Quiz | Atividade | Material | Avaliação | Caderno
+TÍTULO:
+MATÉRIA:
+SÉRIE / ANO:
+TEMA:
+OBJETIVO:
+HABILIDADE:
+FAIXA ETÁRIA:
+DIFICULDADE: Mais acessível | Intermediária | Desafiadora
+DURAÇÃO ESTIMADA (MINUTOS):
+QUANTIDADE DE QUESTÕES:
+TIPOS DE QUESTÃO: Múltipla escolha | Verdadeiro ou falso | Discursiva | Associação | Complete a frase | Ordenação | Interpretação | Situação-problema
+GERAR EXPLICAÇÃO DAS RESPOSTAS: Sim | Não
+GERAR PISTAS: Sim | Não
+
+INSTRUÇÕES PARA A GERAÇÃO:
+Exemplo: linguagem simples, quatro alternativas por questão, exemplos do cotidiano, foco em interpretação e sem pegadinhas.
+
+CONTEÚDO / FONTE:
+Cole abaixo o texto, resumo, capítulo, roteiro, anotações ou conteúdo que deve servir de base.
+
+
+OBSERVAÇÕES FINAIS:
+
+
+IMPORTANTE:
+- O resultado será criado como rascunho para revisão do professor.
+- A geração não publica nem envia a atividade automaticamente.
+- Depois da revisão, escolha os alunos no fluxo final de publicação.

@@ -36,17 +36,17 @@ export default async function TeacherCreatePage({ searchParams }: { searchParams
   ]);
 
   return <>
-    <PageHeader eyebrow="Professor • Criar e publicar" title="Criar conteúdo" description="Comece por uma fonte ou abra diretamente o editor final. Todo conteúdo continua revisável antes de chegar ao aluno." />
+    <PageHeader eyebrow="Professor • Criar e publicar" title="Criar conteúdo" description="Use esta área para preparação manual ou abra o gerador automático quando quiser o rascunho completo em um clique." action={<Link className="button button-primary" href="/professor/gerador">Gerar atividade automaticamente</Link>} />
     {query.erro && <div className="form-message form-error">{query.erro}</div>}
     {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
 
     <section className="panel teacher-create-manual-hub">
-      <div className="panel-head"><div><h2>Preparar conteúdo a partir de uma fonte</h2><p>Cole um texto, anexe PDF/DOCX/PPTX/imagem ou combine arquivo + instruções. O resultado entra primeiro como rascunho revisável.</p></div></div>
-      <div className="notice mb-16"><strong>Revisão humana obrigatória.</strong> O arquivo é salvo como fonte. O processador automático que fará a leitura e preencherá o rascunho será conectado depois; até lá, o sistema não finge que interpretou um PDF que ainda não foi processado.</div>
+      <div className="panel-head"><div><h2>Preparação manual a partir de uma fonte</h2><p>Cole um texto ou anexe uma fonte para montar e revisar o rascunho manualmente.</p></div></div>
+      <div className="notice mb-16"><strong>Quer que o arquivo preencha tudo automaticamente?</strong> Use <Link href="/professor/gerador">Gerar atividades</Link>. Lá o PDF/DOCX/PPTX/TXT é lido pelo gerador, que cria conteúdo, questões, respostas e explicações antes de abrir a revisão.</div>
       <form action={createContentPreparationDraft} className="form-stack">
         <div className="form-row"><div className="field"><label>Título de trabalho</label><input className="input" name="title" placeholder="Ex.: Frações — revisão" /></div><div className="field"><label>Tema</label><input className="input" name="theme" placeholder="Frações, sistema solar, interpretação..." /></div></div>
         <div className="field"><label>Texto / instruções</label><textarea className="textarea" name="sourceText" placeholder="Cole o conteúdo, resumo, capítulo ou instruções para a preparação..." /></div>
-        <div className="field"><label>Arquivo fonte <span className="field-optional">PDF, DOCX, PPTX, TXT ou imagem · até 15 MB</span></label><input className="input" type="file" name="sourceFile" accept="application/pdf,.pdf,.docx,.pptx,text/plain,image/png,image/jpeg,image/webp" /></div>
+        <div className="field"><label>Arquivo fonte <span className="field-optional">para arquivos maiores e leitura automática, use Gerar atividades</span></label><input className="input" type="file" name="sourceFile" accept="application/pdf,.pdf,.docx,.pptx,text/plain,image/png,image/jpeg,image/webp" /></div>
         <div className="form-row"><div className="field"><label>Matéria</label><select className="select" name="subjectId" defaultValue=""><option value="">Não definida</option>{subjects?.map((s: any) => <option value={s.id} key={s.id}>{s.name}</option>)}</select></div><div className="field"><label>Série / ano</label><select className="select" name="gradeId" defaultValue=""><option value="">Não definida</option>{grades?.map((g: any) => <option value={g.id} key={g.id}>{g.name}</option>)}</select></div></div>
         <div className="field"><label>Objetivo</label><textarea className="textarea" name="objective" placeholder="O que o aluno deve aprender, praticar ou demonstrar?" /></div>
         <div className="form-row"><div className="field"><label>Habilidade</label><input className="input" name="skillText" placeholder="Descrição ou código da habilidade" /></div><div className="field"><label>Faixa etária</label><input className="input" name="ageLabel" placeholder="Ex.: 12 a 14 anos" /></div></div>
@@ -54,13 +54,13 @@ export default async function TeacherCreatePage({ searchParams }: { searchParams
         <div className="field"><label>Tipos de questão desejados</label><div className="flex gap-8 wrap">{questionOptions.map(([value, label]) => <label className="consent-line" key={value}><input type="checkbox" name="questionTypes" value={value} defaultChecked={["multiple_choice", "true_false", "open_text"].includes(value)} /> {label}</label>)}</div></div>
         <div className="field"><label>O que você pretende criar com esta fonte?</label><div className="flex gap-8 wrap">{formatOptions.map(([value, label]) => <label className="consent-line" key={value}><input type="checkbox" name="targetFormats" value={value} /> {label}</label>)}</div></div>
         <div className="field"><label>Observações para a preparação</label><textarea className="textarea" name="notes" placeholder="Ex.: linguagem simples, priorizar interpretação, evitar pegadinhas..." /></div>
-        <button className="button button-primary" type="submit">Criar rascunho para revisão</button>
+        <button className="button button-primary" type="submit">Criar rascunho manual para revisão</button>
       </form>
     </section>
 
     <section className="panel">
       <div className="panel-head"><div><h2>Rascunhos recentes</h2><p>Volte a qualquer preparação sem perder o arquivo ou as questões que já revisou.</p></div></div>
-      {drafts?.length ? <div className="form-stack">{drafts.map((draft: any) => <article className="mission-card" key={draft.id}><div className="flex space-between gap-8 wrap"><div>{draftStatus(draft.status)}<h3>{draft.title || draft.theme || "Conteúdo sem título"}</h3><p>{draft.source_file_name ? `Fonte: ${draft.source_file_name}` : "Fonte em texto"}</p><small className="muted">Formatos: {(draft.target_formats || []).join(", ") || "a definir"}</small></div><Link className="button button-secondary button-small" href={`/professor/criar/revisao/${draft.id}`}>Abrir revisão</Link></div></article>)}</div> : <EmptyState title="Nenhum rascunho ainda" description="Crie uma preparação acima ou abra diretamente um dos editores manuais." />}
+      {drafts?.length ? <div className="form-stack">{drafts.map((draft: any) => <article className="mission-card" key={draft.id}><div className="flex space-between gap-8 wrap"><div>{draftStatus(draft.status)}<h3>{draft.title || draft.theme || "Conteúdo sem título"}</h3><p>{draft.source_file_name ? `Fonte: ${draft.source_file_name}` : "Fonte em texto"}</p><small className="muted">Formatos: {(draft.target_formats || []).join(", ") || "a definir"}</small></div><Link className="button button-secondary button-small" href={`/professor/criar/revisao/${draft.id}`}>Abrir revisão</Link></div></article>)}</div> : <EmptyState title="Nenhum rascunho ainda" description="Gere automaticamente ou crie uma preparação manual acima." />}
     </section>
 
     <section className="panel teacher-create-manual-hub">

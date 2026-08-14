@@ -41,9 +41,6 @@ export async function convertPreparationDraft(formData: FormData) {
   const { data: existing } = await supabase.from("content_preparation_outputs").select("output_id").eq("draft_id", draft.id).eq("output_type", outputType).maybeSingle();
   if (existing) back(draft.id, "sucesso", "Esse formato já foi criado a partir deste rascunho. Nenhuma cópia duplicada foi gerada.");
 
-  if (outputType === "notebook_pdf" && draft.source_file_path && !["application/pdf", "image/png", "image/jpeg", "image/webp"].includes(draft.source_mime_type || "")) back(draft.id, "erro", "Para Caderno/PDF, a fonte atual ainda precisa ser convertida para PDF ou imagem. O processador de documentos fará essa etapa quando estiver habilitado.");
-  if (outputType === "notebook_pdf" && !draft.source_file_path) back(draft.id, "erro", "Para criar o Caderno agora, anexe um PDF ou imagem ao rascunho. A geração visual de PDF a partir de texto será conectada ao modelo CURIÓ depois.");
-
   const outputId = randomUUID();
   const { error: reserveError } = await supabase.from("content_preparation_outputs").insert({ draft_id: draft.id, output_type: outputType, output_id: outputId });
   if (reserveError) {
@@ -62,7 +59,7 @@ export async function convertPreparationDraft(formData: FormData) {
   }
 
   const title = draft.title || draft.theme || "Conteúdo preparado";
-  const description = [draft.objective, draft.notes, draft.source_text ? String(draft.source_text).slice(0, 3000) : null].filter(Boolean).join("\n\n") || "Conteúdo preparado para revisão.";
+  const description = [draft.objective, draft.notes, draft.source_text ? String(draft.source_text).slice(0, 12000) : null].filter(Boolean).join("\n\n") || "Conteúdo preparado para revisão.";
   let error: any = null;
   let destination = "/professor/conteudos";
 
@@ -88,7 +85,8 @@ export async function convertPreparationDraft(formData: FormData) {
 
   await supabase.from("content_preparation_drafts").update({ status: "converted", updated_at: new Date().toISOString() }).eq("id", draft.id);
   revalidatePath("/professor/criar");
+  revalidatePath("/professor/gerador");
   revalidatePath("/professor/materiais");
   revalidatePath("/professor/avaliacoes");
-  redirect(`${destination}?sucesso=${encodeURIComponent("Rascunho criado no fluxo final. Revise e publique somente quando estiver pronto.")}`);
+  redirect(`${destination}?sucesso=${encodeURIComponent("Rascunho criado no fluxo final. Revise, escolha os alunos e publique somente quando estiver pronto.")}`);
 }
