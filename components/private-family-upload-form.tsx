@@ -63,7 +63,9 @@ export function PrivateFamilyUploadForm({
         const { data: userData, error: userError } = await supabase.auth.getUser();
         if (userError || !userData.user) throw new Error("Sua sessão expirou. Entre novamente e tente outra vez.");
 
-        uploadedPath = `${userData.user.id}/${studentId}/${kind}/${Date.now()}-${safeFileName(file.name)}`;
+        const targetStudentId = String(formData.get("studentId") || studentId).trim();
+        if (!targetStudentId) throw new Error("Não foi possível identificar a criança deste envio.");
+        uploadedPath = `${userData.user.id}/${targetStudentId}/${kind}/${Date.now()}-${safeFileName(file.name)}`;
         const { error: uploadError } = await supabase.storage.from("family-uploads").upload(uploadedPath, file, {
           contentType: mime,
           upsert: false,
