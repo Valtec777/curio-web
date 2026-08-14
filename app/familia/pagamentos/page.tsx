@@ -1,6 +1,6 @@
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { getFamilyPortal } from "@/lib/family";
-import { submitPaymentReceipt } from "./actions";
+import { PaymentReceiptForm } from "./payment-receipt-form";
 
 function money(value: number | string | null | undefined) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value || 0));
@@ -91,15 +91,10 @@ export default async function FamilyPaymentsPage({ searchParams }: { searchParam
                   )}
 
                   {canSend && (
-                    <form action={submitPaymentReceipt} className="form-stack">
-                      <input type="hidden" name="paymentId" value={payment.id} />
-                      <div className="field">
-                        <label>{receipt?.status === "rejected" ? `Enviar novo comprovante de ${monthLabel(payment.due_date)}` : `Anexar comprovante de ${monthLabel(payment.due_date)}`}</label>
-                        <input className="input" type="file" name="receiptFile" accept="application/pdf,image/png,image/jpeg,image/webp,.pdf,.png,.jpg,.jpeg,.webp" required />
-                        <small className="muted">PDF, PNG, JPG ou WEBP · até 10 MB.</small>
-                      </div>
-                      <button className="button button-primary button-small" type="submit">Enviar para conferência</button>
-                    </form>
+                    <PaymentReceiptForm
+                      paymentId={payment.id}
+                      label={receipt?.status === "rejected" ? `Enviar novo comprovante de ${monthLabel(payment.due_date)}` : `Anexar comprovante de ${monthLabel(payment.due_date)}`}
+                    />
                   )}
                 </article>
               );
