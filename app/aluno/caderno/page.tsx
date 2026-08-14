@@ -1,4 +1,5 @@
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
+import { PrivateFamilyUploadForm } from "@/components/private-family-upload-form";
 import { getCurrentStudent } from "@/lib/student";
 import { submitStudentNotebook } from "./actions";
 
@@ -59,7 +60,7 @@ export default async function StudentNotebookPage({ searchParams }: { searchPara
       {row.needs_redo && row.redo_note ? <div className="student-feedback redo"><strong>Vamos tentar mais uma vez</strong><p>{row.redo_note}</p></div> : null}
       {row.teacher_note && !row.needs_redo ? <div className="student-feedback"><strong>Recado da professora</strong><p>{row.teacher_note}</p></div> : null}
       {submissionUrls.get(row.id) ? <a href={submissionUrls.get(row.id)} target="_blank" rel="noreferrer">Ver o arquivo que você enviou ↗</a> : null}
-      {canSubmit ? <form action={submitStudentNotebook} className="student-upload-box"><input type="hidden" name="assignmentId" value={row.id} /><label>{row.needs_redo ? "Enviar atividade refeita" : "Enviar foto ou PDF"}<input type="file" name="activityFile" accept="application/pdf,image/png,image/jpeg,image/webp,.pdf,.png,.jpg,.jpeg,.webp" required /></label><button className="button button-primary button-small" type="submit">Enviar para a professora</button></form> : null}
+      {canSubmit ? <PrivateFamilyUploadForm action={submitStudentNotebook} studentId={student.id} kind="student-activity" fileField="activityFile" className="student-upload-box"><input type="hidden" name="assignmentId" value={row.id} /><label>{row.needs_redo ? "Enviar atividade refeita" : "Enviar foto ou PDF"}<input type="file" name="activityFile" accept="application/pdf,image/png,image/jpeg,image/webp,.pdf,.png,.jpg,.jpeg,.webp" required /></label><small className="muted">PDF ou imagem · até 15 MB · envio direto ao armazenamento privado.</small><button className="button button-primary button-small" type="submit">Enviar para a professora</button></PrivateFamilyUploadForm> : null}
       {viaGuardian && (["assigned","in_progress"].includes(row.status) || row.needs_redo) ? <small className="muted">Para enviar pelo responsável, volte ao Ninho da Família → Atividades.</small> : null}
     </article>;
   };

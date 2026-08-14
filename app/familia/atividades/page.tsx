@@ -1,6 +1,7 @@
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
-import { submitFamilyNotebookActivity } from "@/app/familia/actions";
+import { PrivateFamilyUploadForm } from "@/components/private-family-upload-form";
 import { getFamilyPortal } from "@/lib/family";
+import { registerFamilyNotebookActivity } from "../upload-actions";
 
 function dt(value?: string | null) {
   if (!value) return "—";
@@ -49,7 +50,7 @@ export default async function FamilyActivitiesPage({ searchParams }: { searchPar
       {redoMode && item.redo_note ? <div className="form-message form-error"><strong>Orientação para refazer</strong><div>{item.redo_note}</div></div> : null}
       {item.teacher_note && !redoMode ? <div className="form-message form-success"><strong>Feedback do professor</strong><div>{item.teacher_note}</div></div> : null}
       {submittedUrls.get(item.id) ? <a href={submittedUrls.get(item.id)} target="_blank" rel="noreferrer">Ver arquivo enviado ↗</a> : null}
-      {canSubmit ? <form action={submitFamilyNotebookActivity} className="form-stack mt-12"><input type="hidden" name="assignmentId" value={item.id} /><input type="hidden" name="studentId" value={selectedChild.student_id} /><div className="field"><label>{redoMode ? "Enviar atividade refeita *" : "Enviar atividade *"}</label><input className="input" type="file" name="activityFile" accept="application/pdf,image/png,image/jpeg,image/webp,.pdf,.png,.jpg,.jpeg,.webp" required /><small className="muted">PDF ou imagem · até 15 MB.</small></div><div className="field"><label>Observação para o professor — opcional</label><textarea className="textarea textarea-compact" name="note" defaultValue={item.guardian_note || ""} /></div><button className="button button-primary" type="submit">{redoMode ? "Enviar novamente" : "Enviar atividade"}</button></form> : null}
+      {canSubmit ? <PrivateFamilyUploadForm action={registerFamilyNotebookActivity} studentId={selectedChild.student_id} kind="activity" fileField="activityFile" className="form-stack mt-12"><input type="hidden" name="assignmentId" value={item.id} /><input type="hidden" name="studentId" value={selectedChild.student_id} /><div className="field"><label>{redoMode ? "Enviar atividade refeita *" : "Enviar atividade *"}</label><input className="input" type="file" name="activityFile" accept="application/pdf,image/png,image/jpeg,image/webp,.pdf,.png,.jpg,.jpeg,.webp" required /><small className="muted">PDF ou imagem · até 15 MB · envio direto ao armazenamento privado.</small></div><div className="field"><label>Observação para o professor — opcional</label><textarea className="textarea textarea-compact" name="note" defaultValue={item.guardian_note || ""} /></div><button className="button button-primary" type="submit">{redoMode ? "Enviar novamente" : "Enviar atividade"}</button></PrivateFamilyUploadForm> : null}
     </article>
   );
 

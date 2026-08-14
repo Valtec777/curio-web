@@ -1,6 +1,7 @@
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
-import { uploadFamilySchoolContent } from "@/app/familia/actions";
+import { PrivateFamilyUploadForm } from "@/components/private-family-upload-form";
 import { getFamilyPortal } from "@/lib/family";
+import { registerFamilySchoolContent } from "../upload-actions";
 
 function dateLabel(value?: string | null) {
   if (!value) return "Sem data relacionada";
@@ -44,7 +45,7 @@ export default async function FamilySchoolContentPage({ searchParams }: { search
       <div className="grid-2">
         <section className="panel family-highlight">
           <div className="panel-head"><div><h2>Enviar conteúdo</h2><p>O professor poderá usar este material no acompanhamento da criança.</p></div></div>
-          <form action={uploadFamilySchoolContent} className="form-stack">
+          <PrivateFamilyUploadForm action={registerFamilySchoolContent} studentId={selectedChild.student_id} kind="school" fileField="schoolFile">
             <div className="field"><label>Criança</label><select className="select" name="studentId" defaultValue={selectedChild.student_id}>{children.map((child) => <option value={child.student_id} key={child.student_id}>{child.student_name}</option>)}</select></div>
             <div className="field"><label>Título *</label><input className="input" name="title" required placeholder="Ex.: Conteúdo de Ciências desta semana" /></div>
             <div className="form-row">
@@ -53,9 +54,9 @@ export default async function FamilySchoolContentPage({ searchParams }: { search
             </div>
             <div className="field"><label>Descrição</label><textarea className="textarea" name="description" placeholder="Explique rapidamente o que a escola enviou ou pediu." /></div>
             <div className="field"><label>Data relacionada da prova/atividade</label><input className="input" type="date" name="relatedDate" /></div>
-            <div className="field"><label>Arquivo *</label><input className="input" type="file" name="schoolFile" accept="application/pdf,image/png,image/jpeg,image/webp,.pdf,.png,.jpg,.jpeg,.webp" required /><small className="muted">PDF ou imagem · até 15 MB.</small></div>
+            <div className="field"><label>Arquivo *</label><input className="input" type="file" name="schoolFile" accept="application/pdf,image/png,image/jpeg,image/webp,.pdf,.png,.jpg,.jpeg,.webp" required /><small className="muted">PDF ou imagem · até 15 MB. O arquivo vai direto para o armazenamento privado.</small></div>
             <button className="button button-primary" type="submit">Enviar conteúdo</button>
-          </form>
+          </PrivateFamilyUploadForm>
         </section>
 
         <section className="panel">

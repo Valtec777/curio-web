@@ -1,6 +1,7 @@
 import { EmptyState, PageHeader } from "@/components/ui";
-import { updateFamilyProfile, uploadFamilyAvatar } from "@/app/familia/actions";
+import { updateFamilyProfile } from "@/app/familia/actions";
 import { getFamilyPortal } from "@/lib/family";
+import { FamilyAvatarForm } from "./avatar-form";
 
 export default async function FamilyProfilePage({ searchParams }: { searchParams: Promise<{ aluno?: string; erro?: string; sucesso?: string }> }) {
   const query = await searchParams;
@@ -27,15 +28,7 @@ export default async function FamilyProfilePage({ searchParams }: { searchParams
           <div>
             <h2 className="mt-0">{profile.preferred_name || profile.full_name}</h2>
             <p className="muted">Membro da Família{selectedChild ? ` · acompanhando ${selectedChild.student_name}` : ""}</p>
-            <form action={uploadFamilyAvatar} className="flex gap-8 wrap mt-12">
-              <input type="hidden" name="studentId" value={selectedChild?.student_id || ""} />
-              <label className="button button-secondary button-small profile-file-button">
-                Escolher foto
-                <input type="file" name="avatar" accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp" required hidden />
-              </label>
-              <button className="button button-primary button-small" type="submit">Trocar foto</button>
-            </form>
-            <small className="muted">PNG, JPG ou WEBP · até 5 MB.</small>
+            <FamilyAvatarForm studentId={selectedChild?.student_id || null} />
           </div>
         </div>
       </section>

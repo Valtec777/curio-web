@@ -1,6 +1,7 @@
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
-import { reportFamilyAssessment } from "@/app/familia/actions";
+import { PrivateFamilyUploadForm } from "@/components/private-family-upload-form";
 import { getFamilyPortal } from "@/lib/family";
+import { registerFamilyAssessment } from "../upload-actions";
 
 function date(value?: string | null) {
   if (!value) return "—";
@@ -65,7 +66,7 @@ export default async function FamilyAssessmentsPage({
 
       <section className="panel family-highlight">
         <div className="panel-head"><div><h2>Informar avaliação</h2><p>Registre uma prova ou avaliação recebida pela família ou diretamente pela escola.</p></div></div>
-        <form action={reportFamilyAssessment} className="form-stack">
+        <PrivateFamilyUploadForm action={registerFamilyAssessment} studentId={selectedChild.student_id} kind="assessment" fileField="assessmentFile" fileRequired={false}>
           <div className="form-row">
             <div className="field"><label>Criança</label><select className="select" name="studentId" defaultValue={selectedChild.student_id}>{children.map((child) => <option value={child.student_id} key={child.student_id}>{child.student_name}</option>)}</select></div>
             <div className="field"><label>Matéria</label><select className="select" name="subjectId" defaultValue=""><option value="">Não definida</option>{(subjects ?? []).map((subject: any) => <option value={subject.id} key={subject.id}>{subject.name}</option>)}</select></div>
@@ -77,9 +78,9 @@ export default async function FamilyAssessmentsPage({
           <div className="field"><label>Título *</label><input className="input" name="title" required placeholder="Ex.: Prova de Ciências — Unidade 3" /></div>
           <div className="field"><label>Conteúdo</label><textarea className="textarea textarea-compact" name="content" /></div>
           <div className="field"><label>Observações</label><textarea className="textarea textarea-compact" name="observations" /></div>
-          <div className="field"><label>Foto/PDF — opcional</label><input className="input" type="file" name="assessmentFile" accept="application/pdf,image/png,image/jpeg,image/webp,.pdf,.png,.jpg,.jpeg,.webp" /></div>
+          <div className="field"><label>Foto/PDF — opcional</label><input className="input" type="file" name="assessmentFile" accept="application/pdf,image/png,image/jpeg,image/webp,.pdf,.png,.jpg,.jpeg,.webp" /><small className="muted">PDF ou imagem · até 15 MB. Quando houver anexo, ele vai direto para o armazenamento privado.</small></div>
           <button className="button button-primary" type="submit">Salvar avaliação</button>
-        </form>
+        </PrivateFamilyUploadForm>
       </section>
 
       <div className="grid-2">
