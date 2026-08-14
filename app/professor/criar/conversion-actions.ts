@@ -26,6 +26,17 @@ function materialType(mime?: string | null) {
   if (String(mime || "").startsWith("image/")) return "image";
   return "file";
 }
+function formatQuestionsForStudent(questions: any[]) {
+  if (!questions.length) return "";
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const blocks = questions.map((question, index) => {
+    const options = Array.isArray(question.options)
+      ? question.options.map((option: string, optionIndex: number) => `${letters[optionIndex] || `${optionIndex + 1}`} ) ${option}`)
+      : [];
+    return [`${index + 1}. ${question.prompt}`, ...options].filter(Boolean).join("\n");
+  });
+  return `QUESTÕES\n\n${blocks.join("\n\n")}`;
+}
 
 export async function convertPreparationDraft(formData: FormData) {
   const parsed = z.object({ draftId: z.string().uuid(), outputType: z.enum(["material", "activity", "assessment", "notebook_pdf"]) }).safeParse({ draftId: formData.get("draftId"), outputType: formData.get("outputType") });
@@ -34,7 +45,10 @@ export async function convertPreparationDraft(formData: FormData) {
 
   const { teacher, supabase, viewer } = await getCurrentTeacher();
   if (!teacher) back(parsed.data.draftId, "erro", "Professor não identificado.");
-  const { data: draft } = await supabase.from("content_preparation_drafts").select("id,title,source_text,source_file_path,source_file_name,source_mime_type,subject_id,grade_id,theme,objective,notes").eq("id", parsed.data.draftId).eq("created_by_teacher_id", teacher.id).maybeSingle();
+  const [{ data: draft }, { data: questions }] = await Promise.all([
+    supabase.from("content_preparation_drafts").select("id,title,source_text,source_file_path,source_file_name,source_mime_type,subject_id,grade_id,theme,objective,notes").eq("id", parsed.data.draftId).eq("created_by_teacher_id", teacher.id).maybeSingle(),
+    supabase.from("content_preparation_questions").select("position,prompt,options").eq("draft_id", parsed.data.draftId).order("position"),
+  ]);
   if (!draft) back(parsed.data.draftId, "erro", "Rascunho não encontrado.");
 
   const outputType = parsed.data.outputType;
@@ -59,7 +73,13 @@ export async function convertPreparationDraft(formData: FormData) {
   }
 
   const title = draft.title || draft.theme || "Conteúdo preparado";
-  const description = [draft.objective, draft.notes, draft.source_text ? String(draft.source_text).slice(0, 12000) : null].filter(Boolean).join("\n\n") || "Conteúdo preparado para revisão.";
+  const questionText = formatQuestionsForStudent(questions ?? []);
+  const description = [
+    draft.objective,
+    draft.notes,
+    draft.source_text ? String(draft.source_text).slice(0, 12000) : null,
+    questionText || null,
+  ].filter(Boolean).join("\n\n") || "Conteúdo preparado para revisão.";
   let error: any = null;
   let destination = "/professor/conteudos";
 
@@ -88,5 +108,5 @@ export async function convertPreparationDraft(formData: FormData) {
   revalidatePath("/professor/gerador");
   revalidatePath("/professor/materiais");
   revalidatePath("/professor/avaliacoes");
-  redirect(`${destination}?sucesso=${encodeURIComponent("Rascunho criado no fluxo final. Revise, escolha os alunos e publique somente quando estiver pronto.")}`);
+  redirect(`${destination}?sucesso=${encodeURIComponent("Rascunho criado com o conteúdo e as questões geradas. Revise, escolha os alunos e publique somente quando estiver pronto.")}`);
 }
