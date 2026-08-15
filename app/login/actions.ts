@@ -215,7 +215,7 @@ export async function updatePassword(formData: FormData) {
   await supabase.rpc("mark_access_invitation_accepted");
   await supabase.auth.signOut();
   revalidatePath("/", "layout");
-  redirect(`/login?sucesso=${encodeURIComponent("Senha definida com sucesso. Agora você já pode entrar no Curió.")}`);
+  redirect(`/login?sucesso=${encodeURIComponent("Senha definida com sucesso. Agora você já pode entrar no Plumareli.")}`);
 }
 
 export async function logout() {

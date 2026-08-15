@@ -81,7 +81,7 @@ export default async function AdminFinancePage({ searchParams }: { searchParams:
                   <div className="flex space-between gap-8 wrap">
                     <div>
                       <strong>{guardian?.profiles?.preferred_name || guardian?.profiles?.full_name || "Família"}</strong>
-                      <p>{subscription?.students?.preferred_name || subscription?.students?.full_name || "Criança"} • {subscription?.plans?.name || "Plano CURIÓ"}</p>
+                      <p>{subscription?.students?.preferred_name || subscription?.students?.full_name || "Criança"} • {subscription?.plans?.name || "Plano PLUMARELI"}</p>
                     </div>
                     <Badge tone="yellow">Conferir comprovante</Badge>
                   </div>

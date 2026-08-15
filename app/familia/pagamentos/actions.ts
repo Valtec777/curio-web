@@ -92,5 +92,5 @@ export async function submitPaymentReceipt(formData: FormData) {
 
   revalidatePath("/familia/pagamentos");
   revalidatePath("/admin/financeiro");
-  redirect(paymentReturn(studentId, "sucesso", "Comprovante enviado. A equipe CURIÓ vai conferir o Pix antes de confirmar o pagamento."));
+  redirect(paymentReturn(studentId, "sucesso", "Comprovante enviado. A equipe PLUMARELI vai conferir o Pix antes de confirmar o pagamento."));
 }

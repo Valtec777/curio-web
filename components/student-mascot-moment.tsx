@@ -43,7 +43,7 @@ export function StudentMascotMoment({ name, stars, streakDays, pendingMissions }
         />
       </div>
       <div className="student-mascot-moment-copy">
-        <span className="eyebrow">Momento Curió</span>
+        <span className="eyebrow">Momento Plumareli</span>
         <h2 id="mascot-moment-title">Ei, {name}. Quer uma pista para estudar melhor?</h2>
         <p className="student-mascot-encouragement">{encouragement}</p>
         <div className="student-mascot-speech" aria-live="polite">{messages[tipIndex]}</div>

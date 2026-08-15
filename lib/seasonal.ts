@@ -13,7 +13,7 @@ export type SeasonalEvent = {
 const events: SeasonalEvent[] = [
   {
     slug: "reveillon",
-    title: "Virada Curió",
+    title: "Virada Plumareli",
     eyebrow: "Réveillon",
     description: "Uma pausa para reconhecer conquistas, organizar ideias e escolher um próximo passo possível.",
     decorations: ["✨", "🎆", "⭐", "🥳", "✨"],
@@ -117,7 +117,7 @@ const events: SeasonalEvent[] = [
   },
   {
     slug: "meio-ambiente",
-    title: "Eco-investigação Curió",
+    title: "Eco-investigação Plumareli",
     eyebrow: "Dia do Meio Ambiente",
     description: "Observar, medir e propor uma ação pequena e verificável para o lugar onde o estudante vive.",
     decorations: ["🌱", "💧", "🌎", "🔎", "🌱"],

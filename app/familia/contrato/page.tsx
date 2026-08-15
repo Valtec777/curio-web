@@ -26,7 +26,7 @@ export default async function FamilyContractPage({ searchParams }: { searchParam
   const { data: contracts } = subscriptionIds.length
     ? await supabase.from("contracts").select("id,subscription_id,status,document_version,document_hash,signed_name,signed_at,created_at,updated_at").in("subscription_id", subscriptionIds).order("created_at", { ascending: false })
     : { data: [] as any[] };
-  const planBySubscription = new Map((subscriptions ?? []).map((sub: any) => [sub.id, sub.plans?.name || "Plano CURIÓ"]));
+  const planBySubscription = new Map((subscriptions ?? []).map((sub: any) => [sub.id, sub.plans?.name || "Plano PLUMARELI"]));
 
   return <>
     <PageHeader eyebrow="Ninho da Família" title={`Contrato de ${selectedChild.student_name}`} description="Leia o contrato individual, baixe o PDF e registre a assinatura eletrônica sem precisar imprimir ou enviar arquivo." />

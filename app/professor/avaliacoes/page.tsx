@@ -44,7 +44,7 @@ export default async function TeacherAssessmentsPage({ searchParams }: { searchP
       <PageHeader
         eyebrow="Professor • Criar e publicar"
         title="Avaliações"
-        description="Crie avaliações para alunos selecionados e acompanhe entrega, revisão e nota usando a escala definida no CURIÓ."
+        description="Crie avaliações para alunos selecionados e acompanhe entrega, revisão e nota usando a escala definida no PLUMARELI."
         action={<Link className="button button-primary" href="/professor/avaliacoes/nova">+ Nova avaliação</Link>}
       />
       {query.erro && <div className="form-message form-error">{query.erro}</div>}

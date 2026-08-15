@@ -92,7 +92,7 @@ export default async function FamilyMessagesPage({ searchParams }: { searchParam
                 href={`/familia/mensagens?aluno=${selectedChild.student_id}&conversa=${thread.id}`}
                 key={thread.id}
               >
-                <strong>{thread.isTeacherChat ? thread.teacher?.teacher_name : "Recado CURIÓ"}</strong>
+                <strong>{thread.isTeacherChat ? thread.teacher?.teacher_name : "Recado PLUMARELI"}</strong>
                 <small>{thread.subject || (thread.isTeacherChat ? `Conversa sobre ${selectedChild.student_name}` : "Mensagem administrativa")}</small>
               </Link>
             )) : <p className="muted">Nenhuma conversa ainda.</p>}
@@ -104,13 +104,13 @@ export default async function FamilyMessagesPage({ searchParams }: { searchParam
             <>
               <div className="family-chat-messages">
                 <div className="flex space-between gap-8 wrap">
-                  <div><strong>{selectedThread.isTeacherChat ? selectedThread.teacher?.teacher_name : "Recado CURIÓ"}</strong><small className="muted"> · {selectedChild.student_name}</small></div>
+                  <div><strong>{selectedThread.isTeacherChat ? selectedThread.teacher?.teacher_name : "Recado PLUMARELI"}</strong><small className="muted"> · {selectedChild.student_name}</small></div>
                   <Badge tone={selectedThread.isTeacherChat ? "green" : "blue"}>{selectedThread.isTeacherChat ? "Conversa" : "Informativo"}</Badge>
                 </div>
                 {selectedMessages.length ? selectedMessages.map((message: any) => (
                   <div className={`family-chat-bubble${message.sender_user_id === viewer.user.id ? " is-own" : ""}`} key={message.id}>
                     <p>{message.body}</p>
-                    <small>{message.sender_user_id === viewer.user.id ? "Você" : selectedThread.isTeacherChat ? selectedThread.teacher?.teacher_name : "Equipe CURIÓ"} · {dt(message.created_at)}{message.edited_at ? " · editada" : ""}</small>
+                    <small>{message.sender_user_id === viewer.user.id ? "Você" : selectedThread.isTeacherChat ? selectedThread.teacher?.teacher_name : "Equipe PLUMARELI"} · {dt(message.created_at)}{message.edited_at ? " · editada" : ""}</small>
                     {message.action_label && message.action_url ? <div className="mt-8"><a className="button button-secondary button-small" href={message.action_url} target={message.action_url.startsWith("https://") ? "_blank" : undefined} rel={message.action_url.startsWith("https://") ? "noreferrer" : undefined}>{message.action_label}</a></div> : null}
                   </div>
                 )) : <p className="muted">A conversa ainda não tem mensagens.</p>}
@@ -125,7 +125,7 @@ export default async function FamilyMessagesPage({ searchParams }: { searchParam
                   <input className="input" name="body" required placeholder="Digite uma mensagem..." aria-label="Mensagem" />
                   <button className="button button-primary" type="submit">Enviar</button>
                 </form>
-              ) : <div className="notice" style={{ margin: 14 }}>Este é um recado administrativo do CURIÓ. Para conversar sobre a criança, use uma conversa com o professor vinculado.</div>}
+              ) : <div className="notice" style={{ margin: 14 }}>Este é um recado administrativo do PLUMARELI. Para conversar sobre a criança, use uma conversa com o professor vinculado.</div>}
             </>
           ) : <div className="family-chat-messages"><EmptyState title="Nenhuma conversa" description="Use “Nova conversa” para iniciar um chat com o professor da criança." /></div>}
         </div>

@@ -597,7 +597,7 @@ img { max-width: 100%; }
   .sidebar { padding: 14px 16px; }
 }
 
-/* ===== CURIÓ public site v2 ===== */
+/* ===== PLUMARELI public site v2 ===== */
 .kicker-pill, .eyebrow-green, .eyebrow-pink, .eyebrow-yellow {
   display: inline-flex;
   width: fit-content;
@@ -697,7 +697,7 @@ img { max-width: 100%; }
 .kid-hero-rich { display:flex; align-items:center; justify-content:space-between; gap:20px; overflow:hidden; padding-right:18px; }.kid-hero-rich > img { align-self:flex-end; margin-bottom:-36px; filter:drop-shadow(0 14px 16px rgba(0,0,0,.18)); }.kid-mini-stats { display:flex; gap:9px; flex-wrap:wrap; margin-top:18px; }.kid-mini-stats span { background:rgba(255,255,255,.13); border:1px solid rgba(255,255,255,.14); border-radius:999px; padding:7px 10px; font-size:12px; font-weight:800; }.achievement-inline { display:flex; align-items:center; gap:14px; }.achievement-inline>span { font-size:34px; display:grid; place-items:center; width:62px; height:62px; background:#fff3bd; border-radius:18px; }.achievement-inline p { margin:4px 0 0; color:var(--muted); }.tip-card { display:flex; align-items:center; gap:20px; background:linear-gradient(135deg,#f1ffdc,#fff); }.tip-card>img { flex:0 0 auto; }.tip-card h2 { margin:4px 0; }.tip-card p { color:var(--muted); }
 @media(max-width:640px){.kid-hero-rich>img{width:130px}.kid-hero-rich h1{font-size:32px}.tip-card{align-items:flex-start}.tip-card>img{width:75px}}
 
-/* ===== CURIÓ · Operação administrativa ===== */
+/* ===== PLUMARELI · Operação administrativa ===== */
 .sidebar-nav {
   flex: 1;
   min-height: 0;
@@ -871,7 +871,7 @@ img { max-width: 100%; }
 .mascot-settings form { margin-top: 12px; }
 .checkbox-line { display: flex; gap: 8px; align-items: center; font-size: 13px; font-weight: 800; color: #4a556e; }
 
-/* ===== CURIÓ · linguagem lúdica inspirada em apps de aprendizagem ===== */
+/* ===== PLUMARELI · linguagem lúdica inspirada em apps de aprendizagem ===== */
 :root {
   --duo-line: #e5e5e5;
   --duo-soft: #f7f7f7;
@@ -1026,7 +1026,7 @@ h1,h2,h3,h4,strong,.brand,.button,.sidebar-nav a,.badge {
 }
 
 /* =========================================================
-   CURIÓ — fluxo institucional de acesso
+   PLUMARELI — fluxo institucional de acesso
    ========================================================= */
 .auth-curio-access .auth-brand {
   background:
@@ -1156,7 +1156,7 @@ h1,h2,h3,h4,strong,.brand,.button,.sidebar-nav a,.badge {
 }
 
 /* =========================================================
-   CURIÓ — identidade tipográfica, temas e acessibilidade
+   PLUMARELI — identidade tipográfica, temas e acessibilidade
    Fonte de marca: Fredoka | Texto: Nunito Sans
    ========================================================= */
 body {
@@ -1494,7 +1494,7 @@ html[data-access-focus="true"] .mission-card { box-shadow: none !important; }
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }
 
-/* ===== CURIÓ · refinamento público inspirado no site original + linguagem de app ===== */
+/* ===== PLUMARELI · refinamento público inspirado no site original + linguagem de app ===== */
 :root {
   --navy: #142753;
   --blue: #1b4ff0;
@@ -1572,7 +1572,7 @@ h1,h2,h3,h4,strong,.brand,.button,.sidebar-nav a,.badge,.kicker,.eyebrow {
 .method-title span { color: var(--lime); }
 .method-intro { color: #e1e8ff; }
 
-/* Universo Curió: ilustrações transparentes, sem caixa e sem corte. */
+/* Universo Plumareli: ilustrações transparentes, sem caixa e sem corte. */
 .mascot-free-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 34px 26px;
@@ -1707,7 +1707,7 @@ html[data-theme="dark"] .faq-answer p { color: #c2c9d8; }
   .faq-answer { padding-inline: 16px; }
 }
 
-/* ===== CURIÓ · conforto visual e gestão 2026-08-09 ===== */
+/* ===== PLUMARELI · conforto visual e gestão 2026-08-09 ===== */
 .app-main {
   background-color: #f8f9fc;
 }
@@ -1897,7 +1897,7 @@ html[data-theme="dark"] .public-plan-meta span { background: #171c29; color: #d0
 html[data-theme="dark"] .public-plan-card ul { color: #c8d0df; }
 @media (max-width: 920px) { .public-plan-grid { grid-template-columns: 1fr; } }
 
-/* ===== CURIÓ · navegação clara com estado atual + PIN família/aluno ===== */
+/* ===== PLUMARELI · navegação clara com estado atual + PIN família/aluno ===== */
 .sidebar-nav a.sidebar-nav-link {
   display: flex;
   align-items: center;
@@ -2068,7 +2068,7 @@ html[data-theme="light"][data-access-epilepsy="true"] .family-pin-card small { c
 .role-card:hover .dashboard-role-icon { background: #f7f3ed; color: #4e5a6e; border-color: #d8d3ca; }
 html[data-theme="dark"] .dashboard-role-icon { background: #202636; color: #c3ccdc; border-color: #394258; }
 
-/* ===== CURIÓ · fechamento operacional: cursos, missões, jurídico e gestão ===== */
+/* ===== PLUMARELI · fechamento operacional: cursos, missões, jurídico e gestão ===== */
 .course-public-section {
   background:
     radial-gradient(circle at 12% 12%, rgba(184,242,56,.20), transparent 28%),

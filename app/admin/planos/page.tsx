@@ -126,7 +126,7 @@ export default async function AdminPlansPage({ searchParams }: { searchParams: P
           </div>
         </article>;
       })}</div>
-      {!plans?.length ? <EmptyState title="Nenhum plano cadastrado" description="Crie o primeiro plano comercial do CURIÓ." /> : null}
+      {!plans?.length ? <EmptyState title="Nenhum plano cadastrado" description="Crie o primeiro plano comercial do PLUMARELI." /> : null}
     </section>
 
     <section className="panel">

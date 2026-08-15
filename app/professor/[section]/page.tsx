@@ -35,7 +35,7 @@ const sectionCopy: Record<string, { eyebrow: string; title: string; description:
   },
   gerador: {
     eyebrow: "Professor • Gerador",
-    title: "Gerador CURIÓ",
+    title: "Gerador PLUMARELI",
     description: "Gere uma Missão Cuca e revise o mapeamento pedagógico antes de publicar.",
   },
   conteudos: {
@@ -51,7 +51,7 @@ const sectionCopy: Record<string, { eyebrow: string; title: string; description:
   mensagens: {
     eyebrow: "Professor • Mensagens",
     title: "Mensagens",
-    description: "Comunicação organizada com famílias e equipe CURIÓ.",
+    description: "Comunicação organizada com famílias e equipe PLUMARELI.",
   },
   relatorios: {
     eyebrow: "Professor • Relatórios",
@@ -65,7 +65,7 @@ const sectionCopy: Record<string, { eyebrow: string; title: string; description:
   },
   suporte: {
     eyebrow: "Professor • Suporte",
-    title: "Suporte Curió",
+    title: "Suporte Plumareli",
     description: "Abra uma solicitação e acompanhe o andamento com a equipe administrativa.",
   },
 };
@@ -160,7 +160,7 @@ export default async function TeacherSectionPage({
                 <article className="mission-card" key={link.class_id}>
                   <Badge tone="blue">{link.classes?.grades?.name || "Série"}</Badge>
                   <h3>{link.classes?.name}</h3>
-                  <p>{link.classes?.school_name || "Turma CURIÓ"}</p>
+                  <p>{link.classes?.school_name || "Turma PLUMARELI"}</p>
                   <small className="muted">Ano letivo {link.classes?.academic_year || "—"}</small>
                 </article>
               ))}
@@ -279,8 +279,8 @@ export default async function TeacherSectionPage({
 
     const resourceCard = (item: any, kind: "material" | "notebook") => (
       <article className="mission-card" key={`${kind}-${item.id}`}>
-        <div className="flex gap-8 wrap"><Badge tone={kind === "notebook" ? "pink" : "blue"}>{kind === "notebook" ? "Caderno Curió" : item.material_type || "Material"}</Badge><Badge tone={statusTone(item.status)}>{item.status}</Badge></div>
-        <h3>{item.title}</h3><p>{item.description || "Material CURIÓ"}</p>
+        <div className="flex gap-8 wrap"><Badge tone={kind === "notebook" ? "pink" : "blue"}>{kind === "notebook" ? "Caderno Plumareli" : item.material_type || "Material"}</Badge><Badge tone={statusTone(item.status)}>{item.status}</Badge></div>
+        <h3>{item.title}</h3><p>{item.description || "Material PLUMARELI"}</p>
         <small className="muted">{item.subjects?.name || "Geral"}{item.contents?.name ? ` • ${item.contents.name}` : ""}{item.grades?.name ? ` • ${item.grades.name}` : ""}</small>
         <details className="plan-editor"><summary>Editar</summary><form action={updateTeacherResource} className="form-stack plan-form"><input type="hidden" name="kind" value={kind}/><input type="hidden" name="id" value={item.id}/><div className="field"><label>Título</label><input className="input" name="title" defaultValue={item.title} required/></div><div className="field"><label>Descrição</label><textarea className="textarea" name="description" defaultValue={item.description || ""}/></div><button className="button button-secondary button-small" type="submit">Salvar alterações</button></form></details>
         <div className="plan-admin-actions">
@@ -296,7 +296,7 @@ export default async function TeacherSectionPage({
         {query.erro && <div className="form-message form-error">{query.erro}</div>}
         {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
         <section className="panel"><div className="panel-head"><div><h2>Materiais digitais e recursos</h2><p>Edite, arquive ou exclua rascunhos sem perder histórico já atribuído.</p></div></div>{materials?.length ? <div className="grid-3">{materials.map((item: any) => resourceCard(item, "material"))}</div> : <EmptyState title="Biblioteca vazia" description="Materiais criados por você aparecerão aqui." />}</section>
-        <section className="panel"><div className="panel-head"><div><h2>Atividades do Caderno Curió</h2><p>O caderno fica separado do material digital, mas usa a mesma gestão simples.</p></div></div>{notebookActivities?.length ? <div className="grid-3">{notebookActivities.map((item: any) => resourceCard(item, "notebook"))}</div> : <EmptyState title="Nenhuma atividade de caderno" description="Atividades do Caderno Curió aparecerão aqui quando forem criadas." />}</section>
+        <section className="panel"><div className="panel-head"><div><h2>Atividades do Caderno Plumareli</h2><p>O caderno fica separado do material digital, mas usa a mesma gestão simples.</p></div></div>{notebookActivities?.length ? <div className="grid-3">{notebookActivities.map((item: any) => resourceCard(item, "notebook"))}</div> : <EmptyState title="Nenhuma atividade de caderno" description="Atividades do Caderno Plumareli aparecerão aqui quando forem criadas." />}</section>
       </>
     );
   }
@@ -330,15 +330,15 @@ export default async function TeacherSectionPage({
         <section className="panel generator-source-card">
           <div className="panel-head">
             <div>
-              <div className="eyebrow">Fonte → modelo Curió → revisão humana</div>
+              <div className="eyebrow">Fonte → modelo Plumareli → revisão humana</div>
               <h2>Transforme um PDF ou texto em rascunho pedagógico</h2>
-              <p>Você envia a fonte e escolhe o produto. O sistema mantém o contrato do modelo Curió e nunca publica automaticamente.</p>
+              <p>Você envia a fonte e escolhe o produto. O sistema mantém o contrato do modelo Plumareli e nunca publica automaticamente.</p>
             </div>
           </div>
 
           <div className="generator-type-guide">
-            <article><strong>Missão Cuca = interativa</strong><p>Vira uma atividade dentro do Curió, com questões estruturadas, respostas na tela e correção/evidências.</p></article>
-            <article><strong>Caderno Curió = para fora da tela</strong><p>O contrato pede uma folha pronta para impressão/PDF. Ela não vira quiz e fica separada das Missões.</p></article>
+            <article><strong>Missão Cuca = interativa</strong><p>Vira uma atividade dentro do Plumareli, com questões estruturadas, respostas na tela e correção/evidências.</p></article>
+            <article><strong>Caderno Plumareli = para fora da tela</strong><p>O contrato pede uma folha pronta para impressão/PDF. Ela não vira quiz e fica separada das Missões.</p></article>
           </div>
 
           <form action={queueCurioGeneration} className="form-stack">
@@ -347,7 +347,7 @@ export default async function TeacherSectionPage({
                 <label>O que deseja preparar?</label>
                 <select className="select" name="outputType" defaultValue="mission_cuca" required>
                   <option value="mission_cuca">Missão Cuca</option>
-                  <option value="caderno_curio">Atividade do Caderno Curió</option>
+                  <option value="caderno_curio">Atividade do Caderno Plumareli</option>
                   <option value="modo_prova">Modo Prova / revisão</option>
                   <option value="diagnostico_inicial">Diagnóstico inicial</option>
                   <option value="plano_30_dias">Plano de aprendizagem — 30 dias</option>
@@ -400,17 +400,17 @@ export default async function TeacherSectionPage({
             </div>
 
             <div className="generator-contract">
-              <strong>Contrato Curió</strong>
+              <strong>Contrato Plumareli</strong>
               <span>IA prepara rascunho</span><span>Professor revisa</span><span>Sem publicação automática</span><span>Gabarito separado quando aplicável</span>
             </div>
 
-            <button className="button button-primary" type="submit">Preparar rascunho no modelo Curió</button>
+            <button className="button button-primary" type="submit">Preparar rascunho no modelo Plumareli</button>
           </form>
         </section>
 
         <section className="panel family-highlight">
           <h2 className="mt-0">Modelos oficiais carregados</h2>
-          <p>Os contratos vêm dos documentos em <strong>DOCS CURIO</strong>. A Missão Cuca segue objetivo → explicação → exemplo → prática → pista → Caderno Curió → explicação autoral.</p>
+          <p>Os contratos vêm dos documentos em <strong>DOCS CURIO</strong>. A Missão Cuca segue objetivo → explicação → exemplo → prática → pista → Caderno Plumareli → explicação autoral.</p>
           <div className="asset-chips">
             {curioTemplates.length ? curioTemplates.map((template: any) => <span key={template.id}>{template.config?.curio_source_code} · {template.name}</span>) : <span>Modelos oficiais serão sincronizados pelo Admin</span>}
           </div>
@@ -421,7 +421,7 @@ export default async function TeacherSectionPage({
           {jobs?.length ? <div className="form-stack">{jobs.map((job: any) => (
             <article className="mission-card" key={job.id}>
               <div className="flex space-between gap-8 wrap"><strong>{job.input?.title_hint || job.job_type}</strong><Badge tone={statusTone(job.status)}>{job.status}</Badge></div>
-              <p>{job.input?.template_contract ? `Modelo ${job.input.template_contract}` : "Modelo Curió"}{job.input?.source_file_name ? ` • Fonte: ${job.input.source_file_name}` : ""}</p>
+              <p>{job.input?.template_contract ? `Modelo ${job.input.template_contract}` : "Modelo Plumareli"}{job.input?.source_file_name ? ` • Fonte: ${job.input.source_file_name}` : ""}</p>
               <small className="muted">{dateTime(job.created_at)}</small>{job.error_message && <p>{job.error_message}</p>}
             </article>
           ))}</div> : <EmptyState title="Nenhuma geração registrada" description="Cole um texto ou anexe um arquivo acima para começar." />}
@@ -479,7 +479,7 @@ export default async function TeacherSectionPage({
       <PageHeader {...copy} />
       {query.erro && <div className="form-message form-error">{query.erro}</div>}{query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
       <div className="grid-2">
-        <section className="panel"><div className="panel-head"><div><h2>Conversas</h2><p>Organização por assunto e participantes.</p></div></div>{threads?.length ? <div className="form-stack">{threads.map((item: any) => <article className="mission-card" key={item.thread_id}><strong>{item.message_threads?.subject || "Conversa CURIÓ"}</strong><p>{item.message_threads?.thread_type || "Mensagem"}</p><small className="muted">Atualizada em {dateTime(item.message_threads?.updated_at)}</small></article>)}</div> : <EmptyState title="Nenhuma conversa" description="Mensagens com famílias e equipe aparecerão aqui." />}</section>
+        <section className="panel"><div className="panel-head"><div><h2>Conversas</h2><p>Organização por assunto e participantes.</p></div></div>{threads?.length ? <div className="form-stack">{threads.map((item: any) => <article className="mission-card" key={item.thread_id}><strong>{item.message_threads?.subject || "Conversa PLUMARELI"}</strong><p>{item.message_threads?.thread_type || "Mensagem"}</p><small className="muted">Atualizada em {dateTime(item.message_threads?.updated_at)}</small></article>)}</div> : <EmptyState title="Nenhuma conversa" description="Mensagens com famílias e equipe aparecerão aqui." />}</section>
         <section className="panel"><div className="panel-head"><div><h2>Mensagens que você enviou</h2><p>Se mandar algo por engano, edite ou remova. A remoção preserva o registro operacional.</p></div></div>{sentMessages?.length ? <div className="form-stack">{sentMessages.map((message: any) => <article className="mission-card" key={message.id}><strong>{message.message_threads?.subject || "Conversa"}</strong><p>{message.body}</p><small className="muted">{dateTime(message.created_at)}{message.edited_at ? " • editada" : ""}</small><details className="plan-editor"><summary>Editar mensagem</summary><form action={editTeamMessage} className="form-stack plan-form"><input type="hidden" name="messageId" value={message.id}/><input type="hidden" name="returnPath" value="/professor/mensagens"/><textarea className="textarea" name="body" defaultValue={message.body} required/><button className="button button-secondary button-small" type="submit">Salvar edição</button></form></details><form action={removeTeamMessage}><input type="hidden" name="messageId" value={message.id}/><input type="hidden" name="returnPath" value="/professor/mensagens"/><button className="button button-danger button-small" type="submit">Remover mensagem</button></form></article>)}</div> : <EmptyState title="Nenhuma mensagem enviada" description="As mensagens enviadas por você aparecerão aqui." />}</section>
       </div>
     </>);

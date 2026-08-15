@@ -104,7 +104,7 @@ export async function sendAdminFamilyMessage(formData: FormData) {
     redirect("/admin/mensagens?erro=" + encodeURIComponent(`A variável {{${unresolved[0]}}} não pôde ser preenchida. Revise o vínculo ou remova a variável antes de enviar.`));
   }
   if (actionUrl && !actionUrl.rendered.startsWith("/") && !actionUrl.rendered.startsWith("https://")) {
-    redirect("/admin/mensagens?erro=" + encodeURIComponent("O destino do botão precisa ser uma rota do CURIÓ ou uma URL HTTPS."));
+    redirect("/admin/mensagens?erro=" + encodeURIComponent("O destino do botão precisa ser uma rota do PLUMARELI ou uma URL HTTPS."));
   }
 
   const { error } = await supabase.rpc("send_curio_family_message", {

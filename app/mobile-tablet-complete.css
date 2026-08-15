@@ -1,4 +1,4 @@
-/* CURIÓ · fechamento responsivo global
+/* PLUMARELI · fechamento responsivo global
    Carregado depois das demais folhas para impedir regressões de desktop em telas menores. */
 
 html, body { max-width: 100%; }

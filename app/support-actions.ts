@@ -56,5 +56,5 @@ export async function createSupportTicket(formData: FormData) {
   }
 
   revalidatePath(returnPath);
-  redirect(withMessage(returnPath, "sucesso", "Solicitação enviada para o suporte CURIÓ."));
+  redirect(withMessage(returnPath, "sucesso", "Solicitação enviada para o suporte PLUMARELI."));
 }

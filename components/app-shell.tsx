@@ -79,7 +79,7 @@ const menus: Record<AppRole, NavItem[]> = {
     { href: "/familia/mensagens", label: "Mensagens" },
     { href: "/familia/relatorios", label: "Relatórios" },
     { href: "/familia/plano", label: "Plano" },
-    { href: "/familia/indicacoes", label: "Indique o CURIÓ" },
+    { href: "/familia/indicacoes", label: "Indique o PLUMARELI" },
     { href: "/familia/contrato", label: "Contrato" },
     { href: "/familia/pagamentos", label: "Pagamentos" },
     { href: "/familia/privacidade", label: "Privacidade e autorizações" },
@@ -89,7 +89,7 @@ const menus: Record<AppRole, NavItem[]> = {
   ],
 };
 
-const titles: Record<AppRole, string> = { admin: "Operação CURIÓ", teacher: "Portal do Professor", student: "Explorador Curió", guardian: "Ninho da Família" };
+const titles: Record<AppRole, string> = { admin: "Operação PLUMARELI", teacher: "Portal do Professor", student: "Explorador Plumareli", guardian: "Ninho da Família" };
 const supportHref: Partial<Record<AppRole, string>> = { admin: "/admin/suporte", teacher: "/professor/suporte", guardian: "/familia/suporte" };
 
 export function AppShell({ role, roles, name, subtitle, metricLabel, metricValue, avatarUrl, familyChildren, children }: {
@@ -99,13 +99,13 @@ export function AppShell({ role, roles, name, subtitle, metricLabel, metricValue
   const items = menus[role].filter((item) => !item.requiresRole || availableRoles.includes(item.requiresRole));
   const grouped = items.reduce<Record<string, NavItem[]>>((acc, item) => { const key = item.group || ""; (acc[key] ||= []).push(item); return acc; }, {});
   const quickSupport = supportHref[role];
-  const displayName = name || (role === "teacher" ? "Professor(a)" : "CURIÓ");
+  const displayName = name || (role === "teacher" ? "Professor(a)" : "PLUMARELI");
 
   return <div className={`app-frame app-frame-${role}`}>
     <aside className="sidebar">
       <div className="sidebar-brand-row"><Logo compact /><SidebarCollapseButton /></div>
       <div className="sidebar-role">
-        {role === "student" && avatarUrl ? <img className="sidebar-profile-avatar" src={avatarUrl} alt="Seu avatar Curió" /> : null}
+        {role === "student" && avatarUrl ? <img className="sidebar-profile-avatar" src={avatarUrl} alt="Seu avatar Plumareli" /> : null}
         <span>{titles[role]}</span><strong>{role === "teacher" ? `Olá, ${displayName}` : role === "student" ? `Oi, ${displayName}` : displayName}</strong>
         {subtitle && <small className="sidebar-subtitle">{subtitle}</small>}
         {metricLabel && <div className="sidebar-metric"><span>{metricLabel}</span><strong>{metricValue ?? 0}</strong></div>}
@@ -117,9 +117,9 @@ export function AppShell({ role, roles, name, subtitle, metricLabel, metricValue
           {role === "student" && availableRoles.includes("guardian") ? <SidebarNavLink href="/aluno/desbloquear-familia" label="Voltar à família" /> : role === "student" ? (availableRoles.length > 1 ? <SidebarNavLink href="/dashboard" label="Trocar ambiente" /> : null) : <SidebarNavLink href="/dashboard" label="Trocar ambiente" />}
         </div>
       </nav>
-      <form action={logout}><button className="button button-ghost sidebar-logout" type="submit">Sair do CURIÓ</button></form>
+      <form action={logout}><button className="button button-ghost sidebar-logout" type="submit">Sair do PLUMARELI</button></form>
     </aside>
     <main className="app-main">{role === "guardian" && familyChildren?.length ? <FamilySidebarSelector children={familyChildren} variant="mobile" /> : null}{children}</main>
-    {quickSupport && <Link className="floating-support-button" href={quickSupport} aria-label="Abrir suporte do CURIÓ" title="Suporte"><span aria-hidden="true">?</span><strong>Suporte</strong></Link>}
+    {quickSupport && <Link className="floating-support-button" href={quickSupport} aria-label="Abrir suporte do PLUMARELI" title="Suporte"><span aria-hidden="true">?</span><strong>Suporte</strong></Link>}
   </div>;
 }

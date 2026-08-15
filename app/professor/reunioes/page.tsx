@@ -124,7 +124,7 @@ export default async function TeacherMeetingsPage({
             <fieldset className="subject-fieldset">
               <legend>Quem verá a reunião</legend>
               <div className="subject-checks meeting-audience">
-                <label><input type="checkbox" checked readOnly /> Administração CURIÓ</label>
+                <label><input type="checkbox" checked readOnly /> Administração PLUMARELI</label>
                 <label><input type="checkbox" name="visibleToGuardian" defaultChecked /> Família</label>
                 <label><input type="checkbox" name="visibleToStudent" /> Aluno</label>
               </div>

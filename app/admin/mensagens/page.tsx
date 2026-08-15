@@ -87,7 +87,7 @@ export default async function AdminMessagesPage({ searchParams }: { searchParams
       <PageHeader
         eyebrow="Admin • Operação"
         title="Mensagens"
-        description="Escolha uma família vinculada à criança e envie uma mensagem personalizada ou use um modelo pronto. A conversa fica registrada no CURIÓ."
+        description="Escolha uma família vinculada à criança e envie uma mensagem personalizada ou use um modelo pronto. A conversa fica registrada no PLUMARELI."
       />
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
       {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
@@ -131,7 +131,7 @@ export default async function AdminMessagesPage({ searchParams }: { searchParams
               const thread: any = one(message.message_threads);
               return (
                 <article className="mission-card" key={message.id}>
-                  <div className="flex space-between gap-8 wrap"><strong>{thread?.subject || "Conversa CURIÓ"}</strong><small className="muted">{dt(message.created_at)}</small></div>
+                  <div className="flex space-between gap-8 wrap"><strong>{thread?.subject || "Conversa PLUMARELI"}</strong><small className="muted">{dt(message.created_at)}</small></div>
                   <p>{message.body}</p>
                   {message.action_url && message.action_label && <a href={message.action_url}>{message.action_label} →</a>}
                 </article>

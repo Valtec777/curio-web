@@ -32,7 +32,7 @@ const QUICK_GUIDES: Record<TutorialRole, Record<string, QuickGuide>> = {
     "/professor/criar": { title: "Criar conteúdo", purpose: "Prepara um rascunho a partir de texto, arquivo ou instruções.", steps: ["Defina objetivo, habilidade, faixa etária e formato.", "Revise tudo antes de levar ao editor final ou publicar."] },
     "/professor/gerador": { title: "Gerador", purpose: "Ajuda a estruturar conteúdo pedagógico a partir de uma fonte.", steps: ["Explique claramente o objetivo e o público.", "Trate a geração como rascunho e revise antes do envio."] },
     "/professor/missoes": { title: "Missões", purpose: "Cria, envia e acompanha Missões Cuca.", steps: ["Revise questões, respostas e prazo.", "Escolha os alunos antes de enviar ou atualizar a missão."] },
-    "/professor/materiais": { title: "Materiais", purpose: "Publica materiais de apoio e Cadernos CURIÓ.", steps: ["Crie ou selecione o material.", "Defina alunos e, quando necessário, data de liberação."] },
+    "/professor/materiais": { title: "Materiais", purpose: "Publica materiais de apoio e Cadernos PLUMARELI.", steps: ["Crie ou selecione o material.", "Defina alunos e, quando necessário, data de liberação."] },
     "/professor/avaliacoes": { title: "Avaliações", purpose: "Cria avaliações e acompanha entrega, revisão e resultado.", steps: ["Defina conteúdo, alunos e prazo.", "Use o resultado como uma evidência dentro do acompanhamento."] },
     "/professor/conteudos": { title: "Conteúdos", purpose: "Sua biblioteca de Missões, Cadernos, materiais e avaliações.", steps: ["Abra um conteúdo para revisar ou enviar novamente.", "Duplique quando quiser adaptar sem perder a versão anterior."] },
     "/professor/correcoes": { title: "Correções", purpose: "Reúne respostas e produções que precisam da sua revisão.", steps: ["Abra o item pendente e confira a evidência enviada.", "Registre a decisão pedagógica e a devolutiva quando necessário."] },
@@ -40,7 +40,7 @@ const QUICK_GUIDES: Record<TutorialRole, Record<string, QuickGuide>> = {
     "/professor/relatorios": { title: "Relatórios", purpose: "Registra a devolutiva pedagógica do acompanhamento real.", steps: ["Selecione aluno e período.", "Descreva evidências, avanços e próximos passos antes de publicar para a família."] },
     "/professor/indicacoes": { title: "Indicações", purpose: "Acompanha contatos e matrículas originados pelo seu link quando a campanha estiver ativa.", steps: ["Leia as regras exibidas na própria página.", "Acompanhe a origem dos contatos e matrículas confirmadas."] },
     "/professor/perfil": { title: "Meu perfil", purpose: "Mantém seus dados profissionais e sua disponibilidade atualizados.", steps: ["Revise contato, matérias e especialidades.", "Cadastre os horários em que você pode atender."] },
-    "/professor/suporte": { title: "Suporte CURIÓ", purpose: "Canal para dúvidas de plataforma, conta, financeiro ou apoio pedagógico.", steps: ["Escolha categoria e prioridade.", "Descreva a situação e acompanhe o ticket nesta mesma página."] },
+    "/professor/suporte": { title: "Suporte PLUMARELI", purpose: "Canal para dúvidas de plataforma, conta, financeiro ou apoio pedagógico.", steps: ["Escolha categoria e prioridade.", "Descreva a situação e acompanhe o ticket nesta mesma página."] },
   },
   guardian: {
     "/familia": { title: "Visão geral", purpose: "Resume o acompanhamento da criança selecionada.", steps: ["Confira avisos, atividades e compromissos.", "Se houver mais de uma criança, confirme quem está selecionado."] },
@@ -55,7 +55,7 @@ const QUICK_GUIDES: Record<TutorialRole, Record<string, QuickGuide>> = {
     "/familia/plano": { title: "Plano", purpose: "Mostra informações do plano ativo e dos recursos vinculados.", steps: ["Confira ciclo e condições exibidas.", "Use o Suporte em caso de dúvida administrativa."] },
     "/familia/contrato": { title: "Contrato", purpose: "Centraliza documentos contratuais disponibilizados à família.", steps: ["Leia a versão vigente.", "Use o Suporte para esclarecer dúvidas antes de decisões importantes."] },
     "/familia/pagamentos": { title: "Pagamentos", purpose: "Organiza as informações financeiras disponibilizadas à família.", steps: ["Confira competência e situação.", "Em caso de divergência, abra um ticket no Suporte."] },
-    "/familia/indicacoes": { title: "Indique o CURIÓ", purpose: "Mostra o programa de indicação quando houver campanha ativa.", steps: ["Leia as regras vigentes.", "Compartilhe o link somente quando a campanha estiver liberada."] },
+    "/familia/indicacoes": { title: "Indique o PLUMARELI", purpose: "Mostra o programa de indicação quando houver campanha ativa.", steps: ["Leia as regras vigentes.", "Compartilhe o link somente quando a campanha estiver liberada."] },
     "/familia/privacidade": { title: "Privacidade e autorizações", purpose: "Reúne documentos, consentimentos e autorizações.", steps: ["Leia cada documento antes de decidir.", "Revise autorizações opcionais separadamente."] },
     "/familia/suporte": { title: "Suporte", purpose: "Canal de ajuda para conta, plataforma, financeiro ou acompanhamento.", steps: ["Explique a situação com clareza.", "Acompanhe o status do ticket nesta mesma página."] },
     "/familia/perfil": { title: "Perfil", purpose: "Mantém os dados da conta familiar atualizados.", steps: ["Revise telefone e contato.", "Não compartilhe senha ou PIN com terceiros."] },
@@ -68,7 +68,7 @@ const QUICK_GUIDES: Record<TutorialRole, Record<string, QuickGuide>> = {
     "/aluno/caminho": { title: "Caminho", purpose: "Ajuda você a enxergar sua jornada e os próximos desafios.", steps: ["Observe o que já avançou.", "Use os próximos passos como orientação, não como rótulo."] },
     "/aluno/perfil": { title: "Perfil", purpose: "Mostra suas informações e opções de personalização.", steps: ["Escolha seu personagem quando a opção estiver disponível.", "Peça ajuda se algum dado estiver incorreto."] },
     "/aluno/caderno": { title: "Meu Caderno", purpose: "Espaço para produções e atividades mais abertas.", steps: ["Organize sua resposta.", "Revise antes de enviar."] },
-    "/aluno/conquistas": { title: "Conquistas", purpose: "Registra marcos da sua jornada no CURIÓ.", steps: ["Veja o que você já alcançou.", "Compare sua evolução com você mesmo, não com outras pessoas."] },
+    "/aluno/conquistas": { title: "Conquistas", purpose: "Registra marcos da sua jornada no PLUMARELI.", steps: ["Veja o que você já alcançou.", "Compare sua evolução com você mesmo, não com outras pessoas."] },
     "/aluno/descobertas": { title: "Descobertas", purpose: "Reúne novidades e conteúdos para explorar.", steps: ["Abra o que despertar curiosidade.", "Guarde suas dúvidas para conversar com o professor."] },
     "/aluno/modo-pensar": { title: "Modo Pensar", purpose: "Trabalha estratégias para aprender e resolver problemas.", steps: ["Experimente a estratégia proposta.", "Observe como você chegou à resposta, não apenas o resultado."] },
     "/aluno/modo-prova": { title: "Modo Prova", purpose: "Ajuda a praticar situações de avaliação com organização.", steps: ["Leia o comando inteiro.", "Resolva com calma e deixe um tempo para revisar."] },
@@ -127,7 +127,7 @@ export function CurioFirstVisitGuide({
         return;
       }
 
-      const helpMenu = control.closest('[role="menu"][aria-label="Ajuda de uso do CURIÓ"]');
+      const helpMenu = control.closest('[role="menu"][aria-label="Ajuda de uso do PLUMARELI"]');
       if (helpMenu && label.startsWith("fazer tour do")) {
         window.localStorage.setItem(autoKey, "enabled");
         if (window.localStorage.getItem(legacyStorageKey(role)) === "disabled") {

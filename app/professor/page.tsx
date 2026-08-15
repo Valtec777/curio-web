@@ -105,7 +105,7 @@ export default async function TeacherHome() {
 
   const recentItems = [
     ...(recentMaterials ?? []).map((item: any) => ({ ...item, kind: item.material_type === "pdf" ? "PDF" : "Material" })),
-    ...(recentNotebooks ?? []).map((item: any) => ({ ...item, kind: "Caderno Curió" })),
+    ...(recentNotebooks ?? []).map((item: any) => ({ ...item, kind: "Caderno Plumareli" })),
   ]
     .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5);
@@ -116,7 +116,7 @@ export default async function TeacherHome() {
     <>
       <PageHeader
         eyebrow="Professor • Hoje"
-        title={`Hoje no CURIÓ, ${firstName}`}
+        title={`Hoje no PLUMARELI, ${firstName}`}
         description="Tudo que merece sua atenção agora, sem precisar abrir cinco telas antes de começar."
         action={<Link className="button button-primary" href="/professor/criar">+ Criar conteúdo</Link>}
       />

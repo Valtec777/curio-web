@@ -25,7 +25,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
 
   const name = student?.preferred_name || student?.full_name || viewer.profile?.preferred_name || viewer.profile?.full_name;
   const gradeName = (student as any)?.grades?.name;
-  const subtitle = `${game?.level_name || "Explorador Curió"}${gradeName ? ` · ${gradeName}` : ""}`;
+  const subtitle = `${game?.level_name || "Explorador Plumareli"}${gradeName ? ` · ${gradeName}` : ""}`;
   const character: any = Array.isArray((game as any)?.characters) ? (game as any).characters[0] : (game as any)?.characters;
   const avatarUrl = character?.assets?.avatar || character?.assets?.principal || null;
 

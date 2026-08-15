@@ -120,7 +120,7 @@ export async function sendFamilyMessage(formData: FormData) {
 
   const studentName = student.preferred_name || student.full_name || "aluno";
   const guardianName = guardian.guardian_name || "Responsável";
-  const teacherName = viewer.profile?.preferred_name || viewer.profile?.full_name || "Professor CURIÓ";
+  const teacherName = viewer.profile?.preferred_name || viewer.profile?.full_name || "Professor PLUMARELI";
   const schoolName = student.school_name || "escola não informada";
   const gradeName = (student.grades as any)?.name || "ano escolar não informado";
 
@@ -160,7 +160,7 @@ export async function sendFamilyMessage(formData: FormData) {
 
     const eventDate = formatBahiaDate(event.starts_at);
     const eventTime = formatBahiaTime(event.starts_at);
-    variables.agenda_titulo = event.title || "Encontro CURIÓ";
+    variables.agenda_titulo = event.title || "Encontro PLUMARELI";
     variables["agenda.titulo"] = variables.agenda_titulo;
     variables.agenda_data = eventDate;
     variables["agenda.data"] = eventDate;
@@ -210,7 +210,7 @@ export async function sendFamilyMessage(formData: FormData) {
     redirect(`${returnPath}?erro=${encodeURIComponent("A mensagem ficou maior que o limite depois de preencher as variáveis.")}`);
   }
   if (actionUrl && !actionUrl.rendered.startsWith("/") && !actionUrl.rendered.startsWith("https://")) {
-    redirect(`${returnPath}?erro=${encodeURIComponent("O destino do botão precisa resultar em uma rota do CURIÓ ou URL HTTPS.")}`);
+    redirect(`${returnPath}?erro=${encodeURIComponent("O destino do botão precisa resultar em uma rota do PLUMARELI ou URL HTTPS.")}`);
   }
 
   const { error } = await supabase.rpc("send_curio_family_message", {

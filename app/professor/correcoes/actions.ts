@@ -100,7 +100,7 @@ export async function reviewNotebookAssignment(formData: FormData) {
     note: String(formData.get("note") || ""),
     requestRedo: String(formData.get("requestRedo") || ""),
   });
-  if (!parsed.success) redirect(`/professor/correcoes?erro=${encodeURIComponent("Revise a nota do Caderno Curió.")}`);
+  if (!parsed.success) redirect(`/professor/correcoes?erro=${encodeURIComponent("Revise a nota do Caderno Plumareli.")}`);
 
   const { teacher, supabase } = await getCurrentTeacher();
   if (!teacher) redirect("/professor/correcoes");
@@ -119,14 +119,14 @@ export async function reviewNotebookAssignment(formData: FormData) {
     redo_note: wantsRedo ? parsed.data.note || null : null,
     updated_at: new Date().toISOString(),
   }).eq("id", parsed.data.assignmentId).eq("student_id", parsed.data.studentId).eq("assigned_by_teacher_id", teacher.id);
-  if (error) redirect(`/professor/correcoes?erro=${encodeURIComponent("Não foi possível salvar a correção do Caderno Curió.")}`);
+  if (error) redirect(`/professor/correcoes?erro=${encodeURIComponent("Não foi possível salvar a correção do Caderno Plumareli.")}`);
 
   revalidatePath("/professor");
   revalidatePath("/professor/correcoes");
   revalidatePath(`/professor/alunos/${parsed.data.studentId}`);
   revalidatePath("/familia/atividades");
   revalidatePath("/aluno/caderno");
-  redirect(`/professor/correcoes?sucesso=${encodeURIComponent(wantsRedo ? "Correção salva e atividade devolvida para refazer." : "Caderno Curió corrigido.")}`);
+  redirect(`/professor/correcoes?sucesso=${encodeURIComponent(wantsRedo ? "Correção salva e atividade devolvida para refazer." : "Caderno Plumareli corrigido.")}`);
 }
 
 async function notifyFamilyAboutAssessmentResult({

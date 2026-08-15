@@ -39,13 +39,13 @@ export default async function FamilyReferralsPage() {
   const referralLink = summary?.code ? `${siteUrl}/convite/${summary.code}` : "";
 
   return <>
-    <PageHeader eyebrow="Ninho da Família" title="Indique o CURIÓ" description="Compartilhe o CURIÓ com outra família e acompanhe aqui quando a indicação avançar." />
+    <PageHeader eyebrow="Ninho da Família" title="Indique o PLUMARELI" description="Compartilhe o PLUMARELI com outra família e acompanhe aqui quando a indicação avançar." />
 
     {!summary?.program_active ? <div className="notice">O programa de indicações está pausado no momento. Seu código fica reservado e volta a funcionar quando uma nova campanha for ativada.</div> : null}
 
     <section className="panel family-highlight">
       <div className="panel-head"><div><h2>Seu convite</h2><p>O benefício só é liberado quando a nova matrícula cumprir a regra da campanha e a primeira mensalidade for confirmada.</p></div></div>
-      {summary?.program_active && referralLink ? <ReferralShare link={referralLink} title="Quero te apresentar o CURIÓ" /> : <p className="muted">Assim que a campanha estiver ativa, seu link aparecerá aqui.</p>}
+      {summary?.program_active && referralLink ? <ReferralShare link={referralLink} title="Quero te apresentar o PLUMARELI" /> : <p className="muted">Assim que a campanha estiver ativa, seu link aparecerá aqui.</p>}
       {summary?.public_rules ? <p className="muted text-small mt-16">{summary.public_rules}</p> : null}
     </section>
 

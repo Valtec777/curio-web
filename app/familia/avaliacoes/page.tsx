@@ -59,7 +59,7 @@ export default async function FamilyAssessmentsPage({
       <PageHeader
         eyebrow="Ninho da Família"
         title={`Avaliações · ${selectedChild.student_name}`}
-        description="Acompanhe avaliações do CURIÓ e informe provas ou avaliações recebidas da escola."
+        description="Acompanhe avaliações do PLUMARELI e informe provas ou avaliações recebidas da escola."
       />
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
       {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
@@ -85,7 +85,7 @@ export default async function FamilyAssessmentsPage({
 
       <div className="grid-2">
         <section className="panel">
-          <div className="panel-head"><div><h2>Avaliações do CURIÓ</h2><p>Publicadas pela professora para acompanhamento.</p></div></div>
+          <div className="panel-head"><div><h2>Avaliações do PLUMARELI</h2><p>Publicadas pela professora para acompanhamento.</p></div></div>
           {assignedRows.length ? (
             <div className="form-stack">
               {assignedRows.map((item: any) => (
@@ -104,7 +104,7 @@ export default async function FamilyAssessmentsPage({
                 </article>
               ))}
             </div>
-          ) : <EmptyState title="Sem avaliações do CURIÓ" description="Quando a professora publicar uma avaliação, ela aparecerá aqui." />}
+          ) : <EmptyState title="Sem avaliações do PLUMARELI" description="Quando a professora publicar uma avaliação, ela aparecerá aqui." />}
         </section>
 
         <section className="panel">

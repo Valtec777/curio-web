@@ -30,7 +30,7 @@ export default async function NewTeacherMaterialPage({
     <>
       <PageHeader
         eyebrow="Professor • Materiais"
-        title={kind === "notebook" ? "Nova atividade / Caderno Curió" : "Novo material de apoio"}
+        title={kind === "notebook" ? "Nova atividade / Caderno Plumareli" : "Novo material de apoio"}
         description={kind === "notebook" ? "Publique um treino em PDF ou imagem para os alunos selecionados." : "Publique um conteúdo de apoio para leitura, consulta ou estudo."}
         action={<Link className="button button-secondary" href="/professor/materiais">Voltar aos materiais</Link>}
       />

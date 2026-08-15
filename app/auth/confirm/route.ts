@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
   // encaminha para a tela de definição de senha, onde a sessão é validada.
   if (!tokenHash && !code) {
     const destination = next === "/dashboard" ? "/definir-senha" : next;
-    const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CURIÓ</title></head><body><script>window.location.replace(${JSON.stringify(destination)} + window.location.hash);</script></body></html>`;
+    const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PLUMARELI</title></head><body><script>window.location.replace(${JSON.stringify(destination)} + window.location.hash);</script></body></html>`;
     return new Response(html, { status: 200, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
   }
 

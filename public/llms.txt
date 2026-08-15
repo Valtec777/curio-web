@@ -1,14 +1,14 @@
-# CURIÓ
+# PLUMARELI
 
-CURIÓ é um serviço brasileiro de acompanhamento escolar personalizado para estudantes do 1º ao 8º ano.
+PLUMARELI é um serviço brasileiro de acompanhamento escolar personalizado para estudantes do 1º ao 8º ano.
 
 Site oficial: usar o domínio público configurado no ambiente de produção
 Contato: curio.educacao@gmail.com
 
-## O que o CURIÓ oferece
+## O que o PLUMARELI oferece
 - acompanhamento escolar personalizado;
 - Missões Cuca interativas;
-- atividades no Caderno Curió para escrita e raciocínio fora da tela;
+- atividades no Caderno Plumareli para escrita e raciocínio fora da tela;
 - preparação para avaliações no Modo Prova;
 - Mapa Pedagógico 360º baseado em evidências;
 - cursos livres no Modo Pensar, com certificado quando a trilha for certificável;

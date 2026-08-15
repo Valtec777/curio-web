@@ -59,7 +59,7 @@ export default async function TeacherProfilePage({ searchParams }: { searchParam
         <div className="teacher-profile-hero">
           <div className="teacher-profile-photo">{avatarUrl ? <img src={avatarUrl} alt={`Foto de ${displayName}`} /> : <span>{displayName.slice(0,1).toUpperCase()}</span>}</div>
           <div>
-            <Badge tone="blue">Professor CURIÓ</Badge>
+            <Badge tone="blue">Professor PLUMARELI</Badge>
             <h2>{displayName}</h2>
             <p>{teacherDetails?.professional_description || "Adicione uma descrição curta para apresentar seu trabalho."}</p>
             <form action={uploadTeacherAvatar} className="flex gap-8 wrap mt-12">

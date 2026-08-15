@@ -110,7 +110,7 @@ export async function createTeacherReport(formData: FormData) {
         p_student_id: parsed.data.studentId,
         p_guardian_id: guardian.guardian_id,
         p_subject: `Novo relatório de ${studentName}`,
-        p_body: `Olá, ${guardian.guardian_name || "responsável"}! Um novo relatório de acompanhamento de ${studentName} foi publicado no CURIÓ. Você pode ler a devolutiva e abrir o PDF, quando houver, na área de Relatórios.`,
+        p_body: `Olá, ${guardian.guardian_name || "responsável"}! Um novo relatório de acompanhamento de ${studentName} foi publicado no PLUMARELI. Você pode ler a devolutiva e abrir o PDF, quando houver, na área de Relatórios.`,
         p_action_label: "Ver relatório",
         p_action_url: `/familia/relatorios?aluno=${parsed.data.studentId}`,
         p_request_key: `report:${report.id}:${guardian.guardian_id}`,

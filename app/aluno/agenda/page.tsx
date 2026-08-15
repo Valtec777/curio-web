@@ -41,13 +41,13 @@ export default async function StudentAgendaPage() {
       <strong>{dt(event.starts_at)}</strong>
     </div>
     <h3>{event.title}</h3>
-    <p>{event.description || event.location || "Compromisso do CURIÓ"}</p>
+    <p>{event.description || event.location || "Compromisso do PLUMARELI"}</p>
     {event.ends_at ? <small className="muted">Termina: {dt(event.ends_at)}</small> : null}
     {!past && event.status !== "cancelled" && event.meeting_url ? <div className="mt-12"><a className="button button-primary" href={event.meeting_url} target="_blank" rel="noreferrer">Entrar na aula ↗</a></div> : null}
   </article>;
 
   return <>
-    <PageHeader eyebrow="Explorador Curió" title="Minha agenda" description="Aulas, revisões, avaliações e encontros com sua professora em um só lugar." />
+    <PageHeader eyebrow="Explorador Plumareli" title="Minha agenda" description="Aulas, revisões, avaliações e encontros com sua professora em um só lugar." />
     <section className="panel"><div className="panel-head"><div><h2>O que vem por aí</h2><p>Quando houver link de aula, o botão para entrar aparece aqui.</p></div></div>{upcoming.length ? <div className="student-agenda-list">{upcoming.map((e:any)=>card(e))}</div> : <EmptyState title="Nenhum encontro próximo" description="Quando a professora marcar uma aula ou revisão, ela aparecerá aqui." />}</section>
     <section className="panel"><div className="panel-head"><div><h2>Anteriores</h2><p>Seu histórico recente de agenda.</p></div></div>{previous.length ? <div className="student-agenda-list">{previous.slice(0,40).map((e:any)=>card(e,true))}</div> : <EmptyState title="Sem eventos anteriores" description="Seu histórico começa a aparecer depois dos primeiros encontros." />}</section>
   </>;

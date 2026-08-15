@@ -61,7 +61,7 @@ export default async function AdminActivitiesPage({
 
   const groups = [
     { kind: "mission", entityType: "missions", title: "Missões Cuca", items: visible("missions", missions ?? []), descriptionKey: "objective" },
-    { kind: "notebook", entityType: "notebook_activities", title: "Caderno Curió", items: visible("notebook_activities", notebooks ?? []), descriptionKey: "description" },
+    { kind: "notebook", entityType: "notebook_activities", title: "Caderno Plumareli", items: visible("notebook_activities", notebooks ?? []), descriptionKey: "description" },
     { kind: "material", entityType: "materials", title: "Materiais", items: visible("materials", materials ?? []), descriptionKey: "description" },
     { kind: "assessment", entityType: "assessments", title: "Avaliações", items: visible("assessments", assessments ?? []), descriptionKey: "instructions" },
   ] as const;
@@ -69,7 +69,7 @@ export default async function AdminActivitiesPage({
   return (
     <>
       <PageHeader
-        eyebrow="Operação CURIÓ"
+        eyebrow="Operação PLUMARELI"
         title="Missões e atividades"
         description="Edite, arquive ou exclua conteúdos sem apagar evidências e vínculos pedagógicos existentes."
       />
@@ -99,7 +99,7 @@ export default async function AdminActivitiesPage({
                     <div className="flex space-between gap-8 wrap">
                       <Badge tone={tone(item.status)}>{item.status}</Badge>
                       <small className="muted">
-                        {item.teachers?.profiles?.preferred_name || item.teachers?.profiles?.full_name || "Equipe Curió"}
+                        {item.teachers?.profiles?.preferred_name || item.teachers?.profiles?.full_name || "Equipe Plumareli"}
                       </small>
                     </div>
                     <h3>{item.title}</h3>

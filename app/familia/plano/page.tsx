@@ -52,8 +52,8 @@ export default async function FamilyPlanPage({ searchParams }: { searchParams: P
             <Badge tone={current.status === "active" ? "green" : current.status === "paused" ? "pink" : current.status === "pending" ? "yellow" : "neutral"}>
               {current.status === "active" ? "Ativo" : current.status === "paused" ? "Pausado" : current.status === "pending" ? "Pagamento pendente" : current.status}
             </Badge>
-            <h2>{currentPlan?.name || "Plano CURIÓ"}</h2>
-            <p>{currentPlan?.description || "Acompanhamento escolar CURIÓ."}</p>
+            <h2>{currentPlan?.name || "Plano PLUMARELI"}</h2>
+            <p>{currentPlan?.description || "Acompanhamento escolar PLUMARELI."}</p>
           </div>
           <div><strong style={{ fontSize: 24 }}>{money(current.agreed_monthly_price ?? currentPlan?.monthly_price)}</strong><div className="muted text-small">{intervalLabel(currentPlan?.billing_interval)}</div></div>
         </div>
@@ -81,7 +81,7 @@ export default async function FamilyPlanPage({ searchParams }: { searchParams: P
         <div className="panel-head"><div><h2>Histórico de planos</h2><p>Planos anteriores continuam registrados para manter o histórico do acompanhamento.</p></div></div>
         <div className="form-stack">{subscriptions.filter((sub: any) => sub.id !== current?.id).map((sub: any) => {
           const historicalPlan: any = relationOne(sub.plans as any);
-          return <article className="family-upload-card" key={sub.id}><div className="flex space-between gap-8 wrap"><div><Badge tone="neutral">{sub.status}</Badge><strong>{historicalPlan?.name || "Plano CURIÓ"}</strong></div><strong>{money(sub.agreed_monthly_price ?? historicalPlan?.monthly_price)}</strong></div><small className="muted">{date(sub.starts_at)} → {sub.ends_at ? date(sub.ends_at) : "—"}</small></article>;
+          return <article className="family-upload-card" key={sub.id}><div className="flex space-between gap-8 wrap"><div><Badge tone="neutral">{sub.status}</Badge><strong>{historicalPlan?.name || "Plano PLUMARELI"}</strong></div><strong>{money(sub.agreed_monthly_price ?? historicalPlan?.monthly_price)}</strong></div><small className="muted">{date(sub.starts_at)} → {sub.ends_at ? date(sub.ends_at) : "—"}</small></article>;
         })}</div>
       </section> : null}
 

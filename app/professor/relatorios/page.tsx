@@ -61,7 +61,7 @@ export default async function TeacherReportsPage({ searchParams }: { searchParam
       <PageHeader
         eyebrow="Professor • Revisar"
         title="Relatórios"
-        description="Registre a devolutiva pedagógica com suas próprias observações. O CURIÓ organiza e compartilha com a família vinculada; não inventa diagnóstico nem escreve o relatório por você."
+        description="Registre a devolutiva pedagógica com suas próprias observações. O PLUMARELI organiza e compartilha com a família vinculada; não inventa diagnóstico nem escreve o relatório por você."
       />
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
       {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}

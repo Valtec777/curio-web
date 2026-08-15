@@ -9,7 +9,7 @@ export type LegalProviderProfile = {
 };
 
 export const defaultLegalProviderProfile: LegalProviderProfile = {
-  brandName: "CURIÓ",
+  brandName: "PLUMARELI",
   legalName: "",
   taxId: "",
   address: "",
