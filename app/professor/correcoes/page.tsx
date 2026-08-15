@@ -71,12 +71,12 @@ export default async function CorrectionsPage({ searchParams }: { searchParams: 
       <PageHeader
         eyebrow="Professor • Revisar"
         title="Correções"
-        description="Revise respostas abertas, Caderno Curió e registre resultados de avaliações. Questões objetivas com gabarito continuam sendo conferidas automaticamente."
+        description="Revise respostas abertas, Caderno Plumareli e registre resultados de avaliações. Questões objetivas com gabarito continuam sendo conferidas automaticamente."
       />
       {params.erro && <div className="form-message form-error">{params.erro}</div>}
       {params.sucesso && <div className="form-message form-success">{params.sucesso}</div>}
 
-      <div className="notice">A automação vale somente para múltipla escolha e verdadeiro/falso com gabarito. Respostas abertas, Caderno Curió e resultados de avaliação permanecem sob decisão do professor.</div>
+      <div className="notice">A automação vale somente para múltipla escolha e verdadeiro/falso com gabarito. Respostas abertas, Caderno Plumareli e resultados de avaliação permanecem sob decisão do professor.</div>
 
       {total ? (
         <div className="form-stack mt-16">
@@ -129,7 +129,7 @@ export default async function CorrectionsPage({ searchParams }: { searchParams: 
 
           {(notebooks ?? []).map((assignment: any) => (
             <section className="panel" key={`notebook-${assignment.id}`}>
-              <div className="panel-head"><div><div className="flex gap-8 wrap"><Badge tone="pink">{assignment.students?.preferred_name || assignment.students?.full_name || "Aluno"}</Badge><Badge tone={deliveryTone(assignment.submitted_at, assignment.due_at)}>{deliveryLabel(assignment.submitted_at, assignment.due_at)}</Badge><Badge tone="purple">Caderno Curió</Badge></div><h2>{assignment.notebook_activities?.title || "Atividade de caderno"}</h2><p>Enviado em {dt(assignment.submitted_at)}{assignment.due_at ? ` · prazo ${dt(assignment.due_at)}` : ""}</p></div></div>
+              <div className="panel-head"><div><div className="flex gap-8 wrap"><Badge tone="pink">{assignment.students?.preferred_name || assignment.students?.full_name || "Aluno"}</Badge><Badge tone={deliveryTone(assignment.submitted_at, assignment.due_at)}>{deliveryLabel(assignment.submitted_at, assignment.due_at)}</Badge><Badge tone="purple">Caderno Plumareli</Badge></div><h2>{assignment.notebook_activities?.title || "Atividade de caderno"}</h2><p>Enviado em {dt(assignment.submitted_at)}{assignment.due_at ? ` · prazo ${dt(assignment.due_at)}` : ""}</p></div></div>
               {assignment.notebook_activities?.description && <p>{assignment.notebook_activities.description}</p>}
               {notebookFiles.get(assignment.id) ? <p><a className="button button-secondary button-small" href={notebookFiles.get(assignment.id)} target="_blank" rel="noreferrer">Abrir entrega ↗</a></p> : assignment.submission_photo_path ? <div className="form-message form-error">O arquivo foi registrado, mas não pôde ser aberto agora.</div> : null}
               <form action={reviewNotebookAssignment} className="form-stack mt-12">
@@ -161,7 +161,7 @@ export default async function CorrectionsPage({ searchParams }: { searchParams: 
             );
           })}
         </div>
-      ) : <EmptyState title="Nenhuma correção pendente" description="Quando houver resposta aberta, Caderno Curió enviado ou avaliação aguardando resultado, ela aparecerá aqui." />}
+      ) : <EmptyState title="Nenhuma correção pendente" description="Quando houver resposta aberta, Caderno Plumareli enviado ou avaliação aguardando resultado, ela aparecerá aqui." />}
     </>
   );
 }

@@ -76,7 +76,7 @@ export default async function FamilySchoolContentPage({ searchParams }: { search
             </div>
           ) : (
             <div className="text-center">
-              <img src="/mascotes/curio_capivara_principal_acolhendo.png" alt="Capivara Curió" style={{ maxHeight: 150, objectFit: "contain" }} />
+              <img src="/mascotes/curio_capivara_principal_acolhendo.png" alt="Capivara Plumareli" style={{ maxHeight: 150, objectFit: "contain" }} />
               <EmptyState title="Nada enviado ainda" description="Envie fotos do caderno, PDF ou aviso da escola pelo formulário ao lado." />
             </div>
           )}

@@ -4,7 +4,7 @@ export function PublicTrustSection() {
   const trustItems = [
     ["Acompanhamento humano", "A tecnologia apoia a organização, mas o acompanhamento continua sendo feito por pessoas."],
     ["Evolução fácil de acompanhar", "A família acompanha progresso, agenda, atividades e próximos passos de forma clara."],
-    ["Aprendizagem além da tela", "O Caderno Curió mantém escrita, raciocínio e produção manual como parte do percurso."],
+    ["Aprendizagem além da tela", "O Caderno Plumareli mantém escrita, raciocínio e produção manual como parte do percurso."],
     ["Cada perfil no seu espaço", "Aluno, família, professor e administração acessam áreas próprias para o que precisam fazer."],
   ] as const;
 
@@ -17,7 +17,7 @@ export function PublicTrustSection() {
             <h2 id="public-trust-title">Uma experiência acolhedora para a criança e organizada para a família.</h2>
           </div>
           <p>
-            O Curió combina atividades, acompanhamento e uma experiência visual leve para que estudar faça mais sentido no dia a dia.
+            O Plumareli combina atividades, acompanhamento e uma experiência visual leve para que estudar faça mais sentido no dia a dia.
           </p>
         </div>
 

@@ -50,7 +50,7 @@ export async function createAnnouncement(formData: FormData) {
   revalidatePath("/familia");
   revalidatePath("/professor");
   revalidatePath("/aluno");
-  redirect("/admin/comunicacao?sucesso=" + encodeURIComponent(formData.get("active") === "on" ? "Comunicado publicado no CURIÓ." : "Comunicado salvo como inativo."));
+  redirect("/admin/comunicacao?sucesso=" + encodeURIComponent(formData.get("active") === "on" ? "Comunicado publicado no PLUMARELI." : "Comunicado salvo como inativo."));
 }
 
 export async function setAnnouncementActive(formData: FormData) {

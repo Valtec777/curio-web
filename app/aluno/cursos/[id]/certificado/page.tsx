@@ -36,20 +36,20 @@ export default async function CourseCertificatePage({ params }: { params: Promis
         <span className="muted">Na janela de impressão, escolha “Salvar como PDF” para guardar o certificado digital.</span>
       </div>
       <section className="certificate-sheet">
-        <div className="certificate-mark">CURIÓ</div>
+        <div className="certificate-mark">PLUMARELI</div>
         <div className="eyebrow">{certificateTitle}</div>
         <h1>Certificamos que</h1>
         <h2 className="certificate-name">{certificateStudent?.full_name || certificateStudent?.preferred_name || student.full_name}</h2>
         <p>concluiu a trilha do Modo Pensar</p>
-        <h3 className="certificate-course">{course?.title || "Trilha Curió"}</h3>
-        <p>com carga horária pedagógica estimada de <strong>{course?.estimated_minutes || 0} minutos</strong>, concluindo as etapas previstas no ambiente educacional CURIÓ.</p>
+        <h3 className="certificate-course">{course?.title || "Trilha Plumareli"}</h3>
+        <p>com carga horária pedagógica estimada de <strong>{course?.estimated_minutes || 0} minutos</strong>, concluindo as etapas previstas no ambiente educacional PLUMARELI.</p>
         <div className="certificate-signature">
           <div><span>Emitido em</span><strong>{issueDate(certificate.issued_at)}</strong></div>
           <div><span>Código de validação</span><strong>{certificate.certificate_code}</strong></div>
           {signatoryName ? <div><span>Responsável</span><strong>{signatoryName}</strong>{signatoryRole ? <small>{signatoryRole}</small> : null}</div> : null}
         </div>
         <p className="certificate-validation no-print"><Link href={validationHref}>Verificar autenticidade deste certificado</Link></p>
-        <footer>CURIÓ · Modo Pensar · certificado digital verificável</footer>
+        <footer>PLUMARELI · Modo Pensar · certificado digital verificável</footer>
       </section>
     </div>
   );

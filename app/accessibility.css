@@ -1,6 +1,6 @@
-/* ===== CURIÓ · legibilidade, conforto visual e separação de metadados internos ===== */
+/* ===== PLUMARELI · legibilidade, conforto visual e separação de metadados internos ===== */
 
-/* Metadados de contratos/códigos CURIÓ ficam no backend/Admin e não na experiência do Professor. */
+/* Metadados de contratos/códigos PLUMARELI ficam no backend/Admin e não na experiência do Professor. */
 .generator-source-card + .family-highlight {
   display: none !important;
 }

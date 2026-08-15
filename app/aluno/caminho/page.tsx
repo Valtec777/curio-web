@@ -54,7 +54,7 @@ export default async function StudentPathPage() {
   const recentAchievements=(achievements??[]).map((a:any)=>({earned_at:a.earned_at, achievement:relation(a.achievements)})).filter((a:any)=>a.achievement);
 
   return <>
-    <PageHeader eyebrow="Explorador Curió" title="Meu caminho" description="Sua jornada de descoberta: veja o que já avançou e o que vem por aí." />
+    <PageHeader eyebrow="Explorador Plumareli" title="Meu caminho" description="Sua jornada de descoberta: veja o que já avançou e o que vem por aí." />
 
     <section className="student-path-hero">
       <div><span className="student-kicker">Seu progresso geral</span><h2>{totalAssigned ? pct(overall) : "Começando"}</h2><p>{totalAssigned ? `Você já concluiu ${totalDone} de ${totalAssigned} desafios registrados.` : "Sua trilha vai ganhar forma conforme você fizer as primeiras atividades."}</p><div className="student-big-progress"><span style={{width:pct(overall)}} /></div></div>

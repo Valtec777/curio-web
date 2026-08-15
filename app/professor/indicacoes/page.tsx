@@ -34,7 +34,7 @@ export default async function TeacherReferralsPage() {
 
     <section className="panel">
       <div className="panel-head"><div><h2>Seu link de indicação</h2><p>O link identifica apenas a origem do contato. A Administração continua escolhendo e confirmando o professor responsável pela matrícula.</p></div></div>
-      {summary?.program_active && referralLink ? <ReferralShare link={referralLink} title="Conheça o CURIÓ" /> : <p className="muted">O compartilhamento será liberado quando a campanha estiver ativa.</p>}
+      {summary?.program_active && referralLink ? <ReferralShare link={referralLink} title="Conheça o PLUMARELI" /> : <p className="muted">O compartilhamento será liberado quando a campanha estiver ativa.</p>}
     </section>
 
     <div className="stats-grid">

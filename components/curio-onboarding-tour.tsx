@@ -92,7 +92,7 @@ const ROLE_TOURS: Record<TutorialRole, TourStep[]> = {
   guardian: [
     {
       title: "Bem-vindo(a) ao espaço da Família",
-      body: "Este tour mostra onde acompanhar a criança, ver atividades, encontros, relatórios e falar com a equipe CURIÓ. Você pode refazer o tutorial quando quiser.",
+      body: "Este tour mostra onde acompanhar a criança, ver atividades, encontros, relatórios e falar com a equipe PLUMARELI. Você pode refazer o tutorial quando quiser.",
     },
     {
       selector: 'a[href="/familia"], a[href^="/familia?"]',
@@ -107,7 +107,7 @@ const ROLE_TOURS: Record<TutorialRole, TourStep[]> = {
     {
       selector: 'a[href^="/familia/atividades"]',
       title: "Conteúdos e atividades",
-      body: "Veja o que foi disponibilizado pelo professor, o que precisa ser feito e o que já foi concluído. O CURIÓ separa material de consulta de atividades que pedem uma entrega.",
+      body: "Veja o que foi disponibilizado pelo professor, o que precisa ser feito e o que já foi concluído. O PLUMARELI separa material de consulta de atividades que pedem uma entrega.",
     },
     {
       selector: 'a[href^="/familia/progresso"]',
@@ -142,7 +142,7 @@ const ROLE_TOURS: Record<TutorialRole, TourStep[]> = {
   ],
   student: [
     {
-      title: "Bem-vindo(a) ao seu espaço CURIÓ",
+      title: "Bem-vindo(a) ao seu espaço PLUMARELI",
       body: "Aqui você encontra suas missões, agenda, caderno, conquistas e caminhos de aprendizagem. Este tour é curtinho e pode ser repetido quando você quiser.",
     },
     {
@@ -168,7 +168,7 @@ const ROLE_TOURS: Record<TutorialRole, TourStep[]> = {
     {
       selector: 'a[href="/aluno/caderno"]',
       title: "Meu Caderno",
-      body: "Use o Caderno para produções e atividades que pedem mais construção. Ele funciona como um espaço de trabalho dentro da sua jornada CURIÓ.",
+      body: "Use o Caderno para produções e atividades que pedem mais construção. Ele funciona como um espaço de trabalho dentro da sua jornada PLUMARELI.",
     },
     {
       selector: 'a[href="/aluno/conquistas"]',
@@ -183,7 +183,7 @@ const ROLE_TOURS: Record<TutorialRole, TourStep[]> = {
     {
       selector: 'a[href="/aluno/perfil"]',
       title: "Perfil",
-      body: "Aqui você vê informações do seu perfil e, quando disponível, escolhe seu personagem CURIÓ. O botão “Como usar” fica sempre disponível para rever este tutorial.",
+      body: "Aqui você vê informações do seu perfil e, quando disponível, escolhe seu personagem PLUMARELI. O botão “Como usar” fica sempre disponível para rever este tutorial.",
     },
   ],
 };
@@ -247,12 +247,12 @@ const PAGE_GUIDES: Record<TutorialRole, Record<string, PageGuide>> = {
     },
     "/professor/materiais": {
       title: "Materiais",
-      purpose: "Publica materiais de apoio e Cadernos CURIÓ para os alunos selecionados.",
+      purpose: "Publica materiais de apoio e Cadernos PLUMARELI para os alunos selecionados.",
       tips: ["Use materiais para consulta e apoio; use atividades quando espera uma entrega.", "Itens programados só aparecem ao aluno no horário definido."],
     },
     "/professor/avaliacoes": {
       title: "Avaliações",
-      purpose: "Cria avaliações e acompanha entrega, revisão e resultado na escala definida pelo CURIÓ.",
+      purpose: "Cria avaliações e acompanha entrega, revisão e resultado na escala definida pelo PLUMARELI.",
       tips: ["Escolha os alunos e confira prazo e conteúdo antes de publicar.", "Use o resultado como uma evidência dentro de um conjunto maior de acompanhamento."],
     },
     "/professor/conteudos": {
@@ -286,7 +286,7 @@ const PAGE_GUIDES: Record<TutorialRole, Record<string, PageGuide>> = {
       tips: ["Mantenha telefone, descrição e matérias atualizados.", "Cadastre seus horários disponíveis para facilitar a organização de encontros."],
     },
     "/professor/suporte": {
-      title: "Suporte CURIÓ",
+      title: "Suporte PLUMARELI",
       purpose: "Abre solicitações para dúvidas de plataforma, conta, financeiro ou apoio pedagógico.",
       tips: ["Escolha a categoria e a prioridade de acordo com a situação.", "Depois do envio, acompanhe o andamento em Meus tickets."],
     },
@@ -304,7 +304,7 @@ const PAGE_GUIDES: Record<TutorialRole, Record<string, PageGuide>> = {
     "/familia/plano": { title: "Plano", purpose: "Apresenta informações do plano ativo e recursos vinculados à criança.", tips: ["Confira o ciclo e as condições exibidas na própria página.", "Para dúvidas administrativas, abra uma solicitação no Suporte."] },
     "/familia/contrato": { title: "Contrato", purpose: "Centraliza documentos contratuais disponibilizados para a família.", tips: ["Leia a versão vigente antes de confirmar qualquer decisão.", "Guarde suas dúvidas para tratar pelo canal de Suporte quando necessário."] },
     "/familia/pagamentos": { title: "Pagamentos", purpose: "Organiza informações financeiras disponibilizadas à família.", tips: ["Confira competência, situação e dados apresentados na tela.", "Se encontrar divergência, use o Suporte e evite enviar dados sensíveis por mensagem comum."] },
-    "/familia/indicacoes": { title: "Indique o CURIÓ", purpose: "Mostra o programa de indicação quando houver campanha ativa para famílias.", tips: ["Leia as regras vigentes antes de compartilhar o link.", "A indicação registra origem e segue as condições exibidas na campanha atual."] },
+    "/familia/indicacoes": { title: "Indique o PLUMARELI", purpose: "Mostra o programa de indicação quando houver campanha ativa para famílias.", tips: ["Leia as regras vigentes antes de compartilhar o link.", "A indicação registra origem e segue as condições exibidas na campanha atual."] },
     "/familia/privacidade": { title: "Privacidade e autorizações", purpose: "Reúne documentos, consentimentos e autorizações relacionados aos dados e à criança.", tips: ["Leia cada documento antes de aceitar ou reconhecer ciência.", "Autorizações opcionais devem permanecer separadas do que é necessário para prestar o serviço."] },
     "/familia/suporte": { title: "Suporte", purpose: "Canal para solicitar ajuda sobre conta, plataforma, financeiro ou acompanhamento.", tips: ["Descreva o problema com clareza e sem incluir dados desnecessários.", "Acompanhe o status do ticket na mesma página."] },
     "/familia/perfil": { title: "Perfil", purpose: "Mantém os dados da conta familiar atualizados.", tips: ["Revise telefone e dados de contato.", "Não compartilhe sua senha ou PIN com terceiros."] },
@@ -315,9 +315,9 @@ const PAGE_GUIDES: Record<TutorialRole, Record<string, PageGuide>> = {
     "/aluno/missoes": { title: "Missões", purpose: "Reúne as atividades que foram enviadas para você.", tips: ["Leia todas as orientações antes de começar.", "Quando a questão pedir explicação, mostre seu raciocínio e não apenas a resposta final."] },
     "/aluno/agenda": { title: "Agenda", purpose: "Mostra seus próximos encontros, aulas e revisões.", tips: ["Confira o horário com antecedência.", "Se o encontro for online, use o link que aparecer na própria agenda."] },
     "/aluno/caminho": { title: "Caminho", purpose: "Ajuda você a enxergar sua jornada e os próximos desafios.", tips: ["Avance no seu ritmo e observe o que está ficando mais fácil.", "Uma dificuldade de hoje pode virar uma conquista com prática e estratégia."] },
-    "/aluno/perfil": { title: "Perfil", purpose: "Mostra suas informações e opções de personalização disponíveis.", tips: ["Escolha seu personagem quando essa opção estiver liberada.", "Se algum dado pessoal estiver errado, peça ajuda a um responsável ou à equipe CURIÓ."] },
+    "/aluno/perfil": { title: "Perfil", purpose: "Mostra suas informações e opções de personalização disponíveis.", tips: ["Escolha seu personagem quando essa opção estiver liberada.", "Se algum dado pessoal estiver errado, peça ajuda a um responsável ou à equipe PLUMARELI."] },
     "/aluno/caderno": { title: "Meu Caderno", purpose: "Espaço para produções e atividades que pedem construção mais aberta.", tips: ["Organize sua resposta antes de enviar.", "Revise o que escreveu e confira se respondeu ao que foi pedido."] },
-    "/aluno/conquistas": { title: "Conquistas", purpose: "Registra marcos da sua jornada dentro do CURIÓ.", tips: ["Use as conquistas para perceber seu progresso.", "O objetivo não é competir com outras pessoas, e sim acompanhar sua própria evolução."] },
+    "/aluno/conquistas": { title: "Conquistas", purpose: "Registra marcos da sua jornada dentro do PLUMARELI.", tips: ["Use as conquistas para perceber seu progresso.", "O objetivo não é competir com outras pessoas, e sim acompanhar sua própria evolução."] },
     "/aluno/descobertas": { title: "Descobertas", purpose: "Reúne novidades e conteúdos para explorar novos assuntos.", tips: ["Abra o que despertar curiosidade.", "Anote dúvidas para conversar com seu professor depois."] },
     "/aluno/modo-pensar": { title: "Modo Pensar", purpose: "Trabalha estratégias para aprender, organizar ideias e resolver problemas.", tips: ["Experimente a estratégia proposta antes de decidir se ela funciona para você.", "Preste atenção em como você chegou à resposta, não apenas no resultado."] },
     "/aluno/modo-prova": { title: "Modo Prova", purpose: "Ajuda a praticar situações de avaliação com organização e autonomia.", tips: ["Leia o comando inteiro antes de responder.", "Controle o tempo sem correr: primeiro entenda, depois resolva e por fim revise."] },
@@ -470,8 +470,8 @@ export function CurioOnboardingTour({
     <>
       <div className={styles.launcherWrap}>
         {menuOpen ? (
-          <div className={styles.helpMenu} role="menu" aria-label="Ajuda de uso do CURIÓ">
-            <strong>Como usar o CURIÓ</strong>
+          <div className={styles.helpMenu} role="menu" aria-label="Ajuda de uso do PLUMARELI">
+            <strong>Como usar o PLUMARELI</strong>
             <button type="button" role="menuitem" onClick={startTour}>Fazer tour do {ROLE_NAME[role]}</button>
             <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); setPageHelpOpen(true); }}>Explicar esta página</button>
             {supportHref ? <a role="menuitem" href={supportHref}>Falar com o suporte</a> : null}
@@ -494,7 +494,7 @@ export function CurioOnboardingTour({
         <div className={styles.modalBackdrop}>
           <section className={styles.introCard} role="dialog" aria-modal="true" aria-labelledby="curio-onboarding-title">
             <div className={styles.badge}>Primeiro acesso</div>
-            <h2 id="curio-onboarding-title">Quer conhecer seu espaço no CURIÓ?</h2>
+            <h2 id="curio-onboarding-title">Quer conhecer seu espaço no PLUMARELI?</h2>
             <p>Em poucos passos mostramos onde encontrar o essencial. O tutorial não altera nenhum dado e você pode interromper quando quiser.</p>
             <div className={styles.introActions}>
               <button type="button" className={styles.primaryButton} onClick={startTour}>Começar tour</button>

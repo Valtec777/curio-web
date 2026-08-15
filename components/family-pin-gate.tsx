@@ -44,7 +44,7 @@ export function FamilyPinGate({ required, children }: { required: boolean; child
               </div>
               <button className="button button-primary button-block" type="submit">Salvar PIN e continuar</button>
             </form>
-            <small>Depois, a criança entra pelo seu e-mail e usa apenas o espaço dela. Para voltar para esta área, o Curió pedirá esse PIN.</small>
+            <small>Depois, a criança entra pelo seu e-mail e usa apenas o espaço dela. Para voltar para esta área, o Plumareli pedirá esse PIN.</small>
           </section>
         </div>
       )}

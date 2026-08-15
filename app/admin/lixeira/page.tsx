@@ -19,7 +19,7 @@ function typeLabel(entityType: string) {
     messages: "Mensagem",
     missions: "Missão Cuca",
     materials: "Material",
-    notebook_activities: "Caderno Curió",
+    notebook_activities: "Caderno Plumareli",
     assessments: "Avaliação",
     documents: "Documento operacional",
   };
@@ -70,7 +70,7 @@ export default async function AdminTrashPage({ searchParams }: { searchParams: P
 
   return (
     <>
-      <PageHeader eyebrow="Operação CURIÓ" title="Lixeira" description="Restaure durante 30 dias ou exclua manualmente quando a exclusão definitiva for segura." />
+      <PageHeader eyebrow="Operação PLUMARELI" title="Lixeira" description="Restaure durante 30 dias ou exclua manualmente quando a exclusão definitiva for segura." />
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
       {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
       <div className="notice">Depois de 30 dias, o item sai automaticamente da janela visível de restauração. Registros com histórico pedagógico, financeiro, jurídico ou de acesso não são apagados fisicamente de forma automática: ficam preservados internamente conforme as regras de segurança e retenção. A exclusão permanente manual só aparece quando o tipo de registro é seguro para isso.</div>

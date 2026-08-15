@@ -52,7 +52,7 @@ export default async function AdminPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Admin CURIÓ"
+        eyebrow="Admin PLUMARELI"
         title="Hoje"
         description="O essencial da operação em uma tela: pessoas, matrículas, interesses e o que precisa de atenção agora."
         action={<Link className="button button-primary" href="/admin/matriculas#nova-matricula">+ Nova matrícula</Link>}

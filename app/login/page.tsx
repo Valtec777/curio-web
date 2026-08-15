@@ -14,8 +14,8 @@ export default async function LoginPage({
       <section className="auth-brand">
         <Logo />
         <div>
-          <div className="eyebrow" style={{ color: "#a8ee25" }}>Acesso CURIÓ</div>
-          <h1>Seu espaço começa com um convite do Curió.</h1>
+          <div className="eyebrow" style={{ color: "#a8ee25" }}>Acesso PLUMARELI</div>
+          <h1>Seu espaço começa com um convite do Plumareli.</h1>
           <p>
             As contas são liberadas pela administração após matrícula ou vínculo com a equipe.
             Não existe cadastro público de família, professor ou administrador.
@@ -27,7 +27,7 @@ export default async function LoginPage({
       <section className="auth-form-side">
         <div className="auth-card auth-card-playful">
           <div className="eyebrow">Bem-vindo de volta</div>
-          <h2>Entrar no CURIÓ</h2>
+          <h2>Entrar no PLUMARELI</h2>
           <p>Use o e-mail liberado pela administração e a sua senha.</p>
 
           {params.erro && <div className="form-message form-error">{params.erro}</div>}
@@ -49,7 +49,7 @@ export default async function LoginPage({
             <Link href="/primeiro-acesso"><strong>Primeiro acesso</strong><span>Receba o link para definir sua senha.</span></Link>
             <Link href="/esqueci-senha"><strong>Esqueci minha senha</strong><span>Receba um novo link de recuperação.</span></Link>
           </div>
-          <p className="auth-admin-note">Ainda não recebeu acesso? Fale com a equipe Curió. A conta é criada somente pela administração.</p>
+          <p className="auth-admin-note">Ainda não recebeu acesso? Fale com a equipe Plumareli. A conta é criada somente pela administração.</p>
         </div>
       </section>
     </main>

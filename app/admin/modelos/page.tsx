@@ -31,7 +31,7 @@ export default async function AdminTemplatesPage() {
 
       <section className="template-help-card">
         <div>
-          <Badge tone="purple">Biblioteca CURIÓ</Badge>
+          <Badge tone="purple">Biblioteca PLUMARELI</Badge>
           <h2>Abra um modelo para ver como ele está organizado.</h2>
           <p>Aqui você confere títulos, blocos e ordem das seções. A revisão visual dos PDFs continua separada para preservar o acabamento de impressão.</p>
         </div>
@@ -51,7 +51,7 @@ export default async function AdminTemplatesPage() {
                     <Badge tone="blue">{humanType}</Badge>
                   </div>
                   <h3>{template.name.replace(/\s+[—-]\s+[A-Z]{2,}[A-Z0-9:-]*$/i, "")}</h3>
-                  <p>{template.description || "Modelo reutilizável do CURIÓ."}</p>
+                  <p>{template.description || "Modelo reutilizável do PLUMARELI."}</p>
                   <details className="template-preview-details">
                     <summary>Ver como está organizado</summary>
                     <div className="template-preview-body">

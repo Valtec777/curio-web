@@ -51,7 +51,7 @@ export default async function StudentHome() {
       <div className="kid-hero-copy">
         <div className="eyebrow" style={{color:"#dfffa8"}}>Portal do Aluno</div>
         <h1>Oi, {student.preferred_name}!</h1>
-        <p>Pronto para mais uma descoberta? Hoje o CURIÓ separou o que merece sua atenção.</p>
+        <p>Pronto para mais uma descoberta? Hoje o PLUMARELI separou o que merece sua atenção.</p>
         <div className="student-today-pills">
           <span><UiIcon label="Missões"/>Missões</span>
           <span><UiIcon label="Meu Caderno"/>Atividades</span>
@@ -82,7 +82,7 @@ export default async function StudentHome() {
           <strong>Missão especial para {seasonal.band === "1-3" ? "1º ao 3º ano" : seasonal.band === "4-5" ? "4º e 5º ano" : "6º ano em diante"}</strong>
           <p>{seasonal.missionText}</p>
         </div>
-        <span className="seasonal-note">Conteúdo editorial CURIÓ · opcional · não publica uma missão em nome do professor</span>
+        <span className="seasonal-note">Conteúdo editorial PLUMARELI · opcional · não publica uma missão em nome do professor</span>
       </section>
     ) : null}
 
@@ -100,7 +100,7 @@ export default async function StudentHome() {
       <article><strong>{game?.level_name||"Curioso"}</strong><small>Nível</small></article>
     </div>
 
-    {nextEvent ? <section className="panel student-next-event"><div className="panel-head"><div><h2 className="student-heading-with-icon"><UiIcon label="Agenda"/>Próximo encontro</h2><p>{dt(nextEvent.starts_at)}</p></div><Link href="/aluno/agenda">Ver agenda</Link></div><div className="student-inline-event"><div><Badge tone="blue">{nextEvent.event_type==="class"?"Aula":"Encontro"}</Badge><h3>{nextEvent.title}</h3><p>{nextEvent.description||nextEvent.location||"Encontro Curió"}</p></div>{nextEvent.meeting_url?<a className="button button-primary" href={nextEvent.meeting_url} target="_blank" rel="noreferrer">Entrar na aula</a>:null}</div></section> : null}
+    {nextEvent ? <section className="panel student-next-event"><div className="panel-head"><div><h2 className="student-heading-with-icon"><UiIcon label="Agenda"/>Próximo encontro</h2><p>{dt(nextEvent.starts_at)}</p></div><Link href="/aluno/agenda">Ver agenda</Link></div><div className="student-inline-event"><div><Badge tone="blue">{nextEvent.event_type==="class"?"Aula":"Encontro"}</Badge><h3>{nextEvent.title}</h3><p>{nextEvent.description||nextEvent.location||"Encontro Plumareli"}</p></div>{nextEvent.meeting_url?<a className="button button-primary" href={nextEvent.meeting_url} target="_blank" rel="noreferrer">Entrar na aula</a>:null}</div></section> : null}
 
     <section className="panel"><div className="panel-head"><div><h2 className="student-heading-with-icon"><UiIcon label="Missões"/>Suas missões de hoje</h2><p>Comece por onde quiser. Cada missão te leva um passo adiante.</p></div><Link href="/aluno/missoes">Ver todas</Link></div>{pendingMissions.length?<div className="mission-list-grid">{pendingMissions.slice(0,6).map((item:any)=>{const subject:any=relation(item.mission?.subjects);return <Link className="mission-card mission-card-clickable" href={`/aluno/missoes/${item.id}`} key={item.id}><div className="flex space-between gap-8 wrap"><Badge tone="pink">{subject?.name||"Missão Cuca"}</Badge><Badge tone={item.status==="in_progress"?"yellow":"blue"}>{item.status==="in_progress"?"Em andamento":"Começar"}</Badge></div><h3>{item.mission?.title||"Missão Cuca"}</h3><p>{item.mission?.objective||"Uma nova descoberta está esperando por você."}</p>{item.status==="in_progress"?<div className="progress"><span style={{width:`${item.progress_percent||0}%`}} /></div>:null}<small className="muted">{item.due_at?`Prazo: ${dt(item.due_at)}`:`${item.mission?.estimated_minutes||20} min`}</small></Link>})}</div>:<EmptyState title="Tudo em dia!" description="Nenhuma Missão Cuca pendente neste momento." />}</section>
 
@@ -111,6 +111,6 @@ export default async function StudentHome() {
       <section className="panel"><div className="panel-head"><div><h2 className="student-heading-with-icon"><UiIcon label="Conquistas"/>Conquista recente</h2><p>Seu mural vai crescendo junto com você.</p></div><Link href="/aluno/conquistas">Ver conquistas</Link></div>{recentAchievement?<div className="achievement-inline"><span className="student-achievement-symbol"><UiIcon label="Conquistas"/></span><div><strong>{relation<any>(recentAchievement.achievements)?.name}</strong><p>{relation<any>(recentAchievement.achievements)?.description}</p></div></div>:<p className="muted">Sua primeira conquista está chegando.</p>}</section>
     </div>
 
-    <section className="panel tip-card student-tip-card-refresh"><Image className="student-tip-character" src="/mascotes/curio_tamandua_avatar_neutro.png" alt="Tamanduá do Curió" width={120} height={120}/><div><div className="eyebrow">Dica do dia</div><h2>Pequenos passos fazem diferença.</h2><p>{tip||"Antes de responder, descubra exatamente o que a questão está pedindo."}</p><Link href="/aluno/caminho">Ver meu caminho</Link></div></section>
+    <section className="panel tip-card student-tip-card-refresh"><Image className="student-tip-character" src="/mascotes/curio_tamandua_avatar_neutro.png" alt="Tamanduá do Plumareli" width={120} height={120}/><div><div className="eyebrow">Dica do dia</div><h2>Pequenos passos fazem diferença.</h2><p>{tip||"Antes de responder, descubra exatamente o que a questão está pedindo."}</p><Link href="/aluno/caminho">Ver meu caminho</Link></div></section>
   </>;
 }

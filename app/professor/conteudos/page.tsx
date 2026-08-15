@@ -24,7 +24,7 @@ export default async function TeacherContentLibraryPage() {
   const items = [
     ...(missions ?? []).map((item: any) => ({ ...item, kind: "mission", type: "Missão", description: item.objective, count: item.mission_students?.length || 0, href: `/professor/missoes#missao-${item.id}` })),
     ...(materials ?? []).map((item: any) => ({ ...item, kind: "material", type: "Material", count: item.material_assignments?.length || 0, href: `/professor/materiais#material-${item.id}` })),
-    ...(notebooks ?? []).map((item: any) => ({ ...item, kind: "notebook", type: "Caderno Curió", count: item.notebook_assignments?.length || 0, href: `/professor/materiais#notebook-${item.id}` })),
+    ...(notebooks ?? []).map((item: any) => ({ ...item, kind: "notebook", type: "Caderno Plumareli", count: item.notebook_assignments?.length || 0, href: `/professor/materiais#notebook-${item.id}` })),
     ...(assessments ?? []).map((item: any) => ({ ...item, kind: "assessment", type: "Avaliação", description: item.instructions, count: item.assessment_students?.length || 0, href: `/professor/avaliacoes#avaliacao-${item.id}` })),
   ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 

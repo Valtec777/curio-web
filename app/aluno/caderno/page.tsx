@@ -50,8 +50,8 @@ export default async function StudentNotebookPage({ searchParams }: { searchPara
     return <article className="student-notebook-card" key={row.id}>
       <div className="flex space-between gap-8 wrap">
         <div>
-          <div className="flex gap-8 wrap"><Badge tone="purple">{subject?.name || "Caderno Curió"}</Badge><Badge tone={row.needs_redo ? "pink" : row.status === "reviewed" ? "green" : row.status === "submitted" ? "blue" : "yellow"}>{label(row)}</Badge></div>
-          <h3>{activity?.title || "Atividade do Caderno Curió"}</h3>
+          <div className="flex gap-8 wrap"><Badge tone="purple">{subject?.name || "Caderno Plumareli"}</Badge><Badge tone={row.needs_redo ? "pink" : row.status === "reviewed" ? "green" : row.status === "submitted" ? "blue" : "yellow"}>{label(row)}</Badge></div>
+          <h3>{activity?.title || "Atividade do Caderno Plumareli"}</h3>
           <p>{activity?.description || "Faça a atividade à mão e envie quando terminar."}</p>
         </div>
         {worksheetUrls.get(row.id) ? <a className="button button-secondary button-small" href={worksheetUrls.get(row.id)} target="_blank" rel="noreferrer">Baixar / abrir caderno ↗</a> : null}
@@ -66,7 +66,7 @@ export default async function StudentNotebookPage({ searchParams }: { searchPara
   };
 
   return <>
-    <PageHeader eyebrow="Explorador Curió" title="Meu Caderno Curió" description="Atividades que começam na tela e terminam no caderno. Escreva à mão, fotografe e envie quando terminar." />
+    <PageHeader eyebrow="Explorador Plumareli" title="Meu Caderno Plumareli" description="Atividades que começam na tela e terminam no caderno. Escreva à mão, fotografe e envie quando terminar." />
     {query.erro && <div className="form-message form-error">{query.erro}</div>}
     {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
     <div className="student-metric-row"><div><strong>{pending.length}</strong><span>Pendentes</span></div><div><strong>{done.length}</strong><span>Enviadas / corrigidas</span></div><div><strong>{(rows ?? []).filter((r:any)=>r.needs_redo).length}</strong><span>Para refazer</span></div></div>

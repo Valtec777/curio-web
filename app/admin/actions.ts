@@ -777,7 +777,7 @@ export async function setInstitutionalAccess(formData: FormData) {
   const supabase = await createClient();
   if (parsed.data.role === "admin" && parsed.data.enabled === "false") {
     const { count } = await supabase.from("user_roles").select("user_id", { count: "exact", head: true }).eq("role", "admin");
-    if ((count ?? 0) <= 1) redirect(`${safeReturn}?erro=${encodeURIComponent("O Curió precisa manter pelo menos um administrador ativo.")}`);
+    if ((count ?? 0) <= 1) redirect(`${safeReturn}?erro=${encodeURIComponent("O Plumareli precisa manter pelo menos um administrador ativo.")}`);
   }
   if (parsed.data.enabled === "true") {
     await supabase.from("user_roles").upsert({ user_id: parsed.data.profileId, role: parsed.data.role }, { onConflict: "user_id,role" });

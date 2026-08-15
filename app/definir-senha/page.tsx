@@ -81,7 +81,7 @@ export default function DefinirSenhaPage() {
 
     await supabase.rpc("mark_access_invitation_accepted");
     await supabase.auth.signOut();
-    window.location.href = `/login?sucesso=${encodeURIComponent("Senha definida com sucesso. Agora você já pode entrar no Curió.")}`;
+    window.location.href = `/login?sucesso=${encodeURIComponent("Senha definida com sucesso. Agora você já pode entrar no Plumareli.")}`;
   }
 
   return (
@@ -89,9 +89,9 @@ export default function DefinirSenhaPage() {
       <section className="auth-brand">
         <Logo />
         <div>
-          <div className="eyebrow" style={{ color: "#ff4aa2" }}>Senha do CURIÓ</div>
+          <div className="eyebrow" style={{ color: "#ff4aa2" }}>Senha do PLUMARELI</div>
           <h1>Crie uma senha só sua.</h1>
-          <p>O link confirma a sua conta sem expor senha para a equipe Curió.</p>
+          <p>O link confirma a sua conta sem expor senha para a equipe Plumareli.</p>
         </div>
         <small>Depois disso, é só entrar normalmente.</small>
       </section>

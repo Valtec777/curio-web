@@ -35,11 +35,11 @@ export default async function FamilySettingsPage({ searchParams }: { searchParam
         </section>
 
         <section className="panel">
-          <div className="panel-head"><div><h2>Notificações</h2><p>Escolha onde prefere receber avisos quando o canal estiver habilitado pelo CURIÓ.</p></div></div>
+          <div className="panel-head"><div><h2>Notificações</h2><p>Escolha onde prefere receber avisos quando o canal estiver habilitado pelo PLUMARELI.</p></div></div>
           <form action={updateFamilyNotifications} className="form-stack">
             <input type="hidden" name="studentId" value={selectedChild?.student_id || ""} />
             <label className="preference-toggle"><span><strong>E-mail</strong><small>Aulas, prazos, documentos e avisos importantes.</small></span><input type="checkbox" name="email" defaultChecked={notifications.email !== false} /></label>
-            <label className="preference-toggle"><span><strong>No aplicativo/site</strong><small>Avisos dentro do portal CURIÓ.</small></span><input type="checkbox" name="app" defaultChecked={notifications.app !== false} /></label>
+            <label className="preference-toggle"><span><strong>No aplicativo/site</strong><small>Avisos dentro do portal PLUMARELI.</small></span><input type="checkbox" name="app" defaultChecked={notifications.app !== false} /></label>
             <label className="preference-toggle"><span><strong>WhatsApp</strong><small>Preferência para avisos quando a integração estiver disponível.</small></span><input type="checkbox" name="whatsapp" defaultChecked={notifications.whatsapp === true} /></label>
             <button className="button button-primary" type="submit">Salvar notificações</button>
           </form>

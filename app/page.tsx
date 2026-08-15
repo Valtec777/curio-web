@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 
 const experiences = [
   ["Missão Cuca", "Desafios digitais curtos para praticar conteúdos e acompanhar a evolução."],
-  ["Caderno Curió", "Atividades fora da tela para exercitar escrita, raciocínio e produção própria."],
+  ["Caderno Plumareli", "Atividades fora da tela para exercitar escrita, raciocínio e produção própria."],
   ["Modo Pensar", "Trilhas complementares para ampliar repertório, autonomia e novas habilidades."],
   ["Meu Caminho", "Uma visão simples do progresso, das conquistas e dos próximos passos."],
   ["Modo Prova", "Revisão organizada para ajudar o aluno a se preparar com mais segurança."],
@@ -39,13 +39,13 @@ const mascots = [
 ] as const;
 
 const faqItems = [
-  ["Para quais anos o Curió atende?", "O Curió está preparado para acompanhar estudantes do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio, respeitando a idade, a série e as necessidades de cada aluno."],
+  ["Para quais anos o Plumareli atende?", "O Plumareli está preparado para acompanhar estudantes do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio, respeitando a idade, a série e as necessidades de cada aluno."],
   ["Como acontecem os encontros?", "Os encontros são online e fazem parte de um percurso de acompanhamento organizado para cada aluno."],
   ["O acompanhamento é individual?", "O percurso é organizado por aluno e pode incluir encontros individuais e outras estratégias pedagógicas quando fizer sentido."],
-  ["As atividades precisam ser feitas no caderno?", "Algumas sim. O Caderno Curió mantém escrita, raciocínio e produção fora da tela como parte da aprendizagem."],
-  ["O Curió ajuda em semanas de prova?", "Sim. O Modo Prova organiza conteúdos e atividades de revisão para apoiar a preparação."],
+  ["As atividades precisam ser feitas no caderno?", "Algumas sim. O Caderno Plumareli mantém escrita, raciocínio e produção fora da tela como parte da aprendizagem."],
+  ["O Plumareli ajuda em semanas de prova?", "Sim. O Modo Prova organiza conteúdos e atividades de revisão para apoiar a preparação."],
   ["Como a família acompanha a evolução?", "A família acompanha atividades, agenda, progresso, relatórios e próximos passos em uma área própria."],
-  ["Como funciona o pagamento?", "O Curió possui planos com diferentes ritmos de acompanhamento. As condições do plano contratado ficam disponíveis para a família após a matrícula."],
+  ["Como funciona o pagamento?", "O Plumareli possui planos com diferentes ritmos de acompanhamento. As condições do plano contratado ficam disponíveis para a família após a matrícula."],
   ["Posso cancelar?", "Sim, de acordo com as condições do plano e do contrato vigente."],
 ] as const;
 
@@ -55,7 +55,7 @@ const structuredData = {
     {
       "@type": "EducationalOrganization",
       "@id": "#curio",
-      name: "CURIÓ",
+      name: "PLUMARELI",
       description: "Acompanhamento escolar personalizado do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio, com missões, atividades no caderno, Modo Pensar e acompanhamento humano.",
       email: "curio.educacao@gmail.com",
       areaServed: "BR",
@@ -70,11 +70,11 @@ const structuredData = {
     {
       "@type": "Service",
       "@id": "#acompanhamento",
-      name: "Acompanhamento Escolar CURIÓ",
+      name: "Acompanhamento Escolar PLUMARELI",
       provider: { "@id": "#curio" },
       serviceType: "Acompanhamento escolar personalizado",
       audience: { "@type": "EducationalAudience", educationalRole: "student" },
-      description: "Missões personalizadas, Caderno Curió, acompanhamento da evolução, preparação para avaliações e trilhas do Modo Pensar.",
+      description: "Missões personalizadas, Caderno Plumareli, acompanhamento da evolução, preparação para avaliações e trilhas do Modo Pensar.",
     },
     {
       "@type": "FAQPage",
@@ -142,7 +142,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
               <p>Missões, atividades no caderno, encontros e acompanhamento humano em uma rotina organizada para aprender com mais clareza e autonomia.</p>
               <p className="brain-line"><span>Tecnologia ajuda.</span> Seu cérebro resolve.</p>
               <div className="hero-buttons">
-                <a className="button button-primary" href="#quero-conhecer">Quero conhecer o Curió</a>
+                <a className="button button-primary" href="#quero-conhecer">Quero conhecer o Plumareli</a>
                 <a className="button button-pink" href="#como-funciona">Ver como funciona</a>
               </div>
               <div className="hero-chips">
@@ -152,10 +152,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
               </div>
             </div>
 
-            <div className="hero-mascot-stage" aria-label="Personagens do universo Curió">
-              <div className="mascot-orbit mascot-orbit-main"><Image src="/mascotes/curio_capivara_principal_acolhendo.png" alt="Capivara do Curió" width={360} height={420} priority /></div>
-              <div className="mascot-orbit mascot-orbit-top"><Image src="/mascotes/curio_onca_principal_heroica.png" alt="Onça do Curió" width={230} height={270} priority /></div>
-              <div className="mascot-orbit mascot-orbit-bottom"><Image src="/mascotes/curio_boto_principal_imaginando_saudando.png" alt="Boto do Curió" width={230} height={270} priority /></div>
+            <div className="hero-mascot-stage" aria-label="Personagens do universo Plumareli">
+              <div className="mascot-orbit mascot-orbit-main"><Image src="/mascotes/curio_capivara_principal_acolhendo.png" alt="Capivara do Plumareli" width={360} height={420} priority /></div>
+              <div className="mascot-orbit mascot-orbit-top"><Image src="/mascotes/curio_onca_principal_heroica.png" alt="Onça do Plumareli" width={230} height={270} priority /></div>
+              <div className="mascot-orbit mascot-orbit-bottom"><Image src="/mascotes/curio_boto_principal_imaginando_saudando.png" alt="Boto do Plumareli" width={230} height={270} priority /></div>
               <div className="hero-sticker sticker-stars">★  ★  ★</div>
               <div className="hero-sticker sticker-note">Pense · Crie · Resolva</div>
             </div>
@@ -185,7 +185,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
         <section className="section section-soft" id="o-que-recebe">
           <div className="site-shell">
             <div className="section-heading">
-              <div className="eyebrow eyebrow-pink">Experiência Curió</div>
+              <div className="eyebrow eyebrow-pink">Experiência Plumareli</div>
               <h2>Recursos que trabalham juntos na rotina de estudos.</h2>
             </div>
             <div className="experience-grid">
@@ -200,7 +200,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
             <div className="eyebrow eyebrow-yellow">Método</div>
             <h2 className="method-title">Tecnologia ajuda. <span>Seu cérebro resolve.</span></h2>
             <p className="method-intro">A tecnologia organiza a experiência, mas o aprendizado acontece quando o aluno pensa, tenta, pratica, revisa e entende o próprio caminho.</p>
-            <div className="method-flow" aria-label="Etapas do método Curió">
+            <div className="method-flow" aria-label="Etapas do método Plumareli">
               {[["Tente", "blue"], ["Entenda", "pink"], ["Pratique", "lime"], ["Escreva", "yellow"], ["Confira", "blue"], ["Avance", "pink"]].map(([label, tone], index) => (
                 <div className="method-flow-item" key={label}><span className={`method-dot method-dot-${tone}`}>{label}</span>{index < 5 && <b>→</b>}</div>
               ))}
@@ -212,7 +212,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
         <section className="section" id="universo">
           <div className="site-shell">
             <div className="section-heading">
-              <div className="eyebrow eyebrow-green">Universo Curió</div>
+              <div className="eyebrow eyebrow-green">Universo Plumareli</div>
               <h2>Personagens que acompanham diferentes momentos de aprender.</h2>
               <p>Cada personagem representa uma atitude importante para estudar: calma, criatividade, comunicação, prática, investigação e coragem.</p>
             </div>
@@ -267,7 +267,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
         <section className="section" id="plano">
           <div className="site-shell">
             <div className="section-heading">
-              <div className="eyebrow eyebrow-yellow">Planos Curió</div>
+              <div className="eyebrow eyebrow-yellow">Planos Plumareli</div>
               <h2>Escolha o ritmo de acompanhamento que combina com a rotina.</h2>
               <p>Os recursos e a quantidade de encontros são definidos em cada plano e podem variar conforme a configuração vigente.</p>
             </div>
@@ -275,7 +275,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
               <div className="public-plan-grid">
                 {publicPlans.map((plan: any) => (
                   <article className={`public-plan-card ${plan.badge === "Recomendado" ? "public-plan-featured" : ""}`} key={plan.id}>
-                    <div className="flex gap-8 wrap"><span className="public-plan-badge">{plan.badge || "Curió"}</span></div>
+                    <div className="flex gap-8 wrap"><span className="public-plan-badge">{plan.badge || "Plumareli"}</span></div>
                     <h3>{plan.name}</h3>
                     <p>{plan.description}</p>
                     <div className="public-plan-price"><strong>R$ {Number(plan.monthly_price || 0).toFixed(0)}</strong><span>/ mês</span></div>
@@ -286,7 +286,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
                 ))}
               </div>
             ) : (
-              <div className="plan-panel"><div><h2>Conheça o acompanhamento Curió</h2><p>Entre em contato para entender qual ritmo combina melhor com a rotina do aluno.</p></div><a className="button button-primary" href="#quero-conhecer">Quero conhecer</a></div>
+              <div className="plan-panel"><div><h2>Conheça o acompanhamento Plumareli</h2><p>Entre em contato para entender qual ritmo combina melhor com a rotina do aluno.</p></div><a className="button button-primary" href="#quero-conhecer">Quero conhecer</a></div>
             )}
           </div>
         </section>
@@ -294,14 +294,14 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
         <section className="section section-soft" id="quero-conhecer">
           <div className="site-shell lead-grid">
             <div className="lead-copy">
-              <div className="eyebrow eyebrow-pink">Quero conhecer o Curió</div>
+              <div className="eyebrow eyebrow-pink">Quero conhecer o Plumareli</div>
               <h2>Conte um pouco sobre a rotina escolar.</h2>
               <p>Com essas informações, conseguimos entender melhor o momento do aluno e orientar os próximos passos.</p>
-              <div className="lead-price"><strong>{startingPrice ? `Planos a partir de R$ ${startingPrice.toFixed(0)}/mês` : "Acompanhamento personalizado"}</strong><span>Encontros online · Missões Cuca · Caderno Curió · acompanhamento da evolução</span></div>
+              <div className="lead-price"><strong>{startingPrice ? `Planos a partir de R$ ${startingPrice.toFixed(0)}/mês` : "Acompanhamento personalizado"}</strong><span>Encontros online · Missões Cuca · Caderno Plumareli · acompanhamento da evolução</span></div>
             </div>
 
             <form className="lead-form" action={createEnrollmentRequest}>
-              {lead === "sucesso" && <div className="form-message form-success">Recebemos seu interesse. A equipe Curió entrará em contato.</div>}
+              {lead === "sucesso" && <div className="form-message form-success">Recebemos seu interesse. A equipe Plumareli entrará em contato.</div>}
               {lead === "erro" && <div className="form-message form-error">Não foi possível enviar agora. Confira os campos e tente novamente.</div>}
               <div className="form-row">
                 <div className="field"><label>Nome do responsável *</label><input className="input" name="guardian_name" required placeholder="Seu nome" /></div>
@@ -316,8 +316,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
               <fieldset className="subject-fieldset"><legend>Matérias que precisam de acompanhamento</legend><div className="subject-checks">{["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Inglês", "Outras"].map((subject) => <label key={subject}><input type="checkbox" name="subjects" value={subject} /> {subject}</label>)}</div></fieldset>
               <div className="field"><label>O que mais preocupa hoje?</label><textarea className="textarea" name="main_difficulties" placeholder="Conte brevemente as principais dificuldades" /></div>
               <div className="field"><label>Mensagem (opcional)</label><textarea className="textarea" name="message" placeholder="Se quiser, compartilhe mais alguma informação" /></div>
-              <label className="consent-line"><input type="checkbox" name="consent_contact" required /> Autorizo o contato do Curió sobre esta solicitação.</label>
-              <button className="button button-primary button-block" type="submit">Quero conhecer o Curió</button>
+              <label className="consent-line"><input type="checkbox" name="consent_contact" required /> Autorizo o contato do Plumareli sobre esta solicitação.</label>
+              <button className="button button-primary button-block" type="submit">Quero conhecer o Plumareli</button>
             </form>
           </div>
         </section>
@@ -325,9 +325,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
         <section className="section" id="sobre">
           <div className="site-shell about-grid">
             <div>
-              <div className="eyebrow">Sobre o Curió</div>
+              <div className="eyebrow">Sobre o Plumareli</div>
               <h2>Uma plataforma para organizar o acompanhamento escolar.</h2>
-              <p>O Curió reúne encontros, atividades, materiais, acompanhamento da evolução e comunicação em uma experiência única para aluno, família e professor.</p>
+              <p>O Plumareli reúne encontros, atividades, materiais, acompanhamento da evolução e comunicação em uma experiência única para aluno, família e professor.</p>
               <p>A proposta é tornar a rotina de estudos mais clara, acolhedora e estimulante, preservando o acompanhamento humano em cada etapa.</p>
             </div>
             <div className="about-quote"><strong>Curiosidade move o mundo.</strong><span>Tecnologia ajuda.</span><b>Seu cérebro resolve.</b></div>
@@ -347,12 +347,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
           <div><Logo /><p>Curiosidade move o mundo. Tecnologia ajuda. Seu cérebro resolve.</p></div>
           <div><strong>Conheça</strong><a href="#como-funciona">Como funciona</a><a href="#metodo">Método</a></div>
           <div><strong>Experiência</strong><a href="#o-que-recebe">Recursos</a><a href="#cursos">Modo Pensar</a><a href="#plano">Planos</a></div>
-          <div><strong>Curió</strong><a href="#sobre">Sobre</a><a href="#faq">Dúvidas</a><a href="mailto:curio.educacao@gmail.com">curio.educacao@gmail.com</a></div>
+          <div><strong>Plumareli</strong><a href="#sobre">Sobre</a><a href="#faq">Dúvidas</a><a href="mailto:curio.educacao@gmail.com">curio.educacao@gmail.com</a></div>
         </div>
         <div className="site-shell legal-footer-links">
           {(legalDocuments ?? []).filter((doc: any) => doc.body || doc.file_path).map((doc: any) => <Link key={doc.public_slug} href={`/legal/${doc.public_slug}`}>{doc.title || doc.document_type}</Link>)}
         </div>
-        <div className="site-shell footer-bottom"><span>© 2026 Curió. Acompanhamento escolar para mentes curiosas.</span><span>Contato: curio.educacao@gmail.com</span></div>
+        <div className="site-shell footer-bottom"><span>© 2026 Plumareli. Acompanhamento escolar para mentes curiosas.</span><span>Contato: curio.educacao@gmail.com</span></div>
       </footer>
     </>
   );

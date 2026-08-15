@@ -64,7 +64,7 @@ export default async function TeacherMaterialsPage({
 
   const resources = [
     ...(materials ?? []).map((item: any) => ({ ...item, kind: "material" as const, assignments: item.material_assignments || [], filePath: item.file_path, typeLabel: item.material_type === "pdf" ? "PDF" : "Material" })),
-    ...(notebooks ?? []).map((item: any) => ({ ...item, kind: "notebook" as const, assignments: item.notebook_assignments || [], filePath: item.worksheet_path, typeLabel: "Caderno Curió" })),
+    ...(notebooks ?? []).map((item: any) => ({ ...item, kind: "notebook" as const, assignments: item.notebook_assignments || [], filePath: item.worksheet_path, typeLabel: "Caderno Plumareli" })),
   ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   return (
@@ -72,7 +72,7 @@ export default async function TeacherMaterialsPage({
       <PageHeader
         eyebrow="Professor • Criar e publicar"
         title="Materiais"
-        description="Publique materiais e Cadernos Curió para os alunos selecionados, com prazo e horário de liberação."
+        description="Publique materiais e Cadernos Plumareli para os alunos selecionados, com prazo e horário de liberação."
         action={<Link className="button button-primary" href="/professor/materiais/novo">+ Novo material</Link>}
       />
 
@@ -143,7 +143,7 @@ export default async function TeacherMaterialsPage({
               );
             })}
           </div>
-        ) : <EmptyState title="Nenhum material criado" description="Crie o primeiro material ou Caderno Curió pelo botão acima." />}
+        ) : <EmptyState title="Nenhum material criado" description="Crie o primeiro material ou Caderno Plumareli pelo botão acima." />}
       </section>
     </>
   );

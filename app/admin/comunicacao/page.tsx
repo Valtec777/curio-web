@@ -36,7 +36,7 @@ export default async function AdminCommunicationPage({ searchParams }: { searchP
       <PageHeader
         eyebrow="Admin • Operação"
         title="Comunicação"
-        description="Crie avisos para o portal CURIÓ e para o site. E-mail e WhatsApp ficam identificados como integrações separadas para não parecer que foram enviados quando ainda não foram."
+        description="Crie avisos para o portal PLUMARELI e para o site. E-mail e WhatsApp ficam identificados como integrações separadas para não parecer que foram enviados quando ainda não foram."
       />
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
       {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
@@ -68,7 +68,7 @@ export default async function AdminCommunicationPage({ searchParams }: { searchP
             <div className="field"><label>Começar em <span className="field-optional">opcional</span></label><input className="input" type="datetime-local" name="startsAt" /></div>
             <div className="field"><label>Encerrar em <span className="field-optional">opcional</span></label><input className="input" type="datetime-local" name="endsAt" /></div>
           </div>
-          <label className="consent-line"><input type="checkbox" name="active" defaultChecked /> Deixar visível no CURIÓ quando chegar a data</label>
+          <label className="consent-line"><input type="checkbox" name="active" defaultChecked /> Deixar visível no PLUMARELI quando chegar a data</label>
           <button className="button button-primary" type="submit">Salvar comunicado</button>
         </form>
       </section>
@@ -76,7 +76,7 @@ export default async function AdminCommunicationPage({ searchParams }: { searchP
       <section className="panel">
         <div className="panel-head"><div><h2>Canais</h2><p>O estado abaixo é propositalmente explícito para evitar falso envio.</p></div></div>
         <div className="grid-3">
-          <article className="mission-card"><Badge tone="green">Funcionando</Badge><h3>Portal CURIÓ</h3><p>O aviso é exibido aos perfis autorizados conforme público e período.</p></article>
+          <article className="mission-card"><Badge tone="green">Funcionando</Badge><h3>Portal PLUMARELI</h3><p>O aviso é exibido aos perfis autorizados conforme público e período.</p></article>
           <article className="mission-card"><Badge tone="green">Funcionando</Badge><h3>Site</h3><p>Comunicados marcados para o público do site podem ser lidos sem login.</p></article>
           <article className="mission-card"><Badge tone="yellow">Integração pendente</Badge><h3>E-mail e WhatsApp</h3><p>O texto pode ser preparado aqui, mas nenhum envio externo será declarado até existir um provedor configurado e testado.</p></article>
         </div>

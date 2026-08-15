@@ -93,7 +93,7 @@ export async function createEnrollmentRequest(formData: FormData) {
   });
 
   if (error && error.code !== "23505") {
-    console.error("Falha ao registrar interesse no CURIÓ", error.code);
+    console.error("Falha ao registrar interesse no PLUMARELI", error.code);
     redirect(leadDestination(referralCode, "erro"));
   }
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export function ReferralShare({ link, title = "Conheça o CURIÓ" }: { link: string; title?: string }) {
+export function ReferralShare({ link, title = "Conheça o PLUMARELI" }: { link: string; title?: string }) {
   const [copied, setCopied] = useState(false);
   const message = `${title}: ${link}`;
   const whatsappHref = `https://wa.me/?text=${encodeURIComponent(message)}`;

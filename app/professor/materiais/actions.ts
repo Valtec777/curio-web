@@ -161,7 +161,7 @@ export async function createTeacherMaterial(formData: FormData) {
       );
       if (error) {
         await rollbackCreatedResource({ supabase, teacherId: teacher.id, kind: parsed.data.kind, itemId, filePath: path });
-        redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível atribuir o Caderno Curió. O registro e o arquivo recém-criados foram revertidos para evitar conteúdo órfão.")}`);
+        redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível atribuir o Caderno Plumareli. O registro e o arquivo recém-criados foram revertidos para evitar conteúdo órfão.")}`);
       }
     } else {
       const { error } = await supabase.from("material_assignments").upsert(
@@ -179,7 +179,7 @@ export async function createTeacherMaterial(formData: FormData) {
   revalidatePath("/professor/materiais");
   revalidatePath("/professor/conteudos");
   revalidatePath("/aluno");
-  const label = parsed.data.kind === "notebook" ? "Caderno Curió" : "Material";
+  const label = parsed.data.kind === "notebook" ? "Caderno Plumareli" : "Material";
   const suffix = parsed.data.publishMode === "later" ? " programado" : parsed.data.publishMode === "now" ? " publicado" : " salvo como rascunho";
   redirect(`/professor/materiais?sucesso=${encodeURIComponent(`${label}${suffix}${studentIds.length ? ` para ${studentIds.length} aluno(s)` : ""}.`)}`);
 }
@@ -217,7 +217,7 @@ export async function assignTeacherResource(formData: FormData) {
       .select("student_id,status,submitted_at,submission_photo_path,score,teacher_note,needs_redo")
       .eq("activity_id", parsed.data.id)
       .in("student_id", studentIds);
-    if (existingError) redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível verificar o histórico do Caderno Curió antes do envio.")}`);
+    if (existingError) redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível verificar o histórico do Caderno Plumareli antes do envio.")}`);
 
     const existingByStudent = new Map((existingRows ?? []).map((row: any) => [row.student_id, row]));
     const payload = studentIds.flatMap((studentId) => {
@@ -248,7 +248,7 @@ export async function assignTeacherResource(formData: FormData) {
 
     if (payload.length) {
       const { error } = await supabase.from("notebook_assignments").upsert(payload, { onConflict: "activity_id,student_id" });
-      if (error) redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível enviar o Caderno Curió.")}`);
+      if (error) redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível enviar o Caderno Plumareli.")}`);
     }
   } else {
     const { data: existingRows, error: existingError } = await supabase
@@ -294,7 +294,7 @@ export async function duplicateTeacherResource(formData: FormData) {
     const { data: item, error: readError } = await supabase.from("notebook_activities").select("title,description,subject_id,content_id,grade_id,worksheet_path").eq("id", parsed.data.id).eq("created_by_teacher_id", teacher.id).maybeSingle();
     if (readError || !item) redirect(`/professor/materiais?erro=${encodeURIComponent("Caderno não encontrado.")}`);
     const { error } = await supabase.from("notebook_activities").insert({ ...item, title: `${item.title} — cópia`, created_by_teacher_id: teacher.id, status: "draft", publish_at: null });
-    if (error) redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível duplicar o Caderno Curió.")}`);
+    if (error) redirect(`/professor/materiais?erro=${encodeURIComponent("Não foi possível duplicar o Caderno Plumareli.")}`);
   } else {
     const { data: item, error: readError } = await supabase.from("materials").select("title,description,subject_id,content_id,grade_id,material_type,file_path,external_url").eq("id", parsed.data.id).eq("created_by_teacher_id", teacher.id).maybeSingle();
     if (readError || !item) redirect(`/professor/materiais?erro=${encodeURIComponent("Material não encontrado.")}`);
