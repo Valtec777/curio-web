@@ -51,7 +51,7 @@ export default async function AdminFinancePage({ searchParams }: { searchParams:
       <PageHeader
         eyebrow="Admin • Operação"
         title="Financeiro"
-        description="A família envia o comprovante; o CURIÓ confere a entrada no banco e só então confirma a mensalidade."
+        description="A família envia o comprovante do banco; a equipe confere destinatário, valor, data e competência antes de confirmar a mensalidade."
       />
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
       {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
@@ -63,8 +63,13 @@ export default async function AdminFinancePage({ searchParams }: { searchParams:
         <StatCard value={payments?.length ?? 0} label="Cobranças registradas" />
       </div>
 
+      <section className="panel family-highlight">
+        <strong>Checklist antes de aprovar</strong>
+        <p className="mb-0">Abra o comprovante e confirme: destinatário/conta Pix correta, valor esperado, data da transferência e mês/competência correspondente. Verifique também se o mesmo comprovante não está sendo reapresentado para outra mensalidade.</p>
+      </section>
+
       <section className="panel">
-        <div className="panel-head"><div><h2>Comprovantes aguardando conferência</h2><p>Confira no banco antes de aprovar. A aprovação marca a mensalidade como paga em uma única operação.</p></div></div>
+        <div className="panel-head"><div><h2>Comprovantes aguardando conferência</h2><p>A aprovação só deve acontecer depois da conferência no comprovante e, quando necessário, no extrato bancário. Aprovar marca a mensalidade como paga em uma única operação.</p></div></div>
         {pendingReceipts.length ? (
           <div className="form-stack">
             {pendingReceipts.map((receipt: any) => {
@@ -81,15 +86,15 @@ export default async function AdminFinancePage({ searchParams }: { searchParams:
                     <Badge tone="yellow">Conferir comprovante</Badge>
                   </div>
                   <div className="record-meta-grid">
-                    <span><small>Competência</small><strong>{monthLabel(payment?.due_date)}</strong></span>
-                    <span><small>Valor</small><strong>{money(payment?.amount)}</strong></span>
-                    <span><small>Arquivo</small><strong>{receipt.file_name}</strong></span>
+                    <span><small>Competência esperada</small><strong>{monthLabel(payment?.due_date)}</strong></span>
+                    <span><small>Valor esperado</small><strong>{money(payment?.amount)}</strong></span>
+                    <span><small>Arquivo enviado</small><strong>{receipt.file_name}</strong></span>
                     <span><small>Situação da cobrança</small><strong>{payment?.status || "pendente"}</strong></span>
                   </div>
-                  {signedByReceipt.get(receipt.id) && <p><a className="button button-secondary button-small" href={signedByReceipt.get(receipt.id)} target="_blank" rel="noreferrer">Abrir comprovante</a></p>}
+                  {signedByReceipt.get(receipt.id) && <p><a className="button button-secondary button-small" href={signedByReceipt.get(receipt.id)} target="_blank" rel="noreferrer">Abrir comprovante bancário</a></p>}
                   <form action={reviewPaymentReceipt} className="form-stack compact-form">
                     <input type="hidden" name="receiptId" value={receipt.id} />
-                    <div className="field"><label>Observação <span className="field-optional">opcional</span></label><input className="input" name="note" placeholder="Ex.: Pix localizado no extrato" /></div>
+                    <div className="field"><label>Observação <span className="field-optional">opcional</span></label><input className="input" name="note" placeholder="Ex.: Pix confirmado no extrato / comprovante é de outro mês / destinatário incorreto" /></div>
                     <div className="plan-admin-actions">
                       <button className="button button-primary button-small" type="submit" name="decision" value="approve">Confirmar pagamento</button>
                       <button className="button button-danger button-small" type="submit" name="decision" value="reject">Solicitar novo comprovante</button>
@@ -99,7 +104,7 @@ export default async function AdminFinancePage({ searchParams }: { searchParams:
               );
             })}
           </div>
-        ) : <EmptyState title="Nenhum comprovante aguardando" description="Quando uma família enviar um comprovante, ele aparecerá aqui para conferência." />}
+        ) : <EmptyState title="Nenhum comprovante aguardando" description="Quando uma família enviar um comprovante bancário, ele aparecerá aqui para conferência." />}
       </section>
 
       <section className="panel">
