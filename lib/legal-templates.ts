@@ -10,7 +10,7 @@ export type LegalProviderProfile = {
 
 export const defaultLegalProviderProfile: LegalProviderProfile = {
   brandName: "PLUMARELI",
-  legalName: "",
+  legalName: "Ellen Pedreira Neri",
   taxId: "",
   address: "",
   email: "curio.educacao@gmail.com",
@@ -27,7 +27,7 @@ export async function getLegalProviderProfile(supabase: any): Promise<LegalProvi
   const raw = data?.value && typeof data.value === "object" ? data.value : {};
   return {
     brandName: stringValue(raw.brandName) || defaultLegalProviderProfile.brandName,
-    legalName: stringValue(raw.legalName),
+    legalName: stringValue(raw.legalName) || defaultLegalProviderProfile.legalName,
     taxId: stringValue(raw.taxId),
     address: stringValue(raw.address),
     email: stringValue(raw.email) || defaultLegalProviderProfile.email,
