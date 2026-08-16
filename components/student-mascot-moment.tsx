@@ -19,6 +19,12 @@ const messages = [
   "Antes de terminar, pergunte a si mesmo: eu consigo explicar por que essa resposta faz sentido?",
 ];
 
+const mascotImages = [
+  "/mascotes/plumareli_mico_leao_dourado_principal.webp",
+  "/mascotes/plumareli_irara_principal.webp",
+  "/mascotes/plumareli_harpia_principal.webp",
+] as const;
+
 export function StudentMascotMoment({ name, stars, streakDays, pendingMissions }: StudentMascotMomentProps) {
   const [tipIndex, setTipIndex] = useState(0);
   const encouragement = useMemo(() => {
@@ -27,6 +33,7 @@ export function StudentMascotMoment({ name, stars, streakDays, pendingMissions }
     if (pendingMissions === 0) return "Tudo em dia por aqui. Que tal explorar uma descoberta nova?";
     return `${pendingMissions} ${pendingMissions === 1 ? "missão está" : "missões estão"} esperando por você. Escolha uma e comece sem pressa.`;
   }, [pendingMissions, stars, streakDays]);
+  const mascotImage = mascotImages[tipIndex % mascotImages.length];
 
   function nextTip() {
     setTipIndex((current) => (current + 1) % messages.length);
@@ -36,7 +43,7 @@ export function StudentMascotMoment({ name, stars, streakDays, pendingMissions }
     <section className="student-mascot-moment" aria-labelledby="mascot-moment-title">
       <div className="student-mascot-moment-character" aria-hidden="true">
         <Image
-          src="/mascotes/plumareli_mico_leao_dourado_principal.webp"
+          src={mascotImage}
           alt=""
           width={180}
           height={180}
