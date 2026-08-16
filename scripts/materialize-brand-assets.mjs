@@ -7,6 +7,7 @@ const sourceDir = join(root, ".brand-assets");
 const assets = [
   { prefix: "plumareli-symbol", outputs: [["brand", "plumareli-symbol.webp"]] },
   { prefix: "plumareli-wordmark", outputs: [["brand", "plumareli-wordmark.webp"]] },
+  { prefix: "plumareli-primary-final", outputs: [["brand", "plumareli-primary.webp"]] },
   { prefix: "plumareli-irara", outputs: [["mascotes", "plumareli_irara_principal.webp"]] },
   {
     prefix: "plumareli-mico-leao-dourado",
@@ -31,9 +32,7 @@ for (const asset of assets) {
     .filter((file) => file.startsWith(`${asset.prefix}.`) && file.endsWith(".b64"))
     .sort((a, b) => a.localeCompare(b));
 
-  if (!parts.length) {
-    throw new Error(`Nenhuma parte encontrada para ${asset.prefix}`);
-  }
+  if (!parts.length) throw new Error(`Nenhuma parte encontrada para ${asset.prefix}`);
 
   const chunks = await Promise.all(parts.map((file) => readFile(join(sourceDir, file), "utf8")));
   const bytes = Buffer.from(chunks.join("").replace(/\s+/g, ""), "base64");
@@ -42,9 +41,7 @@ for (const asset of assets) {
     bytes.length < 100 ||
     bytes.subarray(0, 4).toString("ascii") !== "RIFF" ||
     bytes.subarray(8, 12).toString("ascii") !== "WEBP"
-  ) {
-    throw new Error(`Ativo Plumareli inválido: ${asset.prefix}`);
-  }
+  ) throw new Error(`Ativo Plumareli inválido: ${asset.prefix}`);
 
   for (const [directory, output] of asset.outputs) {
     const outputDir = join(root, "public", directory);

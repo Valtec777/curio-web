@@ -1,7 +1,6 @@
 .brand-slot {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
   width: auto;
   min-width: 0;
   height: 52px;
@@ -12,10 +11,13 @@
 }
 
 .brand-slot-symbol,
-.brand-slot-wordmark {
+.brand-slot-wordmark,
+.brand-slot-primary,
+.brand-slot-negative {
   display: block;
   object-fit: contain;
   object-position: center;
+  height: auto;
 }
 
 .brand-slot-symbol {
@@ -25,14 +27,28 @@
 }
 
 .brand-slot-wordmark {
-  width: 122px;
+  width: 142px;
+  max-height: 44px;
+}
+
+.brand-slot.is-primary,
+.brand-slot.is-negative {
   height: auto;
-  max-height: 42px;
+}
+
+.brand-slot-primary {
+  width: min(320px, 100%);
+  max-height: 180px;
+}
+
+.brand-slot-negative {
+  width: min(220px, 100%);
+  max-height: 96px;
+  filter: grayscale(1) brightness(0) invert(1);
 }
 
 .brand-slot.is-compact {
   height: 44px;
-  gap: 5px;
 }
 
 .brand-slot.is-compact .brand-slot-symbol {
@@ -41,15 +57,23 @@
   flex-basis: 31px;
 }
 
-.brand-slot.is-compact .brand-slot-wordmark {
-  width: 92px;
-  max-height: 32px;
+/* Em fundos escuros, reutilize o wordmark oficial e renderize-o em branco. */
+.curio-footer .brand-slot:not(.is-symbol):not(.is-compact) {
+  width: 220px;
+  height: auto;
+  padding: 0;
+}
+
+.curio-footer .brand-slot:not(.is-symbol):not(.is-compact) .brand-slot-wordmark {
+  display: block;
+  width: 220px;
+  max-height: 96px;
+  filter: grayscale(1) brightness(0) invert(1);
 }
 
 @media (max-width: 620px) {
   .brand-slot {
     height: 46px;
-    gap: 5px;
   }
 
   .brand-slot-symbol {
@@ -59,8 +83,18 @@
   }
 
   .brand-slot-wordmark {
-    width: 105px;
-    max-height: 36px;
+    width: 118px;
+    max-height: 38px;
+  }
+
+  .brand-slot-primary {
+    width: min(250px, 100%);
+    max-height: 145px;
+  }
+
+  .brand-slot-negative {
+    width: min(180px, 100%);
+    max-height: 82px;
   }
 
   .brand-slot.is-compact .brand-slot-symbol {
@@ -69,7 +103,12 @@
     flex-basis: 29px;
   }
 
-  .brand-slot.is-compact .brand-slot-wordmark {
-    width: 86px;
+  .curio-footer .brand-slot:not(.is-symbol):not(.is-compact) {
+    width: 180px;
+  }
+
+  .curio-footer .brand-slot:not(.is-symbol):not(.is-compact) .brand-slot-wordmark {
+    width: 180px;
+    max-height: 82px;
   }
 }
