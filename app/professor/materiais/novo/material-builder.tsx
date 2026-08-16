@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { MultiStudentPicker } from "@/components/multi-student-picker";
 import { PdfTemplateImporter } from "@/components/pdf-template-importer";
-import { createTeacherMaterial } from "../actions";
+import { createTeacherMaterialAssisted } from "./actions";
 
 type Option = { id: string; name: string };
 type Student = { id: string; name: string; detail?: string };
@@ -70,7 +70,7 @@ export function MaterialBuilder({ subjects, grades, students, initialKind }: {
         <button className={`teacher-source-tab${kind === "material" ? " is-active" : ""}`} type="button" onClick={() => setKind("material")}>Material de apoio</button>
       </div>
 
-      <form action={createTeacherMaterial} className="form-stack">
+      <form action={createTeacherMaterialAssisted} className="form-stack">
         <input type="hidden" name="kind" value={kind} />
         {sourceFile ? <>
           <input type="hidden" name="preparedFilePath" value={sourceFile.path} />
