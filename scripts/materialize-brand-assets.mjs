@@ -7,6 +7,10 @@ const sourceDir = join(root, ".brand-assets");
 const assets = [
   { prefix: "plumareli-symbol", outputs: [["brand", "plumareli-symbol.webp"]] },
   { prefix: "plumareli-wordmark", outputs: [["brand", "plumareli-wordmark.webp"]] },
+  { prefix: "plumareli-primary-official", outputs: [["brand", "plumareli-primary.webp"]] },
+  { prefix: "plumareli-symbol-official", outputs: [["brand", "plumareli-symbol-official.webp"]] },
+  { prefix: "plumareli-wordmark-official", outputs: [["brand", "plumareli-wordmark-official.webp"]] },
+  { prefix: "plumareli-negative", outputs: [["brand", "plumareli-negative.webp"]] },
   { prefix: "plumareli-irara", outputs: [["mascotes", "plumareli_irara_principal.webp"]] },
   {
     prefix: "plumareli-mico-leao-dourado",
