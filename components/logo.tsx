@@ -4,11 +4,11 @@ type LogoVariant = "wordmark" | "symbol" | "primary" | "negative";
 
 const logoAssets: Record<LogoVariant, { src: string; className: string }> = {
   wordmark: {
-    src: "/brand/plumareli-wordmark-official.webp",
+    src: "/brand/plumareli-wordmark.webp",
     className: "brand-slot-wordmark",
   },
   symbol: {
-    src: "/brand/plumareli-symbol-official.webp",
+    src: "/brand/plumareli-symbol.webp",
     className: "brand-slot-symbol",
   },
   primary: {
