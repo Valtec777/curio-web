@@ -87,7 +87,7 @@ export default function DefinirSenhaPage() {
   return (
     <main className="auth-page auth-curio-access">
       <section className="auth-brand">
-        <Logo />
+        <Logo variant="primary" />
         <div>
           <div className="eyebrow" style={{ color: "#ff4aa2" }}>Senha do PLUMARELI</div>
           <h1>Crie uma senha só sua.</h1>
