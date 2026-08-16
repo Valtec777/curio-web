@@ -22,7 +22,7 @@ const baseSchema = z.object({
 });
 
 type QuestionType = "multiple_choice" | "true_false" | "open_text";
-type MissionQuestionInput = { position: number; type: QuestionType; prompt: string; hint: string; options: string[]; correctAnswer: string };
+type MissionQuestionInput = { position: number; type: QuestionType; prompt: string; hint: string; options: string[]; correctAnswer: string; referenceAnswer: string };
 
 function bahiaDueDate(value?: string | null) {
   const raw = String(value || "").trim();
@@ -38,11 +38,11 @@ function questionFromForm(formData: FormData, index: number): MissionQuestionInp
   const prompt = String(formData.get(`q${index}Prompt`) || "").trim();
   const hint = String(formData.get(`q${index}Hint`) || "").trim();
   if (prompt.length < 3) return null;
-  if (type === "open_text") return { position: index + 1, type, prompt, hint, options: [], correctAnswer: "" };
+  if (type === "open_text") return { position: index + 1, type, prompt, hint, options: [], correctAnswer: "", referenceAnswer: String(formData.get(`q${index}ReferenceAnswer`) || "").trim() };
   if (type === "true_false") {
     const answer = String(formData.get(`q${index}CorrectOption`) || "");
     if (!(["Verdadeiro", "Falso"] as string[]).includes(answer)) return null;
-    return { position: index + 1, type, prompt, hint, options: ["Verdadeiro", "Falso"], correctAnswer: answer };
+    return { position: index + 1, type, prompt, hint, options: ["Verdadeiro", "Falso"], correctAnswer: answer, referenceAnswer: "" };
   }
   const letters = ["A", "B", "C", "D"] as const;
   const options = letters.map((letter) => String(formData.get(`q${index}Option${letter}`) || "").trim());
@@ -50,7 +50,7 @@ function questionFromForm(formData: FormData, index: number): MissionQuestionInp
   const correctLetter = String(formData.get(`q${index}CorrectOption`) || "");
   const correctIndex = letters.indexOf(correctLetter as (typeof letters)[number]);
   if (correctIndex < 0) return null;
-  return { position: index + 1, type, prompt, hint, options, correctAnswer: options[correctIndex] };
+  return { position: index + 1, type, prompt, hint, options, correctAnswer: options[correctIndex], referenceAnswer: "" };
 }
 
 export async function createMissionWithQuestions(formData: FormData) {
@@ -119,11 +119,13 @@ export async function createMissionWithQuestions(formData: FormData) {
   for (const question of normalizedQuestions) {
     const questionId = savedByPosition.get(question.position);
     if (!questionId) continue;
-    if (question.type === "open_text") await supabase.from("mission_question_answer_keys").delete().eq("question_id", questionId);
-    else {
-      const { error: keyError } = await supabase.from("mission_question_answer_keys").upsert({ question_id: questionId, correct_value: question.correctAnswer }, { onConflict: "question_id" });
-      if (keyError) redirect(`/professor/missoes/nova?erro=${encodeURIComponent("As questões foram salvas, mas um gabarito não pôde ser registrado.")}`);
+    const keyValue = question.type === "open_text" ? question.referenceAnswer : question.correctAnswer;
+    if (!keyValue) {
+      await supabase.from("mission_question_answer_keys").delete().eq("question_id", questionId);
+      continue;
     }
+    const { error: keyError } = await supabase.from("mission_question_answer_keys").upsert({ question_id: questionId, correct_value: keyValue }, { onConflict: "question_id" });
+    if (keyError) redirect(`/professor/missoes/nova?erro=${encodeURIComponent("As questões foram salvas, mas um gabarito de referência não pôde ser registrado.")}`);
   }
 
   if (parsed.data.sourceDraftId) {
