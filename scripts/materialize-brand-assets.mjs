@@ -5,11 +5,23 @@ const root = process.cwd();
 const sourceDir = join(root, ".brand-assets");
 
 const assets = [
-  { prefix: "plumareli-symbol", directory: "brand", output: "plumareli-symbol.webp" },
-  { prefix: "plumareli-wordmark", directory: "brand", output: "plumareli-wordmark.webp" },
-  { prefix: "plumareli-irara", directory: "mascotes", output: "plumareli_irara_principal.webp" },
-  { prefix: "plumareli-mico-leao-dourado", directory: "mascotes", output: "plumareli_mico_leao_dourado_principal.webp" },
-  { prefix: "plumareli-harpia", directory: "mascotes", output: "plumareli_harpia_principal.webp" },
+  { prefix: "plumareli-symbol", outputs: [["brand", "plumareli-symbol.webp"]] },
+  { prefix: "plumareli-wordmark", outputs: [["brand", "plumareli-wordmark.webp"]] },
+  { prefix: "plumareli-irara", outputs: [["mascotes", "plumareli_irara_principal.webp"]] },
+  {
+    prefix: "plumareli-mico-leao-dourado",
+    outputs: [
+      ["mascotes", "plumareli_mico_leao_dourado_principal.webp"],
+      ["mascotes", "curio_mico_principal_praticando.png"],
+    ],
+  },
+  {
+    prefix: "plumareli-harpia",
+    outputs: [
+      ["mascotes", "plumareli_harpia_principal.webp"],
+      ["mascotes", "curio_harpia_principal_conquista_voando.png"],
+    ],
+  },
 ];
 
 const files = await readdir(sourceDir);
@@ -31,11 +43,13 @@ for (const asset of assets) {
     bytes.subarray(0, 4).toString("ascii") !== "RIFF" ||
     bytes.subarray(8, 12).toString("ascii") !== "WEBP"
   ) {
-    throw new Error(`Arquivo de marca inválido: ${asset.output}`);
+    throw new Error(`Ativo Plumareli inválido: ${asset.prefix}`);
   }
 
-  const outputDir = join(root, "public", asset.directory);
-  await mkdir(outputDir, { recursive: true });
-  await writeFile(join(outputDir, asset.output), bytes);
-  console.log(`Ativo Plumareli materializado: ${asset.output} (${bytes.length} bytes)`);
+  for (const [directory, output] of asset.outputs) {
+    const outputDir = join(root, "public", directory);
+    await mkdir(outputDir, { recursive: true });
+    await writeFile(join(outputDir, output), bytes);
+    console.log(`Ativo Plumareli materializado: ${output} (${bytes.length} bytes)`);
+  }
 }
