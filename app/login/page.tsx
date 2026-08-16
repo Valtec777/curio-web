@@ -12,7 +12,7 @@ export default async function LoginPage({
   return (
     <main className="auth-page auth-curio-access">
       <section className="auth-brand">
-        <Logo />
+        <Logo variant="primary" />
         <div>
           <div className="eyebrow" style={{ color: "#a8ee25" }}>Acesso PLUMARELI</div>
           <h1>Seu espaço começa com um convite do Plumareli.</h1>
