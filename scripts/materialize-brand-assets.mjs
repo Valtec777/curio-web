@@ -10,20 +10,8 @@ const assets = [
   { prefix: "plumareli-primary-final", outputs: [["brand", "plumareli-primary.webp"]] },
   { prefix: "plumareli-negative-direct", outputs: [["brand", "plumareli-negative.webp"]] },
   { prefix: "plumareli-irara", outputs: [["mascotes", "plumareli_irara_principal.webp"]] },
-  {
-    prefix: "plumareli-mico-leao-dourado",
-    outputs: [
-      ["mascotes", "plumareli_mico_leao_dourado_principal.webp"],
-      ["mascotes", "curio_mico_principal_praticando.png"],
-    ],
-  },
-  {
-    prefix: "plumareli-harpia",
-    outputs: [
-      ["mascotes", "plumareli_harpia_principal.webp"],
-      ["mascotes", "curio_harpia_principal_conquista_voando.png"],
-    ],
-  },
+  { prefix: "plumareli-mico-leao-dourado", outputs: [["mascotes", "plumareli_mico_leao_dourado_principal.webp"]] },
+  { prefix: "plumareli-harpia", outputs: [["mascotes", "plumareli_harpia_principal.webp"]] },
 ];
 
 const files = await readdir(sourceDir);
@@ -45,6 +33,7 @@ for (const asset of assets) {
   ) throw new Error(`Ativo Plumareli inválido: ${asset.prefix}`);
 
   for (const [directory, output] of asset.outputs) {
+    if (!output.endsWith(".webp")) throw new Error(`Extensão incompatível para ativo WEBP: ${output}`);
     const outputDir = join(root, "public", directory);
     await mkdir(outputDir, { recursive: true });
     await writeFile(join(outputDir, output), bytes);
