@@ -56,16 +56,17 @@
   flex-basis: 31px;
 }
 
-/* Em fundos escuros, use a assinatura branca oficial da Plumareli. */
+/* Rodapé: usa somente a assinatura negativa Plumareli anexada, sem reaproveitar a logo antiga. */
 .curio-footer .brand-slot:not(.is-symbol):not(.is-compact) {
   width: 220px;
   height: 96px;
   padding: 0;
-  background: url("/brand/plumareli-negative.webp") left center / contain no-repeat;
+  background: url("/brand/plumareli-negative-20260816.webp") left center / contain no-repeat;
 }
 
 .curio-footer .brand-slot:not(.is-symbol):not(.is-compact) .brand-slot-wordmark,
-.curio-footer .brand-slot:not(.is-symbol):not(.is-compact) .brand-slot-negative {
+.curio-footer .brand-slot:not(.is-symbol):not(.is-compact) .brand-slot-negative,
+.curio-footer .brand-slot:not(.is-symbol):not(.is-compact) .brand-slot-primary {
   display: none;
 }
 
