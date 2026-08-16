@@ -7,10 +7,22 @@ const sourceDir = join(root, ".brand-assets");
 const assets = [
   { prefix: "plumareli-symbol", outputs: [["brand", "plumareli-symbol.webp"]] },
   { prefix: "plumareli-wordmark", outputs: [["brand", "plumareli-wordmark.webp"]] },
-  { prefix: "plumareli-primary-final", outputs: [["brand", "plumareli-primary.webp"]] },
+  {
+    prefix: "plumareli-user-primary-20260816",
+    outputs: [
+      ["brand", "plumareli-primary.webp"],
+      ["brand", "plumareli-primary-20260816.webp"],
+    ],
+  },
   { prefix: "plumareli-negative-direct", outputs: [["brand", "plumareli-negative.webp"]] },
   { prefix: "plumareli-irara", outputs: [["mascotes", "plumareli_irara_principal.webp"]] },
-  { prefix: "plumareli-mico-leao-dourado", outputs: [["mascotes", "plumareli_mico_leao_dourado_principal.webp"]] },
+  {
+    prefix: "plumareli-user-mico-20260816",
+    outputs: [
+      ["mascotes", "plumareli_mico_leao_dourado_principal.webp"],
+      ["mascotes", "plumareli_mico_leao_dourado_20260816.webp"],
+    ],
+  },
   { prefix: "plumareli-harpia", outputs: [["mascotes", "plumareli_harpia_principal.webp"]] },
 ];
 
