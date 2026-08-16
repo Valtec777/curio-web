@@ -3,14 +3,15 @@ import { join } from "node:path";
 
 const root = process.cwd();
 const sourceDir = join(root, ".brand-assets");
-const outputDir = join(root, "public", "brand");
 
 const assets = [
-  { prefix: "plumareli-symbol", output: "plumareli-symbol.webp" },
-  { prefix: "plumareli-wordmark", output: "plumareli-wordmark.webp" },
+  { prefix: "plumareli-symbol", directory: "brand", output: "plumareli-symbol.webp" },
+  { prefix: "plumareli-wordmark", directory: "brand", output: "plumareli-wordmark.webp" },
+  { prefix: "plumareli-irara", directory: "mascotes", output: "plumareli_irara_principal.webp" },
+  { prefix: "plumareli-mico-leao-dourado", directory: "mascotes", output: "plumareli_mico_leao_dourado_principal.webp" },
+  { prefix: "plumareli-harpia", directory: "mascotes", output: "plumareli_harpia_principal.webp" },
 ];
 
-await mkdir(outputDir, { recursive: true });
 const files = await readdir(sourceDir);
 
 for (const asset of assets) {
@@ -25,10 +26,16 @@ for (const asset of assets) {
   const chunks = await Promise.all(parts.map((file) => readFile(join(sourceDir, file), "utf8")));
   const bytes = Buffer.from(chunks.join("").replace(/\s+/g, ""), "base64");
 
-  if (bytes.length < 100 || bytes.subarray(0, 4).toString("ascii") !== "RIFF" || bytes.subarray(8, 12).toString("ascii") !== "WEBP") {
+  if (
+    bytes.length < 100 ||
+    bytes.subarray(0, 4).toString("ascii") !== "RIFF" ||
+    bytes.subarray(8, 12).toString("ascii") !== "WEBP"
+  ) {
     throw new Error(`Arquivo de marca inválido: ${asset.output}`);
   }
 
+  const outputDir = join(root, "public", asset.directory);
+  await mkdir(outputDir, { recursive: true });
   await writeFile(join(outputDir, asset.output), bytes);
-  console.log(`Marca materializada: ${asset.output} (${bytes.length} bytes)`);
+  console.log(`Ativo Plumareli materializado: ${asset.output} (${bytes.length} bytes)`);
 }
