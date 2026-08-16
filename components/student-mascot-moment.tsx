@@ -36,7 +36,7 @@ export function StudentMascotMoment({ name, stars, streakDays, pendingMissions }
     <section className="student-mascot-moment" aria-labelledby="mascot-moment-title">
       <div className="student-mascot-moment-character" aria-hidden="true">
         <Image
-          src="/mascotes/curio_mico_principal_praticando.png"
+          src="/mascotes/plumareli_mico_leao_dourado_principal.webp"
           alt=""
           width={180}
           height={180}
