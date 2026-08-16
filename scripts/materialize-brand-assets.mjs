@@ -8,6 +8,7 @@ const assets = [
   { prefix: "plumareli-symbol", outputs: [["brand", "plumareli-symbol.webp"]] },
   { prefix: "plumareli-wordmark", outputs: [["brand", "plumareli-wordmark.webp"]] },
   { prefix: "plumareli-primary-final", outputs: [["brand", "plumareli-primary.webp"]] },
+  { prefix: "plumareli-negative-direct", outputs: [["brand", "plumareli-negative.webp"]] },
   { prefix: "plumareli-irara", outputs: [["mascotes", "plumareli_irara_principal.webp"]] },
   {
     prefix: "plumareli-mico-leao-dourado",

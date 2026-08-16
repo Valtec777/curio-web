@@ -44,7 +44,6 @@
 .brand-slot-negative {
   width: min(220px, 100%);
   max-height: 96px;
-  filter: grayscale(1) brightness(0) invert(1);
 }
 
 .brand-slot.is-compact {
@@ -57,18 +56,17 @@
   flex-basis: 31px;
 }
 
-/* Em fundos escuros, reutilize o wordmark oficial e renderize-o em branco. */
+/* Em fundos escuros, use a assinatura branca oficial da Plumareli. */
 .curio-footer .brand-slot:not(.is-symbol):not(.is-compact) {
   width: 220px;
-  height: auto;
+  height: 96px;
   padding: 0;
+  background: url("/brand/plumareli-negative.webp") left center / contain no-repeat;
 }
 
-.curio-footer .brand-slot:not(.is-symbol):not(.is-compact) .brand-slot-wordmark {
-  display: block;
-  width: 220px;
-  max-height: 96px;
-  filter: grayscale(1) brightness(0) invert(1);
+.curio-footer .brand-slot:not(.is-symbol):not(.is-compact) .brand-slot-wordmark,
+.curio-footer .brand-slot:not(.is-symbol):not(.is-compact) .brand-slot-negative {
+  display: none;
 }
 
 @media (max-width: 620px) {
@@ -105,10 +103,6 @@
 
   .curio-footer .brand-slot:not(.is-symbol):not(.is-compact) {
     width: 180px;
-  }
-
-  .curio-footer .brand-slot:not(.is-symbol):not(.is-compact) .brand-slot-wordmark {
-    width: 180px;
-    max-height: 82px;
+    height: 82px;
   }
 }

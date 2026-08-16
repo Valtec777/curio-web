@@ -44,9 +44,9 @@ export const metadata: Metadata = {
   keywords: ["acompanhamento escolar", "reforço escolar online", "aprendizagem personalizada", "apoio escolar", "dificuldades de aprendizagem escolar", "organização dos estudos", "preparação para provas", "atividades escolares personalizadas", "trilhas de aprendizagem", "aprendizagem para crianças e adolescentes"],
   alternates: { canonical: "/" },
   icons: {
-    icon: "/brand/plumareli-symbol-official.webp",
-    shortcut: "/brand/plumareli-symbol-official.webp",
-    apple: "/brand/plumareli-symbol-official.webp",
+    icon: "/brand/plumareli-symbol.webp",
+    shortcut: "/brand/plumareli-symbol.webp",
+    apple: "/brand/plumareli-symbol.webp",
   },
   openGraph: {
     type: "website",
