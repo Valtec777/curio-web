@@ -6,7 +6,7 @@ export function StudentMissionCelebration({ message }: { message: string }) {
     <section className="student-mission-celebration" aria-live="polite">
       <div className="student-mission-celebration-character" aria-hidden="true">
         <Image
-          src="/mascotes/curio_mico_principal_praticando.png"
+          src="/mascotes/plumareli_mico_leao_dourado_principal.webp"
           alt=""
           width={150}
           height={150}
