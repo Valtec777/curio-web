@@ -16,7 +16,7 @@ const logoAssets: Record<LogoVariant, { src: string; className: string }> = {
     className: "brand-slot-primary",
   },
   negative: {
-    src: "/brand/plumareli-negative.webp",
+    src: "/brand/plumareli-wordmark.webp",
     className: "brand-slot-negative",
   },
 };
