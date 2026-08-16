@@ -1,9 +1,9 @@
 # PLUMARELI
 
-PLUMARELI é um serviço brasileiro de acompanhamento escolar personalizado para estudantes do 1º ao 8º ano.
+PLUMARELI é um serviço brasileiro de acompanhamento escolar personalizado para estudantes do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio.
 
 Site oficial: usar o domínio público configurado no ambiente de produção
-Contato: curio.educacao@gmail.com
+Contato: pelo formulário do site oficial
 
 ## O que o PLUMARELI oferece
 - acompanhamento escolar personalizado;
@@ -18,7 +18,7 @@ Contato: curio.educacao@gmail.com
 Tecnologia ajuda. Seu cérebro resolve.
 
 ## Público
-Estudantes do 1º ao 8º ano e suas famílias.
+Estudantes do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio e suas famílias.
 
 ## Conteúdo público principal
 - Página inicial: /

@@ -33,7 +33,7 @@ const mascots = [
   { name: "Capivara", trait: "Calma e organização", tone: "green", line: "Respira. Vamos por partes.", image: "/mascotes/curio_capivara_principal_acolhendo.png" },
   { name: "Boto", trait: "Imaginação e criatividade", tone: "pink", line: "E se a gente pensar de outro jeito?", image: "/mascotes/curio_boto_principal_imaginando_saudando.png" },
   { name: "Arara", trait: "Comunicação e expressão", tone: "blue", line: "Agora me conta com suas palavras.", image: "/mascotes/curio_arara_principal_saudando.png" },
-  { name: "Mico", trait: "Prática e persistência", tone: "yellow", line: "Bora testar se você pegou?", image: "/mascotes/curio_mico_principal_praticando.png" },
+  { name: "Mico-leão-dourado", trait: "Prática e persistência", tone: "yellow", line: "Bora testar se você pegou?", image: "/mascotes/plumareli_mico_leao_dourado_principal.webp" },
   { name: "Tamanduá", trait: "Investigação e atenção", tone: "green", line: "Tem alguma pista escondida aqui.", image: "/mascotes/curio_tamandua_principal_saudando.png" },
   { name: "Onça", trait: "Coragem e confiança", tone: "pink", line: "Difícil não significa impossível.", image: "/mascotes/curio_onca_principal_heroica.png" },
 ] as const;
@@ -54,10 +54,9 @@ const structuredData = {
   "@graph": [
     {
       "@type": "EducationalOrganization",
-      "@id": "#curio",
+      "@id": "#plumareli",
       name: "PLUMARELI",
       description: "Acompanhamento escolar personalizado do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio, com missões, atividades no caderno, Modo Pensar e acompanhamento humano.",
-      email: "curio.educacao@gmail.com",
       areaServed: "BR",
       knowsAbout: [
         "acompanhamento escolar",
@@ -71,7 +70,7 @@ const structuredData = {
       "@type": "Service",
       "@id": "#acompanhamento",
       name: "Acompanhamento Escolar PLUMARELI",
-      provider: { "@id": "#curio" },
+      provider: { "@id": "#plumareli" },
       serviceType: "Acompanhamento escolar personalizado",
       audience: { "@type": "EducationalAudience", educationalRole: "student" },
       description: "Missões personalizadas, Caderno Plumareli, acompanhamento da evolução, preparação para avaliações e trilhas do Modo Pensar.",
@@ -347,12 +346,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
           <div><Logo /><p>Curiosidade move o mundo. Tecnologia ajuda. Seu cérebro resolve.</p></div>
           <div><strong>Conheça</strong><a href="#como-funciona">Como funciona</a><a href="#metodo">Método</a></div>
           <div><strong>Experiência</strong><a href="#o-que-recebe">Recursos</a><a href="#cursos">Modo Pensar</a><a href="#plano">Planos</a></div>
-          <div><strong>Plumareli</strong><a href="#sobre">Sobre</a><a href="#faq">Dúvidas</a><a href="mailto:curio.educacao@gmail.com">curio.educacao@gmail.com</a></div>
+          <div><strong>Plumareli</strong><a href="#sobre">Sobre</a><a href="#faq">Dúvidas</a><a href="#quero-conhecer">Fale com a equipe</a></div>
         </div>
         <div className="site-shell legal-footer-links">
           {(legalDocuments ?? []).filter((doc: any) => doc.body || doc.file_path).map((doc: any) => <Link key={doc.public_slug} href={`/legal/${doc.public_slug}`}>{doc.title || doc.document_type}</Link>)}
         </div>
-        <div className="site-shell footer-bottom"><span>© 2026 Plumareli. Acompanhamento escolar para mentes curiosas.</span><span>Contato: curio.educacao@gmail.com</span></div>
+        <div className="site-shell footer-bottom"><span>© 2026 Plumareli. Acompanhamento escolar para mentes curiosas.</span><span>Atendimento pelo formulário do site.</span></div>
       </footer>
     </>
   );
