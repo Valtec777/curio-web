@@ -8,9 +8,7 @@ const assets = [
   { prefix: "plumareli-symbol", outputs: [["brand", "plumareli-symbol.webp"]] },
   { prefix: "plumareli-wordmark", outputs: [["brand", "plumareli-wordmark.webp"]] },
   { prefix: "plumareli-primary-final", outputs: [["brand", "plumareli-primary.webp"]] },
-  { prefix: "plumareli-symbol-official", outputs: [["brand", "plumareli-symbol-official.webp"]] },
-  { prefix: "plumareli-wordmark-official", outputs: [["brand", "plumareli-wordmark-official.webp"]] },
-  { prefix: "plumareli-negative", outputs: [["brand", "plumareli-negative.webp"]] },
+  { prefix: "plumareli-negative-final", outputs: [["brand", "plumareli-negative.webp"]] },
   { prefix: "plumareli-irara", outputs: [["mascotes", "plumareli_irara_principal.webp"]] },
   {
     prefix: "plumareli-mico-leao-dourado",
@@ -48,6 +46,9 @@ for (const asset of assets) {
     bytes.subarray(8, 12).toString("ascii") !== "WEBP"
   ) {
     throw new Error(`Ativo Plumareli inválido: ${asset.prefix}`);
+  }
+  if (asset.prefix === "plumareli-negative-final" && bytes.length !== 74954) {
+    throw new Error(`Ativo Plumareli negativo incompleto: ${bytes.length} bytes`);
   }
 
   for (const [directory, output] of asset.outputs) {
