@@ -44,12 +44,25 @@ export const metadata: Metadata = {
   keywords: ["acompanhamento escolar", "reforço escolar online", "aprendizagem personalizada", "apoio escolar", "dificuldades de aprendizagem escolar", "organização dos estudos", "preparação para provas", "atividades escolares personalizadas", "trilhas de aprendizagem", "aprendizagem para crianças e adolescentes"],
   alternates: { canonical: "/" },
   icons: {
-    icon: "/brand/plumareli-symbol.webp",
-    shortcut: "/brand/plumareli-symbol.webp",
-    apple: "/brand/plumareli-symbol.webp",
+    icon: "/brand/plumareli-symbol-official.webp",
+    shortcut: "/brand/plumareli-symbol-official.webp",
+    apple: "/brand/plumareli-symbol-official.webp",
   },
-  openGraph: { type: "website", locale: "pt_BR", url: "/", siteName: "PLUMARELI", title: "PLUMARELI | Acompanhamento escolar que descobre como seu filho aprende", description: "Missões personalizadas, atividades no caderno, trilhas extras e acompanhamento humano do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio." },
-  twitter: { card: "summary", title: "PLUMARELI | Acompanhamento escolar personalizado", description: "Missões personalizadas, Caderno Plumareli, trilhas extras e acompanhamento humano do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio." },
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: "/",
+    siteName: "PLUMARELI",
+    title: "PLUMARELI | Acompanhamento escolar que descobre como seu filho aprende",
+    description: "Missões personalizadas, atividades no caderno, trilhas extras e acompanhamento humano do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio.",
+    images: [{ url: "/brand/plumareli-primary.webp", width: 1400, height: 811, alt: "Plumareli" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PLUMARELI | Acompanhamento escolar personalizado",
+    description: "Missões personalizadas, Caderno Plumareli, trilhas extras e acompanhamento humano do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio.",
+    images: ["/brand/plumareli-primary.webp"],
+  },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 } },
 };
 
