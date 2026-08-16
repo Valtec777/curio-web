@@ -56,6 +56,18 @@
   flex-basis: 31px;
 }
 
+/* A assinatura negativa é reservada para o rodapé/fundos escuros. */
+.curio-footer .brand-slot:not(.is-symbol):not(.is-compact) {
+  width: 220px;
+  height: 96px;
+  padding: 0;
+  background: url("/brand/plumareli-negative.webp") left center / contain no-repeat;
+}
+
+.curio-footer .brand-slot:not(.is-symbol):not(.is-compact) .brand-slot-wordmark {
+  display: none;
+}
+
 @media (max-width: 620px) {
   .brand-slot {
     height: 46px;
@@ -86,5 +98,10 @@
     width: 29px;
     height: 29px;
     flex-basis: 29px;
+  }
+
+  .curio-footer .brand-slot:not(.is-symbol):not(.is-compact) {
+    width: 180px;
+    height: 82px;
   }
 }
