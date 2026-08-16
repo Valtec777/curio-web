@@ -1,25 +1,43 @@
 import Link from "next/link";
 
-export function Logo({ compact = false }: { compact?: boolean }) {
+type LogoVariant = "wordmark" | "symbol" | "primary" | "negative";
+
+const logoAssets: Record<LogoVariant, { src: string; className: string }> = {
+  wordmark: {
+    src: "/brand/plumareli-wordmark-official.webp",
+    className: "brand-slot-wordmark",
+  },
+  symbol: {
+    src: "/brand/plumareli-symbol-official.webp",
+    className: "brand-slot-symbol",
+  },
+  primary: {
+    src: "/brand/plumareli-primary.webp",
+    className: "brand-slot-primary",
+  },
+  negative: {
+    src: "/brand/plumareli-negative.webp",
+    className: "brand-slot-negative",
+  },
+};
+
+export function Logo({
+  compact = false,
+  variant,
+}: {
+  compact?: boolean;
+  variant?: LogoVariant;
+}) {
+  const resolvedVariant = variant ?? (compact ? "symbol" : "wordmark");
+  const asset = logoAssets[resolvedVariant];
+
   return (
     <Link
       href="/"
-      className={`brand brand-slot${compact ? " is-compact" : ""}`}
+      className={`brand brand-slot is-${resolvedVariant}${compact ? " is-compact" : ""}`}
       aria-label="Plumareli — página inicial"
     >
-      {compact ? (
-        <img
-          className="brand-slot-symbol"
-          src="/brand/plumareli-symbol.webp"
-          alt="Plumareli"
-        />
-      ) : (
-        <img
-          className="brand-slot-wordmark"
-          src="/brand/plumareli-wordmark.webp"
-          alt="Plumareli"
-        />
-      )}
+      <img className={asset.className} src={asset.src} alt="Plumareli" />
     </Link>
   );
 }
