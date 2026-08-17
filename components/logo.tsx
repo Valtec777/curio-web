@@ -2,9 +2,9 @@ import Link from "next/link";
 
 type LogoVariant = "wordmark" | "symbol" | "primary" | "negative";
 
-// Uma única marca para todo o site: cabeçalho, rodapé e menus internos.
-// O arquivo é a logo completa enviada pela usuária (Plumareli + Irara).
-const PLUMARELI_LOGO = "/brand/plumareli-primary-20260816.webp?v=5";
+// A logo oficial fica versionada diretamente em public/brand para não depender
+// do materializador de assets durante o deploy.
+const PLUMARELI_LOGO = "/brand/plumareli-logo-oficial.webp?v=20260817-1";
 
 export function Logo({
   compact = false,
