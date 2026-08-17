@@ -148,12 +148,13 @@ export async function login(formData: FormData) {
 async function sendFirstAccessLink(email: string) {
   const supabase = createEmailAuthClient();
   const origin = siteOrigin();
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      shouldCreateUser: false,
-      emailRedirectTo: `${origin}/auth/confirm?next=/definir-senha`,
-    },
+
+  // Primeiro acesso é, na prática, a criação da primeira senha de uma conta
+  // que a Administração já cadastrou. Usar o fluxo de recuperação gera um
+  // e-mail de "definir/redefinir senha" em vez do Magic Link genérico do
+  // Supabase, deixando o botão correto muito mais claro para a família/equipe.
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/confirm?next=/definir-senha`,
   });
 
   if (error) {
