@@ -11,10 +11,43 @@
   overflow-wrap: anywhere;
 }
 .referral-share .button { min-height: 42px; }
-html[data-theme="dark"] .referral-link-box {
+.referral-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.referral-guide-step {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  min-height: 160px;
+  padding: 18px;
+  border: 1px solid var(--curio-border, #e2e6ef);
+  border-radius: 20px;
+  background: var(--curio-surface-soft, #f7f8fc);
+}
+.referral-guide-step > span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: var(--curio-text, #1e2a44);
+  color: white;
+  font-weight: 900;
+}
+.referral-guide-step strong { font-size: 1rem; }
+.referral-guide-step p { margin: 0; color: var(--curio-text-muted, #647086); }
+html[data-theme="dark"] .referral-link-box,
+html[data-theme="dark"] .referral-guide-step {
   background: #171d28;
   color: #f3f6fb;
   border-color: #46536a;
+}
+
+@media (max-width: 800px) {
+  .referral-guide-grid { grid-template-columns: 1fr; }
+  .referral-guide-step { min-height: auto; }
 }
 
 @media (max-width: 640px) {
