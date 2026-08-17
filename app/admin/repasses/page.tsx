@@ -12,6 +12,13 @@ function monthLabel(value?: string | null) {
   return new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${String(value).slice(0, 10)}T12:00:00Z`));
 }
 
+function currentMonthBahia() {
+  const parts = new Intl.DateTimeFormat("en-US", { year: "numeric", month: "2-digit", timeZone: "America/Bahia" }).formatToParts(new Date());
+  const year = parts.find((part) => part.type === "year")?.value || String(new Date().getUTCFullYear());
+  const month = parts.find((part) => part.type === "month")?.value || String(new Date().getUTCMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+}
+
 function modelLabel(value?: string | null) {
   if (value === "fixed_monthly") return "Valor fixo mensal";
   if (value === "percent_plan") return "Percentual do plano";
@@ -49,28 +56,22 @@ function planRule(plan: any) {
 export default async function AdminTeacherPayoutsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ mes?: string; status?: string; professor?: string; plano?: string; erro?: string; sucesso?: string }>;
+  searchParams: Promise<{ mes?: string; status?: string; professor?: string; aluno?: string; plano?: string; modalidade?: string; erro?: string; sucesso?: string }>;
 }) {
   const query = await searchParams;
   await requireRole("admin");
   const supabase = await createClient();
-  const currentMonth = new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "2-digit", timeZone: "America/Bahia" }).format(new Date()).slice(0, 7);
-  const referenceMonth = /^\d{4}-\d{2}$/.test(query.mes || "") ? String(query.mes) : currentMonth;
+  const referenceMonth = /^\d{4}-\d{2}$/.test(query.mes || "") ? String(query.mes) : currentMonthBahia();
 
   const [{ data: plans }, { data: teachers }, { data: payouts }] = await Promise.all([
     supabase.from("plans").select("id,name,monthly_price,meetings_per_month,delivery_mode,active,archived_at,teacher_compensation_model,teacher_compensation_fixed_amount,teacher_compensation_percent,teacher_compensation_per_meeting,teacher_compensation_meeting_limit").is("deleted_at", null).order("sort_order").order("name"),
     supabase.from("teachers").select("id,active,profiles(full_name,preferred_name)").order("created_at"),
-    supabase.from("teacher_payouts").select("id,teacher_id,student_id,guardian_id,subscription_id,plan_id,family_payment_id,reference_month,family_amount,compensation_model,base_value,expected_meetings,completed_meetings,billable_meetings,calculated_amount,adjustment_amount,final_amount,delivery_mode,status,calculation_details,admin_note,adjustment_reason,approved_at,paid_at,blocked_at,cancelled_at,created_at,updated_at").gte("reference_month", `${referenceMonth}-01`).lt("reference_month", `${referenceMonth}-32`).order("created_at", { ascending: false }).limit(300),
+    supabase.from("teacher_payouts").select("id,teacher_id,student_id,guardian_id,subscription_id,plan_id,family_payment_id,reference_month,family_amount,compensation_model,base_value,expected_meetings,completed_meetings,billable_meetings,calculated_amount,adjustment_amount,final_amount,delivery_mode,status,calculation_details,admin_note,adjustment_reason,approved_at,paid_at,blocked_at,cancelled_at,created_at,updated_at").eq("reference_month", `${referenceMonth}-01`).order("created_at", { ascending: false }).limit(300),
   ]);
 
-  const filtered = (payouts ?? []).filter((item: any) => {
-    if (query.status && query.status !== "all" && item.status !== query.status) return false;
-    if (query.professor && item.teacher_id !== query.professor) return false;
-    if (query.plano && item.plan_id !== query.plano) return false;
-    return true;
-  });
-  const studentIds = [...new Set(filtered.map((item: any) => item.student_id).filter(Boolean))];
-  const guardianIds = [...new Set(filtered.map((item: any) => item.guardian_id).filter(Boolean))];
+  const allPayouts = payouts ?? [];
+  const studentIds = [...new Set(allPayouts.map((item: any) => item.student_id).filter(Boolean))];
+  const guardianIds = [...new Set(allPayouts.map((item: any) => item.guardian_id).filter(Boolean))];
   const [{ data: students }, { data: guardians }] = await Promise.all([
     studentIds.length ? supabase.from("students").select("id,full_name,preferred_name").in("id", studentIds) : Promise.resolve({ data: [] as any[] }),
     guardianIds.length ? supabase.from("guardians").select("id,profiles(full_name,preferred_name)").in("id", guardianIds) : Promise.resolve({ data: [] as any[] }),
@@ -80,11 +81,21 @@ export default async function AdminTeacherPayoutsPage({
   const studentName = new Map((students ?? []).map((item: any) => [item.id, item.preferred_name || item.full_name || "Aluno"]));
   const guardianName = new Map((guardians ?? []).map((item: any) => [item.id, item.profiles?.preferred_name || item.profiles?.full_name || "Família"]));
   const planById = new Map((plans ?? []).map((item: any) => [item.id, item]));
+  const modalities = [...new Set((plans ?? []).map((plan: any) => plan.delivery_mode).filter(Boolean))] as string[];
 
-  const reviewCount = (payouts ?? []).filter((item: any) => ["pending", "review"].includes(item.status)).length;
-  const blockedCount = (payouts ?? []).filter((item: any) => item.status === "blocked").length;
-  const approvedAmount = (payouts ?? []).filter((item: any) => item.status === "approved").reduce((sum: number, item: any) => sum + Number(item.final_amount || 0), 0);
-  const paidAmount = (payouts ?? []).filter((item: any) => item.status === "paid").reduce((sum: number, item: any) => sum + Number(item.final_amount || 0), 0);
+  const filtered = allPayouts.filter((item: any) => {
+    if (query.status && query.status !== "all" && item.status !== query.status) return false;
+    if (query.professor && item.teacher_id !== query.professor) return false;
+    if (query.aluno && item.student_id !== query.aluno) return false;
+    if (query.plano && item.plan_id !== query.plano) return false;
+    if (query.modalidade && item.delivery_mode !== query.modalidade) return false;
+    return true;
+  });
+
+  const reviewCount = allPayouts.filter((item: any) => ["pending", "review"].includes(item.status)).length;
+  const blockedCount = allPayouts.filter((item: any) => item.status === "blocked").length;
+  const approvedAmount = allPayouts.filter((item: any) => item.status === "approved").reduce((sum: number, item: any) => sum + Number(item.final_amount || 0), 0);
+  const paidAmount = allPayouts.filter((item: any) => item.status === "paid").reduce((sum: number, item: any) => sum + Number(item.final_amount || 0), 0);
 
   return <>
     <PageHeader eyebrow="Admin • Operação" title="Repasses de Professores" description="Calcule, revise, aprove e registre pagamentos de professores sem misturar remuneração com campanhas de indicação." />
@@ -93,7 +104,7 @@ export default async function AdminTeacherPayoutsPage({
 
     <section className="panel family-highlight">
       <strong>Regra de segurança financeira</strong>
-      <p className="mb-0">O repasse só entra em revisão quando existe mensalidade da família marcada como paga e encontro/aula/revisão concluído no período. Nenhum valor é enviado ao banco automaticamente; a Administração ainda precisa aprovar e depois marcar como pago.</p>
+      <p className="mb-0">O repasse só entra em revisão quando existe mensalidade da família marcada como paga e encontro, aula ou revisão concluído no período. Nenhum valor é enviado ao banco automaticamente; a Administração precisa aprovar e depois marcar como pago.</p>
     </section>
 
     <div className="stats-grid mt-16">
@@ -112,11 +123,11 @@ export default async function AdminTeacherPayoutsPage({
     </section>
 
     <section className="panel">
-      <div className="panel-head"><div><h2>Remuneração por plano</h2><p>A regra comercial do professor fica vinculada ao plano e é copiada para a matrícula como snapshot. Mudanças posteriores não reescrevem repasses já fechados.</p></div></div>
+      <div className="panel-head"><div><h2>Remuneração por plano</h2><p>A regra do professor fica vinculada ao plano e é copiada para a matrícula como snapshot. Mudanças futuras não reescrevem repasses já fechados.</p></div></div>
       <div className="plan-management-grid">
         {(plans ?? []).map((plan: any) => <article className="plan-admin-card" key={plan.id}>
           <div className="flex space-between gap-8 wrap"><Badge tone={plan.active && !plan.archived_at ? "green" : "neutral"}>{plan.active && !plan.archived_at ? "Plano ativo" : "Inativo"}</Badge><Badge tone={plan.teacher_compensation_model === "none" ? "neutral" : "blue"}>{modelLabel(plan.teacher_compensation_model)}</Badge></div>
-          <h3>{plan.name}</h3><p>{money(plan.monthly_price)} / mês · {plan.meetings_per_month || 0} encontros exibidos</p>
+          <h3>{plan.name}</h3><p>{money(plan.monthly_price)} / mês · {plan.meetings_per_month || 0} encontros previstos</p>
           <div className="notice"><strong>{planRule(plan)}</strong></div>
           <details className="plan-editor"><summary>Configurar remuneração</summary>
             <form action={updatePlanTeacherCompensation} className="form-stack plan-form">
@@ -133,12 +144,14 @@ export default async function AdminTeacherPayoutsPage({
     </section>
 
     <section className="panel">
-      <div className="panel-head"><div><h2>Repasses de {monthLabel(`${referenceMonth}-01`)}</h2><p>Filtre e confira cada cálculo antes de aprovar.</p></div></div>
+      <div className="panel-head"><div><h2>Repasses de {monthLabel(`${referenceMonth}-01`)}</h2><p>Filtre por competência, status, professor, aluno, plano ou modalidade antes da aprovação.</p></div></div>
       <form method="get" className="form-row">
         <div className="field"><label>Competência</label><input className="input" type="month" name="mes" defaultValue={referenceMonth} /></div>
         <div className="field"><label>Status</label><select className="select" name="status" defaultValue={query.status || "all"}><option value="all">Todos</option><option value="review">Em revisão</option><option value="blocked">Bloqueado</option><option value="approved">Aprovado</option><option value="paid">Pago</option><option value="cancelled">Cancelado</option></select></div>
         <div className="field"><label>Professor</label><select className="select" name="professor" defaultValue={query.professor || ""}><option value="">Todos</option>{(teachers ?? []).map((item: any) => <option value={item.id} key={item.id}>{teacherName.get(item.id)}</option>)}</select></div>
+        <div className="field"><label>Aluno</label><select className="select" name="aluno" defaultValue={query.aluno || ""}><option value="">Todos</option>{(students ?? []).map((item: any) => <option value={item.id} key={item.id}>{studentName.get(item.id)}</option>)}</select></div>
         <div className="field"><label>Plano</label><select className="select" name="plano" defaultValue={query.plano || ""}><option value="">Todos</option>{(plans ?? []).map((item: any) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></div>
+        <div className="field"><label>Modalidade</label><select className="select" name="modalidade" defaultValue={query.modalidade || ""}><option value="">Todas</option>{modalities.map((item) => <option value={item} key={item}>{item}</option>)}</select></div>
         <div className="field field-actions"><label>&nbsp;</label><button className="button button-secondary" type="submit">Filtrar</button></div>
       </form>
 
@@ -154,14 +167,14 @@ export default async function AdminTeacherPayoutsPage({
           <div className="record-meta-grid mt-12">
             <span><small>Família pagou</small><strong>{money(item.family_amount)}</strong></span>
             <span><small>Modelo</small><strong>{modelLabel(item.compensation_model)}</strong></span>
-            <span><small>Encontros</small><strong>{item.completed_meetings}/{item.expected_meetings || "—"}</strong></span>
-            <span><small>Remuneráveis</small><strong>{item.billable_meetings}</strong></span>
+            <span><small>Concluídos</small><strong>{item.completed_meetings}</strong></span>
+            <span><small>Remuneráveis</small><strong>{item.billable_meetings}/{item.expected_meetings || "—"}</strong></span>
             <span><small>Cálculo base</small><strong>{money(item.calculated_amount)}</strong></span>
             <span><small>Ajuste</small><strong>{money(item.adjustment_amount)}</strong></span>
             <span><small>Valor final</small><strong>{money(item.final_amount)}</strong></span>
             <span><small>Modalidade</small><strong>{item.delivery_mode || "—"}</strong></span>
           </div>
-          <p className="muted text-small">Base usada: {item.compensation_model === "percent_plan" ? `${Number(item.base_value || 0).toLocaleString("pt-BR")}%` : money(item.base_value)}. Apenas eventos marcados como concluídos entram no cálculo; cancelados não contam.</p>
+          <p className="muted text-small">Base usada: {item.compensation_model === "percent_plan" ? `${Number(item.base_value || 0).toLocaleString("pt-BR")}%` : money(item.base_value)}. Só eventos concluídos contam; cancelados e apenas agendados ficam fora.</p>
           {item.adjustment_reason && <div className="notice"><strong>Ajuste manual:</strong> {item.adjustment_reason}</div>}
           {item.admin_note && <p className="muted">Observação: {item.admin_note}</p>}
           {item.status !== "paid" && item.status !== "cancelled" ? <form action={reviewTeacherPayout} className="form-stack compact-form mt-16">
@@ -173,7 +186,7 @@ export default async function AdminTeacherPayoutsPage({
               {canApprove && <button className="button button-primary button-small" type="submit" name="decision" value="approve">Aprovar repasse</button>}
               {canPay && <button className="button button-primary button-small" type="submit" name="decision" value="paid">Marcar como pago</button>}
               {canBlock && <button className="button button-ghost button-small" type="submit" name="decision" value="block">Bloquear</button>}
-              {canCancel && <button className="button button-danger button-small" type="submit" name="decision" value="cancel">Cancelar</button>}
+              {canCancel && <button className="button button-ghost button-small" type="submit" name="decision" value="cancel">Cancelar</button>}
             </div>
           </form> : null}
         </article>;
