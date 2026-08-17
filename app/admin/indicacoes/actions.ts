@@ -14,6 +14,8 @@ function refresh() {
   revalidatePath("/admin/indicacoes");
   revalidatePath("/familia/indicacoes");
   revalidatePath("/professor/indicacoes");
+  revalidatePath("/admin/repasses");
+  revalidatePath("/professor/repasses");
 }
 
 export async function updateReferralProgram(formData: FormData) {
@@ -30,20 +32,22 @@ export async function updateReferralProgram(formData: FormData) {
     publicRules: z.string().trim().max(1500).optional(),
   }).safeParse({
     ownerType: formData.get("ownerType"),
-    benefitType: formData.get("benefitType"),
+    benefitType: formData.get("benefitType") || "none",
     benefitPercent: formData.get("benefitPercent"),
     benefitAmount: formData.get("benefitAmount"),
     extraResourceKey: String(formData.get("extraResourceKey") || ""),
-    requiredConfirmedReferrals: formData.get("requiredConfirmedReferrals"),
+    requiredConfirmedReferrals: formData.get("requiredConfirmedReferrals") || 1,
     startsAt: String(formData.get("startsAt") || ""),
     endsAt: String(formData.get("endsAt") || ""),
     publicRules: String(formData.get("publicRules") || ""),
   });
   if (!parsed.success) redirect(`/admin/indicacoes?erro=${encodeURIComponent("Revise as regras do programa de indicações.")}`);
 
-  if (parsed.data.benefitType === "percent_discount" && !parsed.data.benefitPercent) redirect(`/admin/indicacoes?erro=${encodeURIComponent("Informe o percentual do benefício.")}`);
-  if (parsed.data.benefitType === "fixed_discount" && !parsed.data.benefitAmount) redirect(`/admin/indicacoes?erro=${encodeURIComponent("Informe o valor do benefício.")}`);
-  if (parsed.data.benefitType === "extra_resource" && !parsed.data.extraResourceKey) redirect(`/admin/indicacoes?erro=${encodeURIComponent("Escolha o recurso extra que será liberado.")}`);
+  const isTeacherCampaign = parsed.data.ownerType === "teacher";
+  const benefitType = isTeacherCampaign ? "none" : parsed.data.benefitType;
+  if (!isTeacherCampaign && benefitType === "percent_discount" && !parsed.data.benefitPercent) redirect(`/admin/indicacoes?erro=${encodeURIComponent("Informe o percentual do benefício.")}`);
+  if (!isTeacherCampaign && benefitType === "fixed_discount" && !parsed.data.benefitAmount) redirect(`/admin/indicacoes?erro=${encodeURIComponent("Informe o valor do benefício.")}`);
+  if (!isTeacherCampaign && benefitType === "extra_resource" && !parsed.data.extraResourceKey) redirect(`/admin/indicacoes?erro=${encodeURIComponent("Escolha o recurso extra que será liberado.")}`);
   if (parsed.data.startsAt && parsed.data.endsAt && parsed.data.endsAt < parsed.data.startsAt) redirect(`/admin/indicacoes?erro=${encodeURIComponent("A data final precisa ser posterior à data inicial.")}`);
 
   const supabase = await createClient();
@@ -57,11 +61,11 @@ export async function updateReferralProgram(formData: FormData) {
 
   const { error } = await supabase.from("referral_program_settings").update({
     active: formData.get("active") === "on",
-    benefit_type: parsed.data.benefitType,
-    benefit_percent: parsed.data.benefitType === "percent_discount" ? parsed.data.benefitPercent : null,
-    benefit_amount: parsed.data.benefitType === "fixed_discount" ? parsed.data.benefitAmount : null,
-    extra_resource_key: parsed.data.benefitType === "extra_resource" ? parsed.data.extraResourceKey : null,
-    required_confirmed_referrals: parsed.data.requiredConfirmedReferrals,
+    benefit_type: benefitType,
+    benefit_percent: benefitType === "percent_discount" ? parsed.data.benefitPercent : null,
+    benefit_amount: benefitType === "fixed_discount" ? parsed.data.benefitAmount : null,
+    extra_resource_key: benefitType === "extra_resource" ? parsed.data.extraResourceKey : null,
+    required_confirmed_referrals: isTeacherCampaign ? 1 : parsed.data.requiredConfirmedReferrals,
     starts_at: parsed.data.startsAt || null,
     ends_at: parsed.data.endsAt || null,
     public_rules: parsed.data.publicRules || null,
@@ -71,8 +75,10 @@ export async function updateReferralProgram(formData: FormData) {
 
   if (error) redirect(`/admin/indicacoes?erro=${encodeURIComponent("Não foi possível salvar as regras do programa.")}`);
   refresh();
-  const label = parsed.data.ownerType === "teacher" ? "Professor" : "Família";
-  redirect("/admin/indicacoes?sucesso=" + encodeURIComponent("Campanha de indicação para " + label + " atualizada."));
+  const message = isTeacherCampaign
+    ? "Campanha de origem para professores atualizada. A remuneração continua separada em Repasses de Professores."
+    : "Campanha de indicação para famílias atualizada.";
+  redirect("/admin/indicacoes?sucesso=" + encodeURIComponent(message));
 }
 
 export async function reviewReferralBenefit(formData: FormData) {
