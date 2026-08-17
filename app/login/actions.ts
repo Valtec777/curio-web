@@ -59,14 +59,15 @@ function siteOrigin() {
   const productionUrl = normalizedOrigin(process.env.VERCEL_PROJECT_PRODUCTION_URL);
   const branchUrl = normalizedOrigin(process.env.VERCEL_BRANCH_URL);
   const deploymentUrl = normalizedOrigin(process.env.VERCEL_URL);
-  const runningOnVercel = process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV);
 
-  if (productionUrl && !isLocalOrigin(productionUrl)) return productionUrl;
+  // An explicit canonical URL must win over automatic Vercel aliases. This
+  // prevents recovery/first-access links from alternating between old project
+  // domains when more than one Vercel deployment points at the same Supabase.
   if (configured && !isLocalOrigin(configured)) return configured;
-  if (runningOnVercel) return OFFICIAL_SITE_ORIGIN;
-  if (configured) return configured;
+  if (productionUrl && !isLocalOrigin(productionUrl)) return productionUrl;
   if (branchUrl && !isLocalOrigin(branchUrl)) return branchUrl;
   if (deploymentUrl && !isLocalOrigin(deploymentUrl)) return deploymentUrl;
+  if (configured) return configured;
   return process.env.NODE_ENV === "development" ? "http://localhost:3000" : OFFICIAL_SITE_ORIGIN;
 }
 
