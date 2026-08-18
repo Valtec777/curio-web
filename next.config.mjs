@@ -1,5 +1,22 @@
 /** @type {import('next').NextConfig} */
+const supabaseRemotePatterns = [];
+try {
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    const supabaseUrl = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL);
+    supabaseRemotePatterns.push({
+      protocol: supabaseUrl.protocol === "http:" ? "http" : "https",
+      hostname: supabaseUrl.hostname,
+      pathname: "/storage/v1/object/public/**",
+    });
+  }
+} catch {
+  // A configuração inválida será percebida pelo cliente Supabase; não bloqueie o build por isso.
+}
+
 const nextConfig = {
+  images: {
+    remotePatterns: supabaseRemotePatterns,
+  },
   async rewrites() {
     return {
       beforeFiles: [],
