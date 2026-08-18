@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { ReferralShare } from "@/components/referral-share";
 import { getCurrentTeacher } from "@/lib/teacher";
+import { getSiteOrigin } from "@/lib/site-url";
 
 function dt(value?: string | null) {
   if (!value) return "—";
@@ -25,7 +26,7 @@ export default async function TeacherReferralsPage() {
     supabase.rpc("my_referral_activity", { p_owner_type: "teacher" }),
   ]);
   const summary: any = summaryRows?.[0] || null;
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://curioeducacao.vercel.app").replace(/\/$/, "");
+  const siteUrl = getSiteOrigin();
   const referralLink = summary?.code ? `${siteUrl}/convite/${summary.code}` : "";
 
   return <>
