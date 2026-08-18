@@ -30,12 +30,12 @@ const gradeOptions = [
 ] as const;
 
 const mascots = [
-  { name: "Capivara", trait: "Calma e organização", tone: "green", line: "Respira. Vamos por partes.", image: "/mascotes/curio_capivara_principal_acolhendo.png" },
-  { name: "Boto", trait: "Imaginação e criatividade", tone: "pink", line: "E se a gente pensar de outro jeito?", image: "/mascotes/curio_boto_principal_imaginando_saudando.png" },
-  { name: "Arara", trait: "Comunicação e expressão", tone: "blue", line: "Agora me conta com suas palavras.", image: "/mascotes/curio_arara_principal_saudando.png" },
-  { name: "Mico-leão-dourado", trait: "Prática e persistência", tone: "yellow", line: "Bora testar se você pegou?", image: "/mascotes/plumareli_mico_leao_dourado_principal.webp" },
-  { name: "Tamanduá", trait: "Investigação e atenção", tone: "green", line: "Tem alguma pista escondida aqui.", image: "/mascotes/curio_tamandua_principal_saudando.png" },
-  { name: "Onça", trait: "Coragem e confiança", tone: "pink", line: "Difícil não significa impossível.", image: "/mascotes/curio_onca_principal_heroica.png" },
+  { slug: "capivara", name: "Capivara", trait: "Calma e organização", tone: "green", line: "Respira. Vamos por partes.", fallback: "/mascotes/curio_capivara_principal_acolhendo.png" },
+  { slug: "boto-cor-de-rosa", name: "Boto", trait: "Imaginação e criatividade", tone: "pink", line: "E se a gente pensar de outro jeito?", fallback: "/mascotes/curio_boto_principal_imaginando_saudando.png" },
+  { slug: "arara-azul", name: "Arara", trait: "Comunicação e expressão", tone: "blue", line: "Agora me conta com suas palavras.", fallback: "/mascotes/curio_arara_principal_saudando.png" },
+  { slug: "mico-leao-dourado", name: "Mico-leão-dourado", trait: "Prática e persistência", tone: "yellow", line: "Bora testar se você pegou?", fallback: "/mascotes/plumareli_mico_leao_dourado_principal.webp" },
+  { slug: "tamandua-bandeira", name: "Tamanduá", trait: "Investigação e atenção", tone: "green", line: "Tem alguma pista escondida aqui.", fallback: "/mascotes/curio_tamandua_principal_saudando.png" },
+  { slug: "onca-pintada", name: "Onça", trait: "Coragem e confiança", tone: "pink", line: "Difícil não significa impossível.", fallback: "/mascotes/curio_onca_principal_heroica.png" },
 ] as const;
 
 const faqItems = [
@@ -89,7 +89,7 @@ const structuredData = {
 export default async function Home({ searchParams }: { searchParams: Promise<{ lead?: string }> }) {
   const { lead } = await searchParams;
   const supabase = await createClient();
-  const [{ data: publicPlans }, { data: legalDocuments }] = await Promise.all([
+  const [{ data: publicPlans }, { data: legalDocuments }, { data: characters }] = await Promise.all([
     supabase
       .from("plans")
       .select("id,name,description,monthly_price,features,meetings_per_month,delivery_mode,badge,sort_order,available_for_enrollment")
@@ -104,8 +104,19 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
       .eq("status", "published")
       .eq("is_current", true)
       .order("document_type"),
+    supabase
+      .from("characters")
+      .select("slug,assets")
+      .eq("active", true),
   ]);
   const startingPrice = publicPlans?.length ? Math.min(...publicPlans.map((plan: any) => Number(plan.monthly_price || 0))) : null;
+  const characterImages = new Map<string, string>(
+    (characters ?? []).map((character: any) => [
+      character.slug,
+      character.assets?.principal || character.assets?.avatar || "",
+    ]),
+  );
+  const mascotImage = (slug: string, fallback: string) => characterImages.get(slug) || fallback;
 
   return (
     <>
@@ -152,9 +163,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
             </div>
 
             <div className="hero-mascot-stage" aria-label="Personagens do universo Plumareli">
-              <div className="mascot-orbit mascot-orbit-main"><Image src="/mascotes/curio_capivara_principal_acolhendo.png" alt="Capivara do Plumareli" width={360} height={420} priority /></div>
-              <div className="mascot-orbit mascot-orbit-top"><Image src="/mascotes/curio_onca_principal_heroica.png" alt="Onça do Plumareli" width={230} height={270} priority /></div>
-              <div className="mascot-orbit mascot-orbit-bottom"><Image src="/mascotes/curio_boto_principal_imaginando_saudando.png" alt="Boto do Plumareli" width={230} height={270} priority /></div>
+              <div className="mascot-orbit mascot-orbit-main"><Image src={mascotImage("capivara", "/mascotes/curio_capivara_principal_acolhendo.png")} alt="Capivara do Plumareli" width={360} height={420} priority /></div>
+              <div className="mascot-orbit mascot-orbit-top"><Image src={mascotImage("onca-pintada", "/mascotes/curio_onca_principal_heroica.png")} alt="Onça do Plumareli" width={230} height={270} priority /></div>
+              <div className="mascot-orbit mascot-orbit-bottom"><Image src={mascotImage("boto-cor-de-rosa", "/mascotes/curio_boto_principal_imaginando_saudando.png")} alt="Boto do Plumareli" width={230} height={270} priority /></div>
               <div className="hero-sticker sticker-stars">★  ★  ★</div>
               <div className="hero-sticker sticker-note">Pense · Crie · Resolva</div>
             </div>
@@ -218,7 +229,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
             <div className="mascot-grid mascot-free-grid">
               {mascots.map((mascot) => (
                 <article className={`mascot-character mascot-tone-${mascot.tone}`} key={mascot.name}>
-                  <div className="mascot-image-free"><Image src={mascot.image} alt={mascot.name} width={310} height={340} /></div>
+                  <div className="mascot-image-free"><Image src={mascotImage(mascot.slug, mascot.fallback)} alt={mascot.name} width={310} height={340} /></div>
                   <div className="mascot-caption"><span className="mascot-name-pill">{mascot.name}</span><h3>{mascot.trait}</h3><p>“{mascot.line}”</p></div>
                 </article>
               ))}
