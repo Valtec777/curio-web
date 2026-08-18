@@ -2,11 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { registerMascotImage } from "@/app/admin/mascotes/actions";
+import {
+  CHARACTER_ASSET_BUCKET,
+  CHARACTER_ASSET_MAX_BYTES,
+  CHARACTER_ASSET_MIME_TYPES,
+} from "@/lib/character-assets";
 import { createClient } from "@/lib/supabase/client";
-import { CHARACTER_ASSET_BUCKET, registerMascotImage } from "@/app/admin/mascotes/actions";
 
-const MAX_BYTES = 5 * 1024 * 1024;
-const ALLOWED = new Set(["image/png", "image/jpeg", "image/webp"]);
+const ALLOWED = new Set<string>(CHARACTER_ASSET_MIME_TYPES);
 
 function extension(mime: string) {
   if (mime === "image/png") return "png";
@@ -45,7 +49,7 @@ export function AdminMascotImageUpload({ characterId, slug, name }: AdminMascotI
       const value = formData.get("mascotImage");
       const file = value instanceof File && value.size > 0 ? value : null;
       if (!file) throw new Error("Escolha uma imagem.");
-      if (file.size > MAX_BYTES) throw new Error("A imagem pode ter até 5 MB.");
+      if (file.size > CHARACTER_ASSET_MAX_BYTES) throw new Error("A imagem pode ter até 5 MB.");
 
       const mime = inferMime(file);
       if (!ALLOWED.has(mime)) throw new Error("Use PNG, JPG ou WEBP.");
