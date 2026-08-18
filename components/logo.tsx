@@ -1,10 +1,7 @@
 import Link from "next/link";
+import { BRAND_LOGO_ENDPOINT } from "@/lib/brand-assets";
 
 type LogoVariant = "wordmark" | "symbol" | "primary" | "negative";
-
-// A logo oficial fica versionada diretamente em public/brand para não depender
-// do materializador de assets durante o deploy.
-const PLUMARELI_LOGO = "/brand/plumareli-logo-oficial.webp?v=20260817-1";
 
 export function Logo({
   compact = false,
@@ -21,7 +18,7 @@ export function Logo({
     >
       <img
         className="brand-slot-unified-image"
-        src={PLUMARELI_LOGO}
+        src={BRAND_LOGO_ENDPOINT}
         alt="Plumareli"
       />
     </Link>
