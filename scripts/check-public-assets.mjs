@@ -32,6 +32,12 @@ async function walk(directory) {
   return files;
 }
 
+function isExampleOnlyReference(content, match) {
+  const index = match.index ?? 0;
+  const before = content.slice(Math.max(0, index - 120), index);
+  return /placeholder\s*=\s*["'][^"']*$/i.test(before);
+}
+
 const rewriteConfig = typeof nextConfig.rewrites === "function" ? await nextConfig.rewrites() : null;
 const fallbackRules = Array.isArray(rewriteConfig) ? [] : rewriteConfig?.fallback ?? [];
 const fallbackMap = new Map(
@@ -61,6 +67,7 @@ for (const scanRoot of scanRoots) {
   for (const file of await walk(directory)) {
     const content = await readFile(file, "utf8");
     for (const match of content.matchAll(assetPattern)) {
+      if (isExampleOnlyReference(content, match)) continue;
       const asset = match[0].split("?")[0];
       if (!references.has(asset)) references.set(asset, new Set());
       references.get(asset).add(relative(root, file));
