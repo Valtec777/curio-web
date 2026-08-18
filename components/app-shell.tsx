@@ -36,6 +36,7 @@ const menus: Record<AppRole, NavItem[]> = {
     { href: "/admin/documentos", label: "Documentos", group: "Operação" },
     { href: "/admin/suporte", label: "Suporte", group: "Operação" },
     { href: "/admin/usuarios", label: "Usuários e acessos", group: "Sistema" },
+    { href: "/admin/marca", label: "Marca e logo", group: "Sistema" },
     { href: "/admin/mascotes", label: "Personagens", group: "Sistema" },
     { href: "/admin/auditoria", label: "Auditoria", group: "Sistema" },
     { href: "/admin/lixeira", label: "Lixeira", group: "Sistema" },
