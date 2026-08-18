@@ -1,75 +1,100 @@
-# E-mail de acesso do CURIÓ — configuração de produção
+# PLUMARELI — configuração de e-mails de acesso
 
-Este documento registra o estado atual do fluxo de autenticação e a única dependência externa que ainda exige credenciais de um provedor de e-mail.
+Este documento descreve o fluxo de autenticação atualmente implementado e a configuração necessária para produção.
 
 ## Estado atual no código
 
-- **Primeiro acesso** usa Magic Link/OTP (`signInWithOtp`) com `shouldCreateUser: false`.
-- **Esqueci minha senha** usa o mesmo fluxo Magic Link/OTP e não depende mais de `/recover`.
-- **Convite e reenvio pelo Admin** usam a Edge Function `curio-access-admin` versão 7, que prepara/cria o usuário e envia Magic Link/OTP.
-- O fluxo administrativo não usa mais `resetPasswordForEmail` nem `inviteUserByEmail` para entrega do acesso.
-- Todos os links retornam para `/auth/confirm?next=/definir-senha`.
-- O domínio de produção usado pelo fluxo é `https://curio-web-nu.vercel.app`.
-- `localhost` só é aceito na Edge Function quando `CURIO_ALLOW_LOCAL_REDIRECTS=true`.
+### Primeiro acesso e recuperação de senha
 
-Essa mudança separa o acesso inicial/redefinição do bucket de limite do endpoint `/recover`, que foi o responsável pelos erros HTTP 429 observados em produção.
-
-## SMTP próprio — acabamento de produção
-
-Mesmo com o fluxo Magic Link/OTP funcionando, o recomendado para produção é configurar **Custom SMTP** no Supabase Auth para ter melhor entregabilidade, remetente confiável e controle de volume.
-
-Em **Supabase → Authentication → SMTP Settings / Custom SMTP**, configurar um servidor SMTP próprio.
-
-Configuração possível usando a conta atual:
-
-- Sender name: `CURIÓ`
-- Sender email / From: `curio.educacao@gmail.com`
-- SMTP host: `smtp.gmail.com`
-- SMTP port: `587` com STARTTLS ou `465` com SSL
-- SMTP username: `curio.educacao@gmail.com`
-- SMTP password: **senha de app**, nunca a senha normal da conta
-
-Para gerar senha de app no Google, a conta precisa ter verificação em duas etapas habilitada. A senha de app não deve ser colocada no GitHub, no banco nem em arquivo do projeto.
-
-Para uso comercial em escala, é preferível um domínio próprio e um provedor transacional dedicado (por exemplo, Resend, Postmark, SES ou Brevo), com SPF, DKIM e DMARC configurados.
-
-## URLs de autenticação
-
-No Supabase Auth, revisar:
-
-- **Site URL:** `https://curio-web-nu.vercel.app` enquanto este for o domínio oficial.
-- **Redirect URLs:** incluir `https://curio-web-nu.vercel.app/auth/confirm**` e, se necessário, `https://curio-web-nu.vercel.app/definir-senha**`.
-- `localhost` deve permanecer apenas para desenvolvimento local.
-
-Callback usado pelo app:
+`app/login/actions.ts` usa um cliente de autenticação sem sessão persistida e chama `resetPasswordForEmail` com retorno para:
 
 `/auth/confirm?next=/definir-senha`
 
+O cliente usa `flowType: "implicit"` nesse handoff de uso único para permitir que a pessoa solicite o e-mail em um navegador e abra o link em outro navegador, aplicativo de e-mail ou dispositivo.
+
+### Acessos enviados pela Administração
+
+Existem duas Edge Functions com nomes técnicos legados:
+
+- `curio-access-control`: reenvio de acesso e atualização de dados de usuários já existentes;
+- `curio-access-admin`: convites institucionais, matrículas e preparação de novos acessos.
+
+Esses nomes não devem ser renomeados sem coordenar o deploy e todas as chamadas existentes. A marca exibida ao usuário é PLUMARELI.
+
+Os envios administrativos usam Magic Link/OTP (`signInWithOtp`) e retornam para o mesmo callback:
+
+`/auth/confirm?next=/definir-senha`
+
+## Origem pública do site
+
+O app não possui mais um domínio Curió fixo como fallback de produção.
+
+No Next.js, a origem é resolvida nesta ordem:
+
+1. `NEXT_PUBLIC_SITE_URL` quando configurada com uma URL não local;
+2. `VERCEL_PROJECT_PRODUCTION_URL`;
+3. `VERCEL_BRANCH_URL`;
+4. `VERCEL_URL`;
+5. URL local configurada para desenvolvimento/CI;
+6. `http://localhost:3000` como último fallback local.
+
+Para produção com domínio próprio, configure `NEXT_PUBLIC_SITE_URL` com a URL canônica do PLUMARELI.
+
+## Edge Functions do Supabase
+
+Para tornar o domínio explícito e impedir redirects para origens inesperadas, configure como segredo/variável das funções:
+
+`PLUMARELI_APP_ORIGIN=https://SEU-DOMINIO-OFICIAL`
+
+Durante a migração, o código ainda reconhece `CURIO_APP_URL` e `CURIO_APP_ORIGIN` como nomes legados. Prefira `PLUMARELI_APP_ORIGIN` em novas configurações.
+
+Desenvolvimento local pode ser autorizado explicitamente com:
+
+`PLUMARELI_ALLOW_LOCAL_REDIRECTS=true`
+
+O nome legado `CURIO_ALLOW_LOCAL_REDIRECTS=true` continua aceito por compatibilidade. Não habilite redirect local em produção.
+
+## URLs no Supabase Auth
+
+Em **Supabase → Authentication → URL Configuration**:
+
+- **Site URL:** use a URL oficial do PLUMARELI;
+- **Redirect URLs:** inclua `https://SEU-DOMINIO-OFICIAL/auth/confirm**`;
+- mantenha `http://localhost:3000/**` apenas quando necessário para desenvolvimento local.
+
+Se o domínio oficial mudar, atualize `NEXT_PUBLIC_SITE_URL`, `PLUMARELI_APP_ORIGIN` e a configuração de URLs do Supabase de forma coordenada.
+
+## Custom SMTP
+
+Para produção, configure **Custom SMTP** no Supabase Auth com um remetente verificado. Recomendações:
+
+- Sender name: `PLUMARELI`;
+- Sender email: endereço verificado do domínio oficial, por exemplo `acesso@seudominio.com.br`;
+- senha SMTP somente nas configurações seguras do provedor/Supabase, nunca no GitHub;
+- para escala comercial, use provedor transacional com SPF, DKIM e DMARC corretamente configurados.
+
 ## Templates de e-mail
 
-Personalizar no Supabase Auth principalmente o template de **Magic Link**, pois ele é o template usado pelos fluxos atuais de primeiro acesso, redefinição e reenvio administrativo.
+Os textos enviados devem usar PLUMARELI. Assunto sugerido para acesso/recuperação:
 
-Assunto sugerido:
+`Seu acesso ao PLUMARELI`
 
-`Seu acesso ao CURIÓ`
+O conteúdo deve explicar de forma curta que o botão permite criar ou redefinir a senha e que a mensagem pode ser ignorada caso a pessoa não tenha solicitado o acesso.
 
-Mensagem sugerida:
+## Teste obrigatório
 
-> Seu acesso ao CURIÓ está pronto. Use o botão abaixo para criar ou redefinir sua senha e entrar com segurança. Se você não esperava este e-mail, ignore a mensagem ou fale com a equipe CURIÓ.
+Depois de mudar domínio, SMTP ou templates:
 
-Manter o e-mail curto e transacional, sem excesso de imagens ou vários links.
-
-## Teste obrigatório depois do SMTP
-
-1. Criar ou reenviar um acesso de teste.
-2. Abrir o e-mail fora da sessão do Admin e, de preferência, em outro dispositivo.
-3. Confirmar que o link começa em HTTPS e não contém `localhost`.
-4. Definir a senha.
-5. Fazer login com a nova senha.
-6. Testar também `Esqueci minha senha`.
-7. Repetir em janela anônima e em pelo menos um navegador móvel e um desktop.
-8. Confirmar o remetente exibido como `CURIÓ <curio.educacao@gmail.com>` ou o endereço de domínio próprio escolhido.
+1. solicitar primeiro acesso;
+2. abrir o e-mail fora da sessão que iniciou a solicitação;
+3. confirmar que o link é HTTPS e aponta para o domínio oficial do PLUMARELI;
+4. definir a senha e entrar;
+5. testar `Esqueci minha senha`;
+6. reenviar um acesso pelo Admin;
+7. criar um convite/matrícula de teste pelo Admin;
+8. repetir ao menos um fluxo em janela anônima ou outro dispositivo;
+9. confirmar que nenhum link contém domínio Curió antigo ou `localhost` em produção.
 
 ## Segurança
 
-Também permanece recomendado habilitar **Leaked Password Protection** no Supabase Auth e manter os limites de envio compatíveis com o uso real.
+Também é recomendado habilitar **Leaked Password Protection** no Supabase Auth e manter limites de envio compatíveis com o uso real.
