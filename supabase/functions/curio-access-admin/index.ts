@@ -30,11 +30,11 @@ function localRedirectsAllowed() {
 }
 
 function configuredAppOrigin() {
-  return normalizedOrigin(
-    Deno.env.get("PLUMARELI_APP_ORIGIN") ||
-      Deno.env.get("CURIO_APP_URL") ||
-      Deno.env.get("CURIO_APP_ORIGIN"),
-  );
+  return normalizedOrigin(Deno.env.get("PLUMARELI_APP_ORIGIN"));
+}
+
+function legacyAppOrigin() {
+  return normalizedOrigin(Deno.env.get("CURIO_APP_URL") || Deno.env.get("CURIO_APP_ORIGIN"));
 }
 
 function cleanOrigin(value: unknown) {
@@ -44,12 +44,12 @@ function cleanOrigin(value: unknown) {
   if (candidate) {
     const url = new URL(candidate);
     const isLocal = url.hostname === "localhost" || url.hostname === "127.0.0.1";
-    if (isLocal) return localRedirectsAllowed() ? candidate : configured;
+    if (isLocal) return localRedirectsAllowed() ? candidate : configured || legacyAppOrigin();
     if (configured) return candidate === configured ? candidate : configured;
     return candidate;
   }
 
-  return configured;
+  return configured || legacyAppOrigin();
 }
 
 function emailErrorMessage(code?: string, message?: string) {
