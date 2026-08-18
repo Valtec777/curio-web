@@ -4,6 +4,7 @@ import { Fredoka, Nunito_Sans } from "next/font/google";
 import { ExperiencePreferences } from "@/components/experience-preferences";
 import { ReferralTeacherPrefill } from "@/components/referral-teacher-prefill";
 import { SeasonalDecor } from "@/components/seasonal-decor";
+import { BRAND_LOGO_ENDPOINT } from "@/lib/brand-assets";
 import { getSiteOrigin } from "@/lib/site-url";
 import "./globals.css";
 import "./responsive.css";
@@ -29,7 +30,7 @@ import "./seasonal.css";
 const fredoka = Fredoka({ subsets: ["latin"], variable: "--font-curio-display", weight: ["500", "600", "700"], display: "swap" });
 const nunito = Nunito_Sans({ subsets: ["latin"], variable: "--font-curio-body", weight: ["400", "600", "700", "800", "900"], display: "swap" });
 const siteUrl = getSiteOrigin();
-const officialLogo = "/brand/plumareli-logo-oficial.webp";
+const officialLogo = BRAND_LOGO_ENDPOINT;
 
 export const viewport: Viewport = {
   width: "device-width",
