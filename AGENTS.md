@@ -1,4 +1,4 @@
-# CURIÓ — Regras para agentes de desenvolvimento
+# PLUMARELI — Regras para agentes de desenvolvimento
 
 1. Não reconstruir módulos sem auditar o código existente.
 2. Conteúdo, habilidade e evidência são conceitos diferentes.
@@ -12,3 +12,5 @@
 10. Implementado, testado e validado são estados diferentes.
 11. Não usar dados pessoais reais em fixtures, logs ou exemplos.
 12. Trabalhar por fluxo vertical: ação → persistência → permissão → efeito nos outros perfis.
+13. Preservar identificadores técnicos legados `curio` quando renomeá-los puder quebrar migrations, banco, imports ou CSS existente.
+14. Novos nomes públicos, documentação ativa e novos identificadores sem dependência legada devem usar PLUMARELI.
