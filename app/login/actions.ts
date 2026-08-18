@@ -6,8 +6,7 @@ import { revalidatePath } from "next/cache";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-
-const OFFICIAL_SITE_ORIGIN = "https://curio-web-nu.vercel.app";
+import { getSiteOrigin } from "@/lib/site-url";
 
 const loginSchema = z.object({
   email: z.string().email("Informe um e-mail válido."),
@@ -37,38 +36,6 @@ const passwordSchema = z
 
 function queryError(message: string) {
   return `/login?erro=${encodeURIComponent(message)}`;
-}
-
-function normalizedOrigin(value?: string | null) {
-  const raw = String(value || "").trim();
-  if (!raw) return null;
-  try {
-    const url = new URL(raw.includes("://") ? raw : `https://${raw}`);
-    return url.origin;
-  } catch {
-    return null;
-  }
-}
-
-function isLocalOrigin(origin?: string | null) {
-  return Boolean(origin && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin));
-}
-
-function siteOrigin() {
-  const configured = normalizedOrigin(process.env.NEXT_PUBLIC_SITE_URL);
-  const productionUrl = normalizedOrigin(process.env.VERCEL_PROJECT_PRODUCTION_URL);
-  const branchUrl = normalizedOrigin(process.env.VERCEL_BRANCH_URL);
-  const deploymentUrl = normalizedOrigin(process.env.VERCEL_URL);
-
-  // An explicit canonical URL must win over automatic Vercel aliases. This
-  // prevents recovery/first-access links from alternating between old project
-  // domains when more than one Vercel deployment points at the same Supabase.
-  if (configured && !isLocalOrigin(configured)) return configured;
-  if (productionUrl && !isLocalOrigin(productionUrl)) return productionUrl;
-  if (branchUrl && !isLocalOrigin(branchUrl)) return branchUrl;
-  if (deploymentUrl && !isLocalOrigin(deploymentUrl)) return deploymentUrl;
-  if (configured) return configured;
-  return process.env.NODE_ENV === "development" ? "http://localhost:3000" : OFFICIAL_SITE_ORIGIN;
 }
 
 function portalFor(roles: string[]) {
@@ -147,7 +114,7 @@ export async function login(formData: FormData) {
 
 async function sendFirstAccessLink(email: string) {
   const supabase = createEmailAuthClient();
-  const origin = siteOrigin();
+  const origin = getSiteOrigin();
 
   // Primeiro acesso é, na prática, a criação da primeira senha de uma conta
   // que a Administração já cadastrou. Usar o fluxo de recuperação gera um
@@ -166,7 +133,7 @@ async function sendFirstAccessLink(email: string) {
 
 async function sendPasswordResetLink(email: string) {
   const supabase = createEmailAuthClient();
-  const origin = siteOrigin();
+  const origin = getSiteOrigin();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${origin}/auth/confirm?next=/definir-senha`,
   });

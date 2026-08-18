@@ -1,38 +1,11 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireRole } from "@/lib/auth";
+import { getSiteOrigin } from "@/lib/site-url";
 import { createClient } from "@/lib/supabase/server";
-
-const FALLBACK_ORIGIN = "https://curio-web-nu.vercel.app";
-
-function normalizeOrigin(value?: string | null) {
-  const raw = String(value || "").trim().replace(/\/$/, "");
-  if (!raw) return null;
-  try {
-    const url = new URL(raw.includes("://") ? raw : `https://${raw}`);
-    if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
-      return process.env.NODE_ENV === "development" ? url.origin : null;
-    }
-    return url.protocol === "https:" ? url.origin : null;
-  } catch {
-    return null;
-  }
-}
-
-async function currentOrigin() {
-  const production = normalizeOrigin(process.env.VERCEL_PROJECT_PRODUCTION_URL);
-  if (production) return production;
-  const configured = normalizeOrigin(process.env.NEXT_PUBLIC_SITE_URL);
-  if (configured) return configured;
-  const h = await headers();
-  const requestOrigin = normalizeOrigin(h.get("origin"));
-  if (requestOrigin) return requestOrigin;
-  return FALLBACK_ORIGIN;
-}
 
 function safeAdminReturn(value: string) {
   return value.startsWith("/admin") ? value : "/admin/usuarios";
@@ -109,7 +82,7 @@ export async function sendAdminAccessLink(formData: FormData) {
   const result = await invokeAccessControl({
     action: "send_access_link",
     auth_user_id: parsed.data.profileId,
-    origin: await currentOrigin(),
+    origin: getSiteOrigin(),
   });
 
   if (!result.ok) {
