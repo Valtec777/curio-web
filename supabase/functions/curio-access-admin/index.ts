@@ -2,31 +2,54 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const jsonHeaders = { "Content-Type": "application/json" };
-const fallbackAppOrigin = "https://curioeducacao.vercel.app";
 
 function reply(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), { status, headers: jsonHeaders });
 }
 
-function cleanOrigin(value: unknown) {
-  const candidate = String(value || "").trim().replace(/\/$/, "");
-  try {
-    const url = new URL(candidate);
-    if ((url.hostname === "localhost" || url.hostname === "127.0.0.1") && Deno.env.get("CURIO_ALLOW_LOCAL_REDIRECTS") === "true") return url.origin;
-    if (url.protocol === "https:" && url.origin === fallbackAppOrigin) return url.origin;
-  } catch {}
-
-  const configured = String(Deno.env.get("CURIO_APP_URL") || "").trim().replace(/\/$/, "");
-  try {
-    const url = new URL(configured);
-    if (url.protocol === "https:" && url.origin === fallbackAppOrigin) return url.origin;
-  } catch {}
-
-  return fallbackAppOrigin;
-}
-
 function cleanText(value: unknown) {
   return String(value || "").trim();
+}
+
+function normalizedOrigin(value: unknown) {
+  const raw = cleanText(value);
+  if (!raw) return null;
+  try {
+    const url = new URL(raw.includes("://") ? raw : `https://${raw}`);
+    const isLocal = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+    if (!isLocal && url.protocol !== "https:") return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
+function localRedirectsAllowed() {
+  return Deno.env.get("PLUMARELI_ALLOW_LOCAL_REDIRECTS") === "true" ||
+    Deno.env.get("CURIO_ALLOW_LOCAL_REDIRECTS") === "true";
+}
+
+function configuredAppOrigin() {
+  return normalizedOrigin(
+    Deno.env.get("PLUMARELI_APP_ORIGIN") ||
+      Deno.env.get("CURIO_APP_URL") ||
+      Deno.env.get("CURIO_APP_ORIGIN"),
+  );
+}
+
+function cleanOrigin(value: unknown) {
+  const candidate = normalizedOrigin(value);
+  const configured = configuredAppOrigin();
+
+  if (candidate) {
+    const url = new URL(candidate);
+    const isLocal = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+    if (isLocal) return localRedirectsAllowed() ? candidate : configured;
+    if (configured) return candidate === configured ? candidate : configured;
+    return candidate;
+  }
+
+  return configured;
 }
 
 function emailErrorMessage(code?: string, message?: string) {
@@ -176,7 +199,7 @@ Deno.serve(async (req: Request) => {
       .eq("user_id", userData.user.id)
       .eq("role", "admin")
       .maybeSingle();
-    if (!adminRole) return reply(403, { error: "Somente o Admin Curió pode gerenciar acessos." });
+    if (!adminRole) return reply(403, { error: "Somente o Admin Plumareli pode gerenciar acessos." });
 
     const body = await req.json() as Record<string, unknown>;
     const action = cleanText(body.action || "invite");
@@ -219,6 +242,7 @@ Deno.serve(async (req: Request) => {
       const invitationId = cleanText(body.invitation_id);
       const origin = cleanOrigin(body.origin);
       if (!invitationId) return reply(400, { error: "Convite obrigatório." });
+      if (!origin) return reply(400, { error: "URL pública do Plumareli não configurada para envio de acesso." });
       const { data: invitation, error } = await admin
         .from("access_invitations")
         .select("*")
@@ -229,7 +253,7 @@ Deno.serve(async (req: Request) => {
 
       const prepared = await prepareAccessUser(admin, {
         email: String(invitation.email || "").toLowerCase(),
-        fullName: cleanText(invitation.full_name) || "Usuário Curió",
+        fullName: cleanText(invitation.full_name) || "Usuário Plumareli",
         preferredName: cleanText(invitation.preferred_name) || null,
         phone: cleanText(invitation.phone_whatsapp) || null,
         role: cleanText(invitation.role || "guardian"),
@@ -275,6 +299,7 @@ Deno.serve(async (req: Request) => {
     if (!email.includes("@") || !fullName || !allowedRoles.includes(role)) {
       return reply(400, { error: "Preencha nome, e-mail e papel corretamente." });
     }
+    if (!origin) return reply(400, { error: "URL pública do Plumareli não configurada para envio de acesso." });
 
     const requestDay = new Date().toISOString().slice(0, 10);
     const idempotencyKey = await invitationIdempotencyKey(body, userData.user.id);
