@@ -1,6 +1,6 @@
-# CURIÓ v1 — Fundação funcional
+# PLUMARELI — Fundação funcional
 
-Esta entrega é uma primeira base executável do novo CURIÓ.
+Esta entrega é a base executável do PLUMARELI.
 
 ## Implementado
 
@@ -50,6 +50,19 @@ npm run dev
 
 Abra `http://localhost:3000`.
 
+> Os nomes `curio` em migrations e alguns identificadores técnicos são legados da fase inicial. Eles são preservados para não quebrar histórico de banco, imports, CSS ou deploys existentes. Novos nomes públicos devem usar PLUMARELI.
+
+### Assets da marca
+
+Os arquivos essenciais devem preferir assets versionados diretamente em `public/brand` e `public/mascotes`. Alguns WebP oficiais ainda são reconstruídos a partir das partes `.b64` mantidas em `.brand-assets`.
+
+O desenvolvimento e o build executam essa materialização automaticamente, mas ela é tolerante a falhas: se uma parte estiver ausente ou inválida, o processo registra um aviso e continua usando os fallbacks configurados no Next.js, sem derrubar o deploy.
+
+Também é possível regenerar manualmente:
+
+```bash
+npm run brand:materialize
+```
 
 ### Confirmação de e-mail no Supabase
 
@@ -125,7 +138,7 @@ Uma única evidência não fecha diagnóstico.
 - questionário inicial da família;
 - diagnóstico;
 - plano de 30 dias;
-- Caderno Curió com upload;
+- Caderno Plumareli com upload;
 - agenda;
 - mensagens;
 - relatório mensal;
