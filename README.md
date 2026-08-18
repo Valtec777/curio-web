@@ -54,15 +54,15 @@ Abra `http://localhost:3000`.
 
 ### Assets da marca
 
-Os arquivos essenciais usados pela interface devem estar versionados diretamente em `public/brand` e `public/mascotes`.
+Os arquivos essenciais devem preferir assets versionados diretamente em `public/brand` e `public/mascotes`. Alguns WebP oficiais ainda são reconstruídos a partir das partes `.b64` mantidas em `.brand-assets`.
 
-O comando abaixo continua disponível apenas para regenerar assets legados quando necessário:
+O desenvolvimento e o build executam essa materialização automaticamente, mas ela é tolerante a falhas: se uma parte estiver ausente ou inválida, o processo registra um aviso e continua usando os fallbacks configurados no Next.js, sem derrubar o deploy.
+
+Também é possível regenerar manualmente:
 
 ```bash
 npm run brand:materialize
 ```
-
-O desenvolvimento e o build de produção não dependem desse comando para carregar as imagens principais.
 
 ### Confirmação de e-mail no Supabase
 
