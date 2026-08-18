@@ -1,5 +1,5 @@
-# CURIÓ — Sistema de Marca Digital
-Atualizado em 09/08/2026.
+# PLUMARELI — Sistema de Marca Digital
+Atualizado em 18/08/2026.
 
 ## Fonte oficial recomendada
 
@@ -39,7 +39,7 @@ A combinação foi escolhida para manter a marca arredondada e acolhedora sem pr
 - Muito espaço em branco e hierarquia simples.
 - Mascotes como guias, não como decoração excessiva.
 - Progresso visual por etapas, estrelas, trilhas e estados.
-- O Curió pode se inspirar na clareza e ludicidade de apps de aprendizagem, mantendo cores, personagens, linguagem e símbolos próprios.
+- O Plumareli pode se inspirar na clareza e ludicidade de apps de aprendizagem, mantendo cores, personagens, linguagem e símbolos próprios.
 
 ## Acessibilidade implementada
 A central global de aparência permite:
@@ -47,7 +47,7 @@ A central global de aparência permite:
 2. Apoio visual: fonte ampliada, contraste reforçado e foco visível.
 3. Segurança para epilepsia: remove animações/transições e reduz estímulos visuais; não é garantia médica.
 4. Foco cognitivo e TDAH: reduz decoração e prioriza conteúdo essencial.
-5. Sons rápidos do Curió: desligados por padrão e controlados pelo usuário.
+5. Sons rápidos do Plumareli: desligados por padrão e controlados pelo usuário.
 
 As preferências ficam salvas no dispositivo por `localStorage`.
 
@@ -69,3 +69,6 @@ Não implementar vídeo automático até existir material oficial. Quando for pr
 - legenda/alternativa textual quando necessário;
 - pausar ou substituir por imagem em `prefers-reduced-motion` e no modo de segurança para epilepsia;
 - botão de pausar quando o vídeo transportar informação relevante.
+
+## Legado técnico
+Nomes `curio` ainda presentes em migrations, classes CSS, caminhos de assets e identificadores persistidos podem ser compatibilidade técnica. Não renomear esses itens apenas por estética sem mapear todas as dependências e validar a migração.
