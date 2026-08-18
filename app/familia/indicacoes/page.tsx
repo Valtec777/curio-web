@@ -1,6 +1,7 @@
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { ReferralShare } from "@/components/referral-share";
 import { getFamilyPortal } from "@/lib/family";
+import { getSiteOrigin } from "@/lib/site-url";
 
 function dt(value?: string | null) {
   if (!value) return "—";
@@ -35,7 +36,7 @@ export default async function FamilyReferralsPage() {
     supabase.rpc("my_referral_benefits"),
   ]);
   const summary: any = summaryRows?.[0] || null;
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://curioeducacao.vercel.app").replace(/\/$/, "");
+  const siteUrl = getSiteOrigin();
   const referralLink = summary?.code ? `${siteUrl}/convite/${summary.code}` : "";
 
   return <>
