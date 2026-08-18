@@ -3,18 +3,21 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireRole } from "@/lib/auth";
+import {
+  CHARACTER_ASSET_BUCKET,
+  CHARACTER_ASSET_MAX_BYTES,
+  CHARACTER_ASSET_MIME_TYPES,
+} from "@/lib/character-assets";
 import { createClient } from "@/lib/supabase/server";
 
-export const CHARACTER_ASSET_BUCKET = "character-assets";
-const MAX_BYTES = 5 * 1024 * 1024;
-const ALLOWED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+const ALLOWED_MIME_TYPES = new Set<string>(CHARACTER_ASSET_MIME_TYPES);
 const assetKeys = ["principal", "avatar", "sticker", "activity", "thinking"] as const;
 
 const uploadedMascotSchema = z.object({
   characterId: z.string().uuid(),
   uploadedFilePath: z.string().trim().min(3).max(500),
   uploadedMimeType: z.string().trim().min(3).max(100),
-  uploadedFileSize: z.coerce.number().int().positive().max(MAX_BYTES),
+  uploadedFileSize: z.coerce.number().int().positive().max(CHARACTER_ASSET_MAX_BYTES),
 });
 
 function storagePathFromPublicUrl(value?: string | null) {
@@ -31,7 +34,7 @@ function storagePathFromPublicUrl(value?: string | null) {
 }
 
 export async function registerMascotImage(formData: FormData) {
-  await requireRole("admin");
+  const viewer = await requireRole("admin");
   const parsed = uploadedMascotSchema.safeParse({
     characterId: formData.get("characterId"),
     uploadedFilePath: formData.get("uploadedFilePath"),
@@ -99,6 +102,8 @@ export async function registerMascotImage(formData: FormData) {
     return { ok: false as const, message: "A imagem foi enviada, mas não foi possível atualizar o mascote." };
   }
 
+  // Registra a versão na biblioteca como histórico operacional. A atualização
+  // do personagem já foi concluída, então uma falha aqui não desfaz a troca.
   await supabase.from("media_assets").insert({
     name: `${character.name} — imagem principal`,
     category: "mascot",
@@ -107,6 +112,7 @@ export async function registerMascotImage(formData: FormData) {
     alt_text: character.name,
     source_entity_type: "character",
     source_entity_id: character.id,
+    created_by_user_id: viewer.user.id,
     active: true,
   });
 
