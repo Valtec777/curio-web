@@ -62,6 +62,7 @@ const menus: Record<AppRole, NavItem[]> = {
     { href: "/professor/relatorios", label: "Relatórios", group: "Revisar" },
     { href: "/professor/repasses", label: "Meus repasses", group: "Conta" },
     { href: "/professor/indicacoes", label: "Indicações", group: "Conta" },
+    { href: "/professor/documentos", label: "Documentos", group: "Conta" },
     { href: "/professor/perfil", label: "Perfil", group: "Conta" },
     { href: "/professor/suporte", label: "Suporte", group: "Conta" },
     { href: "/admin", label: "Área Administrativa", requiresRole: "admin", group: "Conta" },
