@@ -1,7 +1,8 @@
 import { Badge, EmptyState, PageHeader } from "@/components/ui";
 import { getCurrentTeacher } from "@/lib/teacher";
 
-const MANUAL_HREF = "/documentos/manual-do-instrutor-plumareli-v2.pdf";
+const MANUAL_HREF = "https://drive.google.com/file/d/13825Ul9JjoJjhut43OhnqUNpZPkyA8mu/view?usp=drivesdk";
+const MANUAL_DOWNLOAD_HREF = "https://drive.google.com/uc?export=download&id=13825Ul9JjoJjhut43OhnqUNpZPkyA8mu";
 
 export default async function TeacherDocumentsPage() {
   const { teacher } = await getCurrentTeacher();
@@ -50,7 +51,7 @@ export default async function TeacherDocumentsPage() {
               <a className="button button-primary" href={MANUAL_HREF} target="_blank" rel="noreferrer">
                 Abrir manual
               </a>
-              <a className="button button-secondary" href={MANUAL_HREF} download>
+              <a className="button button-secondary" href={MANUAL_DOWNLOAD_HREF} target="_blank" rel="noreferrer">
                 Baixar PDF
               </a>
             </div>
@@ -62,7 +63,7 @@ export default async function TeacherDocumentsPage() {
               Volte ao documento sempre que precisar. Ele foi organizado para funcionar
               como material de consulta, e não como uma prova de treinamento.
             </p>
-            <small className="muted">Última revisão desta biblioteca: agosto de 2026.</small>
+            <small className="muted">Arquivo oficial mantido pela administração • revisão de agosto de 2026.</small>
           </article>
         </div>
       </section>
