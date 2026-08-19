@@ -9,3 +9,8 @@ export const BRAND_ASSET_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"] 
 
 export const BRAND_LOGO_FALLBACK = "/brand/plumareli-logo-oficial.webp?v=20260817-1";
 export const BRAND_LOGO_ENDPOINT = "/api/brand/logo";
+
+// Símbolo reduzido oficial (P + personagem), materializado no prebuild a partir
+// dos ativos versionados em .brand-assets. Ele é usado quando a interface não
+// tem largura suficiente para a assinatura principal permanecer legível.
+export const BRAND_SYMBOL_FALLBACK = "/brand/plumareli-symbol.webp";
