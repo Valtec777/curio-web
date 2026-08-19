@@ -2,7 +2,7 @@ import { AdminBrandLogoRestore } from "@/components/admin-brand-logo-restore";
 import { AdminBrandLogoUpload } from "@/components/admin-brand-logo-upload";
 import { PageHeader } from "@/components/ui";
 import { requireRole } from "@/lib/auth";
-import { BRAND_SETTING_KEY } from "@/lib/brand-assets";
+import { BRAND_SETTING_KEY, BRAND_SYMBOL_FALLBACK } from "@/lib/brand-assets";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function AdminBrandPage() {
@@ -22,45 +22,68 @@ export default async function AdminBrandPage() {
     <>
       <PageHeader
         eyebrow="Sistema"
-        title="Marca e logo"
-        description="Troque a logo do Plumareli sem editar código. A imagem ativa passa a ser usada pelos componentes centrais da marca."
+        title="Marca e logos"
+        description="A Plumareli usa uma assinatura principal nos espaços amplos e um símbolo reduzido nos ambientes compactos."
       />
 
       <div className="grid-2">
         <section className="panel">
           <div className="panel-head">
             <div>
-              <h2>Logo atual</h2>
-              <p>{hasCustomLogo ? "Você está usando uma logo enviada pelo Admin." : "Você está usando a logo original versionada no projeto."}</p>
+              <h2>Logo principal</h2>
+              <p>Assinatura completa para cabeçalho público, autenticação, rodapé e outros espaços onde o nome pode ser lido com conforto.</p>
             </div>
           </div>
           <div className="form-stack">
-            <div className="brand-admin-preview" style={{ minHeight: 180, display: "grid", placeItems: "center", padding: 24, border: "1px solid var(--border)", borderRadius: 18 }}>
+            <div className="brand-admin-preview" style={{ minHeight: 240, display: "grid", placeItems: "center", padding: 28, border: "1px solid var(--border)", borderRadius: 24 }}>
               <img
                 src={`/api/brand/logo?v=${previewVersion}`}
-                alt="Logo atual do Plumareli"
-                style={{ display: "block", maxWidth: "100%", maxHeight: 150, objectFit: "contain" }}
+                alt="Logo principal atual do Plumareli"
+                style={{ display: "block", width: "min(100%, 420px)", maxHeight: 210, objectFit: "contain" }}
               />
             </div>
-            <p className="muted text-small mb-0">Esta prévia usa a mesma fonte central consumida pelo restante do site.</p>
+            <div className="notice text-small">
+              <strong>Uso estratégico:</strong> aparece em áreas horizontais e com respiro. Não é mais repetida dentro das sidebars compactas.
+            </div>
             {hasCustomLogo ? <AdminBrandLogoRestore /> : null}
           </div>
         </section>
 
         <section className="panel">
-          <AdminBrandLogoUpload />
+          <div className="panel-head">
+            <div>
+              <h2>Logo reduzida</h2>
+              <p>O símbolo com o P e a personagem identifica a Plumareli quando a assinatura completa ficaria pequena ou espremida.</p>
+            </div>
+          </div>
+          <div className="form-stack">
+            <div className="brand-admin-preview" style={{ minHeight: 240, display: "grid", placeItems: "center", padding: 28, border: "1px solid var(--border)", borderRadius: 24 }}>
+              <img
+                src={BRAND_SYMBOL_FALLBACK}
+                alt="Logo reduzida do Plumareli"
+                style={{ display: "block", width: 132, height: 132, objectFit: "contain" }}
+              />
+            </div>
+            <div className="notice text-small">
+              <strong>Uso estratégico:</strong> menus internos do Admin, Professor, Família e Aluno. O tamanho é mantido legível e sem competir com o conteúdo da tela.
+            </div>
+          </div>
         </section>
       </div>
 
       <section className="panel mt-16">
+        <AdminBrandLogoUpload />
+      </section>
+
+      <section className="panel mt-16">
         <div className="panel-head">
           <div>
-            <h2>Como funciona</h2>
-            <p>O arquivo enviado recebe uma URL nova e vira a logo ativa. A versão anterior deixa de ser usada, evitando que o navegador mostre uma imagem antiga por cache.</p>
+            <h2>Regra da marca no produto</h2>
+            <p>As duas versões trabalham juntas: a principal apresenta a marca; a reduzida assina a navegação recorrente.</p>
           </div>
         </div>
         <div className="notice text-small">
-          A logo original do repositório nunca é apagada: ela continua disponível como fallback e pode ser restaurada pelo Admin.
+          Trocar a logo principal pelo Admin não substitui o símbolo reduzido. A logo original do repositório também nunca é apagada e continua disponível como fallback.
         </div>
       </section>
     </>
