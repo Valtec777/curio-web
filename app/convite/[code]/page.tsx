@@ -31,15 +31,14 @@ export default async function ReferralLandingPage({
     <main>
       <section className="section curio-public-hero">
         <div className="site-shell lead-grid">
-          <div className="lead-copy">
+          <div className="lead-copy" style={{ minWidth: 0 }}>
             <div className="eyebrow eyebrow-green">Convite PLUMARELI</div>
-            <h1 style={{ fontSize: "clamp(42px, 6vw, 70px)", lineHeight: 1 }}>Aprender pode ficar mais leve quando existe acompanhamento.</h1>
+            <h1 style={{ fontSize: "clamp(42px, 6vw, 70px)", lineHeight: 1, margin: "12px 0 18px", maxWidth: 680 }}>Aprender pode ficar mais leve quando existe acompanhamento.</h1>
             <p>{inviter}</p>
             <p>Conte um pouco sobre a rotina escolar. A equipe entra em contato para explicar como funciona e orientar o próximo passo.</p>
-            {landing.public_rules ? <div className="notice">{landing.public_rules}</div> : null}
           </div>
 
-          <form className="lead-form" action={createEnrollmentRequest} id="quero-conhecer">
+          <form className="lead-form" style={{ marginTop: "clamp(34px, 4.5vw, 58px)" }} action={createEnrollmentRequest} id="quero-conhecer">
             <input type="hidden" name="referral_code" value={code} />
             {lead === "sucesso" && <div className="form-message form-success">Recebemos seu interesse. A equipe PLUMARELI entrará em contato com você.</div>}
             {lead === "erro" && <div className="form-message form-error">Não foi possível enviar agora. Confira os campos e tente novamente.</div>}
