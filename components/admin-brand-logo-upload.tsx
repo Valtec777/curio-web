@@ -90,8 +90,8 @@ export function AdminBrandLogoUpload() {
   return (
     <form action={submit} className="form-stack" aria-busy={busy}>
       <div>
-        <h2>Trocar logo</h2>
-        <p className="muted mb-0">Exporte do Canva e anexe aqui. A imagem escolhida passa a ser a logo central do Plumareli.</p>
+        <h2>Trocar logo principal</h2>
+        <p className="muted mb-0">Exporte do Canva e anexe aqui. Essa assinatura aparece apenas nos espaços amplos da marca; a logo reduzida dos menus internos continua preservada.</p>
       </div>
       {error ? <div className="form-message form-error">{error}</div> : null}
       {message ? <div className="form-message form-success">{message}</div> : null}
@@ -109,9 +109,9 @@ export function AdminBrandLogoUpload() {
       </label>
       {selectedName ? <small><strong>Selecionada:</strong> {selectedName}</small> : <small className="muted">PNG, JPG ou WEBP · até 5 MB.</small>}
       <button className="button button-primary" type="submit" disabled={busy}>
-        {busy ? "Atualizando..." : "Usar esta logo"}
+        {busy ? "Atualizando..." : "Usar como logo principal"}
       </button>
-      <p className="muted text-small mb-0">Dica: para a logo principal, prefira fundo transparente e mantenha uma margem ao redor da arte para evitar cortes.</p>
+      <p className="muted text-small mb-0">Dica: prefira fundo transparente e mantenha margem ao redor da arte para evitar cortes.</p>
     </form>
   );
 }
