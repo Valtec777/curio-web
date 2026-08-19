@@ -3,11 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/materialize-brand-assets.mjs && node scripts/materialize-document-assets.mjs",
+    "predev": "node scripts/materialize-brand-assets.mjs",
     "dev": "next dev",
-    "prebuild": "node scripts/materialize-brand-assets.mjs && node scripts/materialize-document-assets.mjs",
+    "prebuild": "node scripts/materialize-brand-assets.mjs",
     "brand:materialize": "node scripts/materialize-brand-assets.mjs",
-    "documents:materialize": "node scripts/materialize-document-assets.mjs",
     "assets:check": "node scripts/check-public-assets.mjs",
     "build": "next build",
     "start": "next start",
