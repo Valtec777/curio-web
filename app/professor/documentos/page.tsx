@@ -63,7 +63,10 @@ export default async function TeacherDocumentsPage() {
               Volte ao documento sempre que precisar. Ele foi organizado para funcionar
               como material de consulta, e não como uma prova de treinamento.
             </p>
-            <small className="muted">Arquivo oficial mantido pela administração • revisão de agosto de 2026.</small>
+            <small className="muted">
+              Arquivo oficial mantido pela administração • revisão de agosto de 2026. Se o Drive pedir acesso,
+              use o mesmo e-mail cadastrado no Plumareli para solicitar a liberação.
+            </small>
           </article>
         </div>
       </section>
