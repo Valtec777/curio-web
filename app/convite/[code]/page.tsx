@@ -29,16 +29,16 @@ export default async function ReferralLandingPage({
   return <>
     <header className="public-header"><div className="site-shell public-header-inner"><Logo /><Link className="button button-secondary" href="/">Conhecer o site</Link></div></header>
     <main>
-      <section className="section curio-public-hero">
-        <div className="site-shell lead-grid">
-          <div className="lead-copy" style={{ minWidth: 0 }}>
+      <section className="section curio-public-hero referral-invite-section">
+        <div className="site-shell lead-grid referral-invite-grid">
+          <div className="lead-copy referral-invite-copy">
             <div className="eyebrow eyebrow-green">Convite PLUMARELI</div>
-            <h1 style={{ fontSize: "clamp(42px, 6vw, 70px)", lineHeight: 1, margin: "12px 0 18px", maxWidth: 680 }}>Aprender pode ficar mais leve quando existe acompanhamento.</h1>
+            <h1 className="referral-invite-title">Aprender pode ficar mais leve quando existe acompanhamento.</h1>
             <p>{inviter}</p>
             <p>Conte um pouco sobre a rotina escolar. A equipe entra em contato para explicar como funciona e orientar o próximo passo.</p>
           </div>
 
-          <form className="lead-form" style={{ marginTop: "clamp(34px, 4.5vw, 58px)" }} action={createEnrollmentRequest} id="quero-conhecer">
+          <form className="lead-form referral-invite-form" action={createEnrollmentRequest} id="quero-conhecer">
             <input type="hidden" name="referral_code" value={code} />
             {lead === "sucesso" && <div className="form-message form-success">Recebemos seu interesse. A equipe PLUMARELI entrará em contato com você.</div>}
             {lead === "erro" && <div className="form-message form-error">Não foi possível enviar agora. Confira os campos e tente novamente.</div>}

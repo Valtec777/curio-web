@@ -45,6 +45,43 @@ html[data-theme="dark"] .referral-guide-step {
   border-color: #46536a;
 }
 
+/* Convite público: impede o título de invadir o formulário em larguras intermediárias. */
+.referral-invite-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(420px, .92fr) !important;
+  gap: clamp(56px, 6vw, 84px) !important;
+  align-items: start;
+}
+.referral-invite-copy { min-width: 0; }
+.referral-invite-title {
+  max-width: 590px;
+  margin: 14px 0 22px;
+  font-size: clamp(40px, 5.2vw, 66px);
+  line-height: .98;
+  letter-spacing: -.045em;
+  text-wrap: balance;
+}
+.referral-invite-form {
+  min-width: 0;
+  margin-top: 44px;
+}
+
+@media (max-width: 1120px) {
+  .referral-invite-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(390px, .9fr) !important;
+    gap: 52px !important;
+  }
+  .referral-invite-title {
+    max-width: 520px;
+    font-size: clamp(38px, 5vw, 54px);
+  }
+}
+
+@media (max-width: 900px) {
+  .referral-invite-grid { grid-template-columns: 1fr !important; gap: 34px !important; }
+  .referral-invite-title { max-width: 720px; font-size: clamp(40px, 8vw, 62px); }
+  .referral-invite-form { margin-top: 0; }
+}
+
 @media (max-width: 800px) {
   .referral-guide-grid { grid-template-columns: 1fr; }
   .referral-guide-step { min-height: auto; }
@@ -52,4 +89,8 @@ html[data-theme="dark"] .referral-guide-step {
 
 @media (max-width: 640px) {
   .referral-share .button { width: 100%; }
+  .referral-invite-section { padding-top: 48px; }
+  .referral-invite-title { font-size: clamp(38px, 12vw, 52px); }
+  .referral-invite-form { padding: 22px; }
+  .referral-invite-form .form-row { grid-template-columns: 1fr; }
 }
