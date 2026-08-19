@@ -9,7 +9,7 @@ export type SeasonalEvent = {
   mission: Record<SeasonalBand, string>;
 };
 
-export function getSeasonalEvent(): SeasonalEvent | null {
+export function getSeasonalEvent(_date = new Date()): SeasonalEvent | null {
   return null;
 }
 
@@ -20,6 +20,6 @@ export function getGradeBand(gradeName?: string | null): SeasonalBand {
   return "1-3";
 }
 
-export function getSeasonalExperience() {
+export function getSeasonalExperience(_date = new Date(), _gradeName?: string | null) {
   return null;
 }
