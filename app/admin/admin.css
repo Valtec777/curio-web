@@ -1,0 +1,9 @@
+/* PLUMARELI — estilos do ambiente Admin.
+   Este é o único entrypoint CSS do layout administrativo. */
+@import "./dark-mode-fixes.css";
+@import "./admin-polish.css";
+@import "./admin-lists.css";
+@import "./admin-generator.css";
+@import "./admin-refinements.css";
+@import "./admin-charts.css";
+@import "./admin-context.css";
