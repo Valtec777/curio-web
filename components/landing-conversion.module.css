@@ -1,0 +1,304 @@
+.scope {
+  position: relative;
+}
+
+/* Universo Plumareli — uma grade estável, com a mesma presença visual para cada personagem. */
+:global(#universo .mascot-free-grid) {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 18px;
+}
+
+:global(#universo .mascot-character),
+:global(#universo .mascot-character:nth-child(n)) {
+  grid-column: auto;
+  min-width: 0;
+  min-height: 450px;
+  height: 100%;
+  display: grid;
+  grid-template-rows: 286px minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid #e4e8f1;
+  border-radius: 28px;
+  background: #fffdf9;
+  box-shadow: 0 14px 34px rgba(23, 40, 78, .07);
+}
+
+:global(#universo .mascot-image-free) {
+  width: 100%;
+  height: 286px;
+  min-height: 286px;
+  display: grid;
+  place-items: end center;
+  margin: 0;
+  padding: 18px 14px 0;
+  overflow: hidden;
+  border-radius: 0;
+}
+
+:global(#universo .mascot-character:nth-child(1) .mascot-image-free) {
+  background: linear-gradient(145deg, #eef9d8 0%, #dff5ad 100%);
+}
+:global(#universo .mascot-character:nth-child(2) .mascot-image-free) {
+  background: linear-gradient(145deg, #fff0f6 0%, #ffdbe9 100%);
+}
+:global(#universo .mascot-character:nth-child(3) .mascot-image-free) {
+  background: linear-gradient(145deg, #edf2ff 0%, #dbe5ff 100%);
+}
+:global(#universo .mascot-character:nth-child(4) .mascot-image-free) {
+  background: linear-gradient(145deg, #fff7d8 0%, #ffe9a3 100%);
+}
+:global(#universo .mascot-character:nth-child(5) .mascot-image-free) {
+  background: linear-gradient(145deg, #f2edff 0%, #e3d8ff 100%);
+}
+:global(#universo .mascot-character:nth-child(6) .mascot-image-free) {
+  background: linear-gradient(145deg, #fff0f7 0%, #f8d8ff 100%);
+}
+:global(#universo .mascot-character:nth-child(7) .mascot-image-free) {
+  background: linear-gradient(145deg, #eaf1ff 0%, #dcd8ff 100%);
+}
+:global(#universo .mascot-character:nth-child(8) .mascot-image-free) {
+  background: linear-gradient(145deg, #eef9d9 0%, #dbeaff 100%);
+}
+
+:global(#universo .mascot-image-free img) {
+  width: auto;
+  max-width: 88%;
+  height: 254px;
+  max-height: 254px;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 15px 20px rgba(23, 40, 78, .13));
+}
+
+/* Harpia e Irara têm silhuetas diferentes dos demais; a escala compensa a área ocupada, não o pixel bruto. */
+:global(#universo .mascot-character:nth-child(7) .mascot-image-free img) {
+  height: 236px;
+  max-height: 236px;
+  max-width: 84%;
+}
+
+:global(#universo .mascot-character:nth-child(8) .mascot-image-free img) {
+  width: 96%;
+  max-width: 96%;
+  height: 218px;
+  max-height: 218px;
+  transform: translateY(-9px);
+}
+
+:global(#universo .mascot-character:hover .mascot-image-free img) {
+  transform: translateY(-5px);
+}
+
+:global(#universo .mascot-character:nth-child(8):hover .mascot-image-free img) {
+  transform: translateY(-12px);
+}
+
+:global(#universo .mascot-caption) {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 21px 22px 24px;
+  background: #fffdf9;
+}
+
+:global(#universo .mascot-caption h3) {
+  margin: 10px 0 6px;
+  color: #17284e;
+  font-size: 21px;
+  line-height: 1.08;
+}
+
+:global(#universo .mascot-caption p) {
+  margin: auto 0 0;
+  padding-top: 9px;
+  color: #647087;
+  font-size: 14px;
+  line-height: 1.48;
+}
+
+:global(#universo .mascot-name-pill) {
+  border: 1px solid #dfe5f0;
+  background: #f7f8fc;
+  color: #315efb;
+}
+
+/* Planos — facilitar comparação sem transformar a seção em vitrine agressiva. */
+:global(#plano .public-plan-grid) {
+  align-items: stretch;
+}
+
+:global(#plano .public-plan-card) {
+  height: 100%;
+  border: 1px solid #e0e5ef;
+  background: #fffdf9;
+  box-shadow: 0 14px 34px rgba(23, 40, 78, .06);
+}
+
+:global(#plano .public-plan-card .button) {
+  margin-top: auto;
+}
+
+:global(#plano .public-plan-featured) {
+  border-color: rgba(49, 94, 251, .35);
+  box-shadow: 0 18px 42px rgba(49, 94, 251, .12);
+}
+
+/* Contato — separar argumento e formulário e tornar o próximo passo visualmente óbvio. */
+:global(#quero-conhecer .lead-grid) {
+  align-items: stretch;
+  gap: clamp(28px, 5vw, 58px);
+}
+
+:global(#quero-conhecer .lead-copy) {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+:global(#quero-conhecer .lead-price) {
+  margin-top: 26px;
+  padding: 19px 20px;
+  border: 1px solid #dbe3f1;
+  border-left: 5px solid #315efb;
+  border-radius: 18px;
+  background: #fffdf9;
+  color: #17284e;
+  box-shadow: 0 12px 30px rgba(23, 40, 78, .06);
+}
+
+:global(#quero-conhecer .lead-price strong) {
+  color: #17284e;
+}
+
+:global(#quero-conhecer .lead-price span) {
+  color: #5c687e;
+}
+
+:global(#quero-conhecer .lead-form) {
+  border: 1px solid #dfe5ef;
+  background: #fffdf9;
+  box-shadow: 0 20px 54px rgba(23, 40, 78, .10);
+}
+
+:global(#quero-conhecer .consent-line) {
+  border-radius: 14px;
+  background: #f7f8fc;
+}
+
+/* Dark: cores de marca como acento, nunca como marrom/acinzentado indefinido. */
+:global(html[data-theme="dark"] #universo .mascot-character),
+:global(html[data-theme="dark"] #universo .mascot-character:nth-child(n)) {
+  border-color: #303b4c;
+  background: #192230;
+  box-shadow: none;
+}
+
+:global(html[data-theme="dark"] #universo .mascot-character:nth-child(1) .mascot-image-free) {
+  background: linear-gradient(145deg, #1d2b26 0%, #203626 100%);
+}
+:global(html[data-theme="dark"] #universo .mascot-character:nth-child(2) .mascot-image-free) {
+  background: linear-gradient(145deg, #2a2130 0%, #342238 100%);
+}
+:global(html[data-theme="dark"] #universo .mascot-character:nth-child(3) .mascot-image-free) {
+  background: linear-gradient(145deg, #1d2940 0%, #22345b 100%);
+}
+:global(html[data-theme="dark"] #universo .mascot-character:nth-child(4) .mascot-image-free) {
+  background: linear-gradient(145deg, #2c2a20 0%, #34311f 100%);
+}
+:global(html[data-theme="dark"] #universo .mascot-character:nth-child(5) .mascot-image-free) {
+  background: linear-gradient(145deg, #26223a 0%, #302855 100%);
+}
+:global(html[data-theme="dark"] #universo .mascot-character:nth-child(6) .mascot-image-free) {
+  background: linear-gradient(145deg, #2d2030 0%, #3a2441 100%);
+}
+:global(html[data-theme="dark"] #universo .mascot-character:nth-child(7) .mascot-image-free) {
+  background: linear-gradient(145deg, #1d2940 0%, #302956 100%);
+}
+:global(html[data-theme="dark"] #universo .mascot-character:nth-child(8) .mascot-image-free) {
+  background: linear-gradient(145deg, #1d3027 0%, #223150 100%);
+}
+
+:global(html[data-theme="dark"] #universo .mascot-caption) {
+  background: #192230;
+}
+
+:global(html[data-theme="dark"] #universo .mascot-caption h3) {
+  color: #f4f6fa;
+}
+
+:global(html[data-theme="dark"] #universo .mascot-caption p) {
+  color: #c1cad7;
+}
+
+:global(html[data-theme="dark"] #universo .mascot-name-pill) {
+  border-color: #39475a;
+  background: #202b3a;
+  color: #9eb2ff;
+}
+
+:global(html[data-theme="dark"] #plano .public-plan-card),
+:global(html[data-theme="dark"] #quero-conhecer .lead-form) {
+  border-color: #303b4c;
+  background: #192230;
+  box-shadow: none;
+}
+
+:global(html[data-theme="dark"] #quero-conhecer .lead-price) {
+  border-color: #35435a;
+  border-left-color: #7190f5;
+  background: #182235;
+  color: #f3f6fb;
+  box-shadow: none;
+}
+
+:global(html[data-theme="dark"] #quero-conhecer .lead-price strong) {
+  color: #f4f6fa;
+}
+
+:global(html[data-theme="dark"] #quero-conhecer .lead-price span) {
+  color: #c0c9d6;
+}
+
+:global(html[data-theme="dark"] #quero-conhecer .consent-line) {
+  background: #202b3a;
+}
+
+@media (max-width: 1100px) {
+  :global(#universo .mascot-free-grid) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  :global(#universo .mascot-free-grid) {
+    grid-template-columns: 1fr;
+  }
+
+  :global(#universo .mascot-character),
+  :global(#universo .mascot-character:nth-child(n)) {
+    min-height: 420px;
+    grid-template-rows: 260px minmax(0, 1fr);
+  }
+
+  :global(#universo .mascot-image-free) {
+    height: 260px;
+    min-height: 260px;
+  }
+
+  :global(#universo .mascot-image-free img) {
+    height: 232px;
+    max-height: 232px;
+  }
+
+  :global(#universo .mascot-character:nth-child(7) .mascot-image-free img) {
+    height: 216px;
+    max-height: 216px;
+  }
+
+  :global(#universo .mascot-character:nth-child(8) .mascot-image-free img) {
+    height: 196px;
+    max-height: 196px;
+  }
+}
