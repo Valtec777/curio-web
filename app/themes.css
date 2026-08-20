@@ -1,0 +1,394 @@
+/* PLUMARELI — temas de conforto visual
+   O tema define ambiente e contraste; os componentes continuam em design-system.css. */
+
+:root,
+html[data-theme="light"] {
+  color-scheme: light;
+
+  --plum-canvas: #f5f2eb;
+  --plum-canvas-subtle: #faf8f3;
+  --plum-surface: #fffdf9;
+  --plum-surface-raised: #ffffff;
+  --plum-surface-soft: #efeff4;
+  --plum-surface-tint: #f2f4ff;
+  --plum-text: #222a3d;
+  --plum-text-strong: #17213a;
+  --plum-text-muted: #687184;
+  --plum-border: #e2ded5;
+  --plum-border-strong: #d3d0c8;
+  --plum-input-bg: #fffefb;
+  --plum-hover: #f2efe8;
+  --plum-overlay: rgba(23, 33, 58, .48);
+
+  --plum-shadow-xs: 0 1px 2px rgba(28, 38, 62, .035);
+  --plum-shadow-sm: 0 8px 24px rgba(28, 38, 62, .055);
+  --plum-shadow-md: 0 16px 42px rgba(28, 38, 62, .08);
+  --plum-shadow-lg: 0 28px 72px rgba(28, 38, 62, .12);
+
+  --curio-surface: var(--plum-surface);
+  --curio-surface-raised: var(--plum-surface-raised);
+  --curio-surface-soft: var(--plum-surface-soft);
+  --curio-text: var(--plum-text);
+  --curio-text-muted: var(--plum-text-muted);
+  --curio-border: var(--plum-border);
+  --curio-input-bg: var(--plum-input-bg);
+  --curio-hover: var(--plum-hover);
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  --plum-canvas: #11161f;
+  --plum-canvas-subtle: #151b24;
+  --plum-surface: #1a212c;
+  --plum-surface-raised: #202833;
+  --plum-surface-soft: #151c26;
+  --plum-surface-tint: #1d2637;
+  --plum-text: #e9edf4;
+  --plum-text-strong: #f3f5f9;
+  --plum-text-muted: #aeb7c6;
+  --plum-border: #303a49;
+  --plum-border-strong: #424e60;
+  --plum-input-bg: #151c26;
+  --plum-hover: #27303d;
+  --plum-overlay: rgba(0, 0, 0, .68);
+
+  --plum-blue: #7190f5;
+  --plum-blue-strong: #91a9ff;
+  --plum-purple: #9275ef;
+  --plum-pink: #f17aac;
+  --plum-lime: #b9e94f;
+  --plum-yellow: #f4d77c;
+  --plum-focus: #b9e94f;
+
+  --plum-shadow-xs: 0 1px 2px rgba(0, 0, 0, .12);
+  --plum-shadow-sm: 0 8px 24px rgba(0, 0, 0, .16);
+  --plum-shadow-md: 0 18px 46px rgba(0, 0, 0, .22);
+  --plum-shadow-lg: 0 30px 80px rgba(0, 0, 0, .28);
+
+  --curio-surface: var(--plum-surface);
+  --curio-surface-raised: var(--plum-surface-raised);
+  --curio-surface-soft: var(--plum-surface-soft);
+  --curio-text: var(--plum-text);
+  --curio-text-muted: var(--plum-text-muted);
+  --curio-border: var(--plum-border);
+  --curio-input-bg: var(--plum-input-bg);
+  --curio-hover: var(--plum-hover);
+}
+
+/* Canvas e leitura */
+html,
+body,
+.app-main,
+.auth-form-side,
+.kid-dashboard {
+  color: var(--plum-text);
+  background-color: var(--plum-canvas);
+}
+
+body {
+  background-image:
+    radial-gradient(circle at 8% -4%, color-mix(in srgb, var(--plum-purple) 5%, transparent), transparent 34rem),
+    radial-gradient(circle at 94% 18%, color-mix(in srgb, var(--plum-lime) 3%, transparent), transparent 28rem);
+  background-attachment: fixed;
+}
+
+h1, h2, h3, h4, h5, h6,
+.page-header h1,
+.section-heading h2 {
+  color: var(--plum-text-strong);
+}
+
+.muted,
+.page-header p,
+.panel-head p,
+.section-heading p,
+.empty-state p {
+  color: var(--plum-text-muted);
+}
+
+/* Superfícies: pouco contraste no claro e profundidade controlada no escuro. */
+.panel,
+.stat-card,
+.mission-card,
+.question-box,
+.resource-card,
+.feature-card,
+.method-card,
+.role-card,
+.family-summary-card,
+.family-upload-card,
+.teacher-today-card,
+.teacher-side-card,
+.teacher-recent-item,
+.teacher-agenda-item,
+.public-plan-card,
+.course-public-card,
+.course-card,
+.step-card,
+.experience-card,
+.map-mini-card,
+.auth-card,
+.notice,
+.form-message,
+.modal-card,
+.dialog-card,
+.experience-panel,
+.child-space-button,
+.student-notebook-mini,
+.achievement-inline,
+.admin-module-card,
+.admin-welcome-card,
+.course-module-admin,
+.course-add-module,
+.course-admin-create,
+.enrollment-flow,
+.enrollment-step,
+.enrollment-review-card,
+.record-editor,
+.second-guardian,
+.referral-card,
+.report-card,
+.legal-public-sheet {
+  color: var(--plum-text);
+  border-color: var(--plum-border);
+}
+
+.panel,
+.stat-card,
+.mission-card,
+.question-box,
+.resource-card,
+.feature-card,
+.method-card,
+.role-card,
+.family-summary-card,
+.family-upload-card,
+.teacher-today-card,
+.teacher-side-card,
+.teacher-recent-item,
+.teacher-agenda-item,
+.public-plan-card,
+.course-card,
+.step-card,
+.experience-card,
+.map-mini-card,
+.auth-card,
+.modal-card,
+.dialog-card,
+.experience-panel,
+.child-space-button,
+.student-notebook-mini,
+.achievement-inline,
+.admin-module-card,
+.admin-welcome-card,
+.course-module-admin,
+.course-add-module,
+.course-admin-create,
+.enrollment-flow,
+.enrollment-step,
+.enrollment-review-card,
+.record-editor,
+.second-guardian,
+.referral-card,
+.report-card,
+.legal-public-sheet {
+  background: var(--plum-surface-raised);
+  box-shadow: var(--plum-shadow-xs);
+}
+
+.section-soft,
+.family-highlight,
+.mission-library-panel,
+.tip-card,
+.course-progress-panel,
+.course-start-panel {
+  background: var(--plum-surface-soft);
+  color: var(--plum-text);
+  border-color: var(--plum-border);
+}
+
+/* Público: cada tema tem uma atmosfera própria, sem trocar a identidade. */
+.public-header {
+  background: color-mix(in srgb, var(--plum-surface-raised) 88%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--plum-border) 84%, transparent);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--plum-border) 58%, transparent);
+}
+
+.public-nav { color: var(--plum-text-muted); }
+.public-nav a:hover { color: var(--plum-text-strong); }
+
+html[data-theme="light"] .hero {
+  background:
+    radial-gradient(circle at 84% 16%, rgba(239, 87, 153, .10), transparent 27%),
+    radial-gradient(circle at 68% 82%, rgba(185, 233, 79, .12), transparent 31%),
+    linear-gradient(180deg, #faf8f3 0%, #f5f2eb 100%);
+}
+
+html[data-theme="dark"] .hero {
+  background:
+    radial-gradient(circle at 86% 16%, rgba(241, 122, 172, .12), transparent 27%),
+    radial-gradient(circle at 66% 84%, rgba(185, 233, 79, .08), transparent 30%),
+    linear-gradient(180deg, #11161f 0%, #151b24 100%);
+}
+
+html[data-theme="dark"] .hero h1,
+html[data-theme="dark"] .hero-copy > p,
+html[data-theme="dark"] .hero-proof {
+  color: var(--plum-text-strong);
+}
+html[data-theme="dark"] .hero-copy > p,
+html[data-theme="dark"] .hero-proof { color: var(--plum-text-muted); }
+
+.section-dark {
+  background: #111a31;
+  color: #f1f4fa;
+}
+html[data-theme="dark"] .section-dark { background: #0c1119; }
+.section-dark h1,
+.section-dark h2,
+.section-dark h3 { color: #f5f7fb; }
+
+.footer {
+  background: #111a31;
+  color: #bdc6d7;
+}
+html[data-theme="dark"] .footer { background: #0b1017; }
+
+/* Formulários e controles: contraste suficiente sem borda agressiva. */
+.input,
+.select,
+.textarea,
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  background: var(--plum-input-bg);
+  color: var(--plum-text);
+  border-color: var(--plum-border-strong);
+}
+
+.input::placeholder,
+.textarea::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: color-mix(in srgb, var(--plum-text-muted) 76%, transparent);
+  opacity: 1;
+}
+
+.input:hover,
+.select:hover,
+.textarea:hover,
+input:not([type="checkbox"]):not([type="radio"]):hover,
+select:hover,
+textarea:hover {
+  border-color: color-mix(in srgb, var(--plum-blue) 30%, var(--plum-border-strong));
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus,
+input:not([type="checkbox"]):not([type="radio"]):focus,
+select:focus,
+textarea:focus {
+  background: var(--plum-surface-raised);
+  border-color: var(--plum-blue);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--plum-blue) 14%, transparent);
+}
+
+.button-secondary,
+.button-ghost {
+  background: var(--plum-surface-raised);
+  color: var(--plum-text-strong);
+  border-color: var(--plum-border-strong);
+  box-shadow: var(--plum-shadow-xs);
+}
+.button-secondary:hover,
+.button-ghost:hover {
+  background: var(--plum-hover);
+  border-color: color-mix(in srgb, var(--plum-blue) 28%, var(--plum-border-strong));
+}
+
+/* Tabelas: linhas suaves e leitura longa mais confortável. */
+.data-table th {
+  color: var(--plum-text-muted);
+  background: color-mix(in srgb, var(--plum-surface-soft) 70%, transparent);
+  border-bottom-color: var(--plum-border);
+}
+.data-table td {
+  color: var(--plum-text);
+  border-bottom-color: color-mix(in srgb, var(--plum-border) 74%, transparent);
+}
+.data-table tbody tr:hover {
+  background: color-mix(in srgb, var(--plum-blue) 4%, var(--plum-surface-raised));
+}
+
+/* Badges preservam significado sem neon excessivo. */
+html[data-theme="dark"] .badge-blue { background: #24365d; color: #c9d7ff; }
+html[data-theme="dark"] .badge-pink { background: #4b293b; color: #ffc8dd; }
+html[data-theme="dark"] .badge-green { background: #2b3d24; color: #d8efad; }
+html[data-theme="dark"] .badge-yellow { background: #493f26; color: #f4df9e; }
+html[data-theme="dark"] .badge-purple { background: #372e52; color: #d9d0ff; }
+html[data-theme="dark"] .badge-neutral { background: #29323f; color: #d0d6df; }
+
+/* Feedback sem vermelho/verde luminoso. */
+html[data-theme="light"] .form-success { background: #edf6f0; color: #2f6c4b; }
+html[data-theme="light"] .form-error { background: #fff0ef; color: #a73931; }
+html[data-theme="dark"] .form-success { background: #1d352a; color: #bfe6cf; }
+html[data-theme="dark"] .form-error { background: #3a2428; color: #f4c0c4; }
+
+/* Painel de aparência acompanha o próprio tema. */
+.experience-panel {
+  background: var(--plum-surface-raised);
+  color: var(--plum-text);
+  border-color: var(--plum-border-strong);
+  box-shadow: var(--plum-shadow-lg);
+}
+.experience-panel-head { border-bottom-color: var(--plum-border); }
+.experience-panel-head small,
+.preference-toggle small { color: var(--plum-text-muted); }
+.experience-close,
+.sound-preview button {
+  background: var(--plum-surface-soft);
+  color: var(--plum-text);
+  border-color: var(--plum-border);
+}
+.segmented-control {
+  background: var(--plum-surface-soft);
+  border-color: var(--plum-border);
+}
+.segmented-control button { color: var(--plum-text-muted); }
+.segmented-control button[aria-pressed="true"] {
+  background: var(--plum-surface-raised);
+  color: var(--plum-text-strong);
+  border-color: var(--plum-border-strong);
+  box-shadow: var(--plum-shadow-xs);
+}
+.preference-toggle { border-bottom-color: var(--plum-border); }
+
+/* Tema escuro não precisa eliminar toda profundidade: apenas reduzir o brilho. */
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .mission-card,
+html[data-theme="dark"] .resource-card,
+html[data-theme="dark"] .family-summary-card,
+html[data-theme="dark"] .teacher-today-card,
+html[data-theme="dark"] .teacher-side-card,
+html[data-theme="dark"] .auth-card,
+html[data-theme="dark"] .admin-module-card {
+  box-shadow: var(--plum-shadow-xs);
+}
+
+html[data-theme="dark"] .public-plan-card,
+html[data-theme="dark"] .course-public-card,
+html[data-theme="dark"] .feature-card,
+html[data-theme="dark"] .method-card,
+html[data-theme="dark"] .role-card {
+  background: var(--plum-surface-raised);
+  color: var(--plum-text);
+  border-color: var(--plum-border);
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --plum-border: var(--plum-border-strong);
+  }
+}
