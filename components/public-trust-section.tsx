@@ -1,23 +1,24 @@
 import styles from "./public-trust-section.module.css";
+import conversionStyles from "./landing-conversion.module.css";
 
 export function PublicTrustSection() {
   const trustItems = [
-    ["Acompanhamento humano", "A tecnologia apoia a organização, mas o acompanhamento continua sendo feito por pessoas."],
-    ["Evolução fácil de acompanhar", "A família acompanha progresso, agenda, atividades e próximos passos de forma clara."],
+    ["Primeiro contato simples", "Nesta etapa pedimos apenas nome do responsável, WhatsApp, e-mail e ano escolar. Os detalhes do aluno ficam para a matrícula, se a família decidir seguir."],
+    ["Acompanhamento humano", "A tecnologia ajuda a organizar a rotina, mas o acompanhamento continua sendo feito por pessoas."],
+    ["Família acompanha o percurso", "Progresso, agenda, atividades e próximos passos ficam reunidos em um espaço próprio para a família."],
     ["Aprendizagem além da tela", "O Caderno Plumareli mantém escrita, raciocínio e produção manual como parte do percurso."],
-    ["Cada perfil no seu espaço", "Aluno, família, professor e administração acessam áreas próprias para o que precisam fazer."],
   ] as const;
 
   return (
-    <section className={`section ${styles.section}`} aria-labelledby="public-trust-title">
+    <section className={`section ${styles.section} ${conversionStyles.scope}`} aria-labelledby="public-trust-title">
       <div className="site-shell">
         <div className={styles.intro}>
           <div>
-            <div className="eyebrow eyebrow-blue">Clareza para quem acompanha</div>
-            <h2 id="public-trust-title">Uma experiência acolhedora para a criança e organizada para a família.</h2>
+            <div className="eyebrow eyebrow-blue">Antes de decidir</div>
+            <h2 id="public-trust-title">Entenda como o acompanhamento entra na rotina da sua família.</h2>
           </div>
           <p>
-            O Plumareli combina atividades, acompanhamento e uma experiência visual leve para que estudar faça mais sentido no dia a dia.
+            O primeiro contato serve para conhecer o momento do aluno, esclarecer como o Plumareli funciona e organizar o próximo passo com mais clareza.
           </p>
         </div>
 
@@ -32,8 +33,11 @@ export function PublicTrustSection() {
         </div>
 
         <div className={styles.note}>
-          <strong>Aprender continua sendo o centro.</strong>
-          <span>A tecnologia apoia a rotina; a criança pensa, pratica, revisa e desenvolve autonomia com acompanhamento de verdade.</span>
+          <div>
+            <strong>Quer entender se o Plumareli combina com a rotina do aluno?</strong>
+            <span>Comece pelo contato inicial. Você informa só o essencial e a equipe explica o acompanhamento antes da etapa de matrícula.</span>
+          </div>
+          <a className="button button-primary" href="#quero-conhecer">Quero conhecer o Plumareli</a>
         </div>
       </div>
     </section>
