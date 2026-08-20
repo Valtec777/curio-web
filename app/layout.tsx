@@ -11,7 +11,7 @@ import "./themes.css";
 import "./app-shell.css";
 import "./brand-slot.css";
 import "./responsive.css";
-import "./public.css";
+import "./public-brand.css";
 import "./accessibility.css";
 import "./onboarding-launcher-compact.css";
 
