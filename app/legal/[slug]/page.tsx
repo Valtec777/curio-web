@@ -1,11 +1,12 @@
+import { cache } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Logo } from "@/components/logo";
 import { createClient } from "@/lib/supabase/server";
 import { getLegalProviderProfile, providerTemplateVariables, renderLegalTemplate } from "@/lib/legal-templates";
 
-export default async function PublicLegalDocumentPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+const getPublicLegalDocument = cache(async (slug: string) => {
   const supabase = await createClient();
   const { data: document } = await supabase
     .from("legal_documents")
@@ -14,8 +15,36 @@ export default async function PublicLegalDocumentPage({ params }: { params: Prom
     .eq("status", "published")
     .eq("is_current", true)
     .maybeSingle();
+  return document;
+});
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const document = await getPublicLegalDocument(slug);
+  if (!document) return { robots: { index: false, follow: false } };
+
+  const description = `${document.title} vigente do PLUMARELI, com informações oficiais aplicáveis ao uso da plataforma e ao acompanhamento escolar.`;
+  return {
+    title: document.title,
+    description,
+    alternates: { canonical: `/legal/${slug}` },
+    openGraph: {
+      type: "article",
+      url: `/legal/${slug}`,
+      title: document.title,
+      description,
+      ...(document.published_at ? { publishedTime: document.published_at } : {}),
+    },
+    robots: { index: true, follow: true },
+  };
+}
+
+export default async function PublicLegalDocumentPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const document = await getPublicLegalDocument(slug);
   if (!document || (!document.body && !document.file_path)) notFound();
 
+  const supabase = await createClient();
   const provider = await getLegalProviderProfile(supabase);
   const body = document.body ? renderLegalTemplate(document.body, providerTemplateVariables(provider)) : "";
   return (
