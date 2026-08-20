@@ -8,6 +8,7 @@ import { MonthlyInterestPrompt } from "@/components/monthly-interest-prompt";
 import { requireRole } from "@/lib/auth";
 import { shouldShowMonthlyInterest } from "@/lib/monthly-interest";
 import { createClient } from "@/lib/supabase/server";
+import "./family.css";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
