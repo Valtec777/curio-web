@@ -164,7 +164,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
 
             <div className="hero-mascot-stage" aria-label="Irara, personagem do universo Plumareli">
               <div className="mascot-orbit mascot-orbit-main"><Image src={mascotImage("irara", "/mascotes/plumareli_irara_principal.webp")} alt="Irara do Plumareli" width={430} height={520} priority /></div>
-              <div className="hero-mascot-caption"><strong>Irara</strong><span>Curiosidade em movimento</span></div>
+              <div className="kicker kicker-pill">Irara · curiosidade em movimento</div>
             </div>
           </div>
         </section>
