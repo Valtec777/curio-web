@@ -193,6 +193,54 @@ html[data-theme="dark"] .floating-support-button {
   color: #e2e8ff;
 }
 
+/* O modo escuro mantém a personalidade do shell, mas reduz luminosidade e elimina ilhas brancas. */
+html[data-theme="dark"] .app-frame-teacher .sidebar,
+html[data-theme="dark"] .app-frame-guardian .sidebar,
+html[data-theme="dark"] .app-frame-student .sidebar {
+  background: linear-gradient(180deg, #22345f 0%, #35295c 100%);
+  border-right-color: rgba(255,255,255,.08);
+}
+
+html[data-theme="dark"] .app-frame-admin .sidebar {
+  background: linear-gradient(180deg, #121b2c 0%, #18263d 100%);
+  border-right-color: rgba(255,255,255,.07);
+}
+
+html[data-theme="dark"] .app-frame-teacher .sidebar-role,
+html[data-theme="dark"] .app-frame-student .sidebar-role {
+  background: rgba(26, 33, 44, .96);
+  color: var(--plum-text);
+  border-color: rgba(255,255,255,.10);
+  box-shadow: 0 10px 28px rgba(0,0,0,.16);
+}
+
+html[data-theme="dark"] .app-frame-teacher .sidebar-role > span,
+html[data-theme="dark"] .app-frame-teacher .sidebar-subtitle,
+html[data-theme="dark"] .app-frame-student .sidebar-role > span,
+html[data-theme="dark"] .app-frame-student .sidebar-subtitle {
+  color: var(--plum-text-muted);
+}
+
+html[data-theme="dark"] .app-frame-teacher .sidebar-role > strong,
+html[data-theme="dark"] .app-frame-teacher .sidebar-metric span,
+html[data-theme="dark"] .app-frame-teacher .sidebar-metric strong,
+html[data-theme="dark"] .app-frame-student .sidebar-role > strong,
+html[data-theme="dark"] .app-frame-student .sidebar-metric span,
+html[data-theme="dark"] .app-frame-student .sidebar-metric strong {
+  color: var(--plum-text);
+}
+
+html[data-theme="dark"] .app-frame-teacher .sidebar-metric,
+html[data-theme="dark"] .app-frame-student .sidebar-metric {
+  background: rgba(255,255,255,.055);
+  border-color: rgba(255,255,255,.09);
+}
+
+html[data-theme="dark"] .sidebar-profile-avatar {
+  background: var(--plum-surface-soft);
+  border-color: var(--plum-border);
+}
+
 @media (min-width: 981px) {
   html[data-sidebar-compact="true"] .app-frame {
     grid-template-columns: 78px minmax(0, 1fr);
