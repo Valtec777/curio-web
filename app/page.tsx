@@ -36,6 +36,8 @@ const mascots = [
   { slug: "mico-leao-dourado", name: "Mico-leão-dourado", trait: "Prática e persistência", tone: "yellow", line: "Bora testar se você pegou?", fallback: "/mascotes/plumareli_mico_leao_dourado_principal.webp" },
   { slug: "tamandua-bandeira", name: "Tamanduá", trait: "Investigação e atenção", tone: "green", line: "Tem alguma pista escondida aqui.", fallback: "/mascotes/curio_tamandua_principal_saudando.png" },
   { slug: "onca-pintada", name: "Onça", trait: "Coragem e confiança", tone: "pink", line: "Difícil não significa impossível.", fallback: "/mascotes/curio_onca_principal_heroica.png" },
+  { slug: "harpia", name: "Harpia", trait: "Conquista especial", tone: "blue", line: "Cada conquista nasce de muitos passos.", fallback: "/mascotes/plumareli_harpia_principal.webp" },
+  { slug: "irara", name: "Irara", trait: "Curiosidade e iniciativa", tone: "green", line: "Vamos descobrir por onde começar?", fallback: "/mascotes/plumareli_irara_principal.webp" },
 ] as const;
 
 const faqItems = [
@@ -116,7 +118,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
       character.assets?.principal || character.assets?.avatar || "",
     ]),
   );
-  const mascotImage = (slug: string, fallback: string) => characterImages.get(slug) || fallback;
+  const mascotImage = (slug: string, fallback: string) =>
+    slug === "irara" ? "/mascotes/plumareli_irara_principal.webp" : characterImages.get(slug) || fallback;
 
   return (
     <>
@@ -221,7 +224,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
             <div className="section-heading">
               <div className="eyebrow eyebrow-green">Universo Plumareli</div>
               <h2>Personagens que acompanham diferentes momentos de aprender.</h2>
-              <p>Cada personagem representa uma atitude importante para estudar: calma, criatividade, comunicação, prática, investigação e coragem.</p>
+              <p>Cada personagem representa uma atitude importante para estudar, explorar, praticar e celebrar conquistas.</p>
             </div>
             <div className="mascot-grid mascot-free-grid">
               {mascots.map((mascot) => (
@@ -304,7 +307,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
               <div className="eyebrow eyebrow-pink">Quero conhecer o Plumareli</div>
               <h2>Deixe seu contato para conhecer o Plumareli.</h2>
               <p>Pedimos só os dados necessários para retornar o contato. Informações detalhadas sobre o aluno ficam para a etapa de matrícula, se você decidir seguir.</p>
-              <div className="lead-price"><strong>{startingPrice ? `Planos a partir de R$ ${startingPrice.toFixed(0)}/mês` : "Acompanhamento personalizado"}</strong><span>Encontros online · Missões Cuca · Caderno Plumareli · acompanhamento da evolução</span></div>
+              <div className="lead-price" style={{ color: "var(--plum-text)" }}>
+                <strong style={{ color: "var(--plum-text-strong)" }}>{startingPrice ? `Planos a partir de R$ ${startingPrice.toFixed(0)}/mês` : "Acompanhamento personalizado"}</strong>
+                <span style={{ color: "var(--plum-text-muted)" }}>Encontros online · Missões Cuca · Caderno Plumareli · acompanhamento da evolução</span>
+              </div>
             </div>
 
             <form className="lead-form" action={createEnrollmentRequest}>
