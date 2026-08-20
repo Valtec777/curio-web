@@ -1,3 +1,36 @@
 /* PLUMARELI — estilos do ambiente Família. */
 @import "../family-workspace.css";
 @import "../family-mobile-selector.css";
+
+/* Navegação: o item ativo permanece dentro da linguagem da sidebar e nunca vira branco sobre branco. */
+.app-frame-guardian .sidebar-nav-link,
+.app-frame-guardian .sidebar-nav-label {
+  color: rgba(255,255,255,.88) !important;
+}
+
+.app-frame-guardian .sidebar-nav-link:hover {
+  color: #fff !important;
+  background: rgba(255,255,255,.10) !important;
+}
+
+.app-frame-guardian .sidebar-nav-link.is-active,
+.app-frame-guardian .sidebar-nav-link[aria-current="page"] {
+  color: #fff !important;
+  background: rgba(255,255,255,.16) !important;
+  border-color: rgba(255,255,255,.18) !important;
+  box-shadow: inset 3px 0 0 #d2f66f !important;
+}
+
+.app-frame-guardian .sidebar-nav-link.is-active .sidebar-nav-icon,
+.app-frame-guardian .sidebar-nav-link[aria-current="page"] .sidebar-nav-icon {
+  color: #d8fb78 !important;
+}
+
+.app-frame-guardian .sidebar-nav-title {
+  color: rgba(255,255,255,.72) !important;
+}
+
+html[data-theme="dark"] .app-frame-guardian .sidebar-nav-link,
+html[data-theme="dark"] .app-frame-guardian .sidebar-nav-label {
+  color: rgba(245,247,251,.88) !important;
+}
