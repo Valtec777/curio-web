@@ -28,11 +28,24 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: { default: "PLUMARELI | Acompanhamento escolar personalizado", template: "%s | PLUMARELI" },
-  description: "Acompanhamento escolar personalizado do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio, com Missões Cuca, Caderno Plumareli, trilhas extras, preparação para provas e acompanhamento humano.",
+  title: { default: "PLUMARELI | Acompanhamento escolar online personalizado", template: "%s | PLUMARELI" },
+  description: "Acompanhamento escolar online do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio, com missões, atividades no caderno, preparação para provas e acompanhamento humano.",
   applicationName: "PLUMARELI",
-  authors: [{ name: "PLUMARELI", url: siteUrl }], creator: "PLUMARELI", publisher: "PLUMARELI", category: "education",
-  keywords: ["acompanhamento escolar", "reforço escolar online", "aprendizagem personalizada", "apoio escolar", "dificuldades de aprendizagem escolar", "organização dos estudos", "preparação para provas", "atividades escolares personalizadas", "trilhas de aprendizagem", "aprendizagem para crianças e adolescentes"],
+  authors: [{ name: "PLUMARELI", url: siteUrl }],
+  creator: "PLUMARELI",
+  publisher: "PLUMARELI",
+  category: "education",
+  keywords: [
+    "acompanhamento escolar",
+    "acompanhamento escolar online",
+    "reforço escolar online",
+    "aprendizagem personalizada",
+    "apoio escolar",
+    "organização dos estudos",
+    "preparação para provas",
+    "atividades escolares personalizadas",
+    "aprendizagem para crianças e adolescentes",
+  ],
   alternates: { canonical: "/" },
   icons: {
     icon: officialLogo,
@@ -44,17 +57,27 @@ export const metadata: Metadata = {
     locale: "pt_BR",
     url: "/",
     siteName: "PLUMARELI",
-    title: "PLUMARELI | Acompanhamento escolar que descobre como seu filho aprende",
-    description: "Missões personalizadas, atividades no caderno, trilhas extras e acompanhamento humano do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio.",
-    images: [{ url: officialLogo, alt: "Plumareli" }],
+    title: "PLUMARELI | Organize os estudos e avance com clareza",
+    description: "Acompanhamento escolar online com missões, Caderno Plumareli, preparação para provas e acompanhamento humano do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio.",
+    images: [{ url: officialLogo, alt: "PLUMARELI" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "PLUMARELI | Acompanhamento escolar personalizado",
-    description: "Missões personalizadas, Caderno Plumareli, trilhas extras e acompanhamento humano do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio.",
+    title: "PLUMARELI | Acompanhamento escolar online personalizado",
+    description: "Organize a rotina de estudos com missões, atividades no caderno, preparação para provas e acompanhamento humano.",
     images: [officialLogo],
   },
-  robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 } },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
