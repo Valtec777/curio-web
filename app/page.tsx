@@ -162,12 +162,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
               </div>
             </div>
 
-            <div className="hero-mascot-stage" aria-label="Personagens do universo Plumareli">
-              <div className="mascot-orbit mascot-orbit-main"><Image src={mascotImage("capivara", "/mascotes/curio_capivara_principal_acolhendo.png")} alt="Capivara do Plumareli" width={360} height={420} priority /></div>
-              <div className="mascot-orbit mascot-orbit-top"><Image src={mascotImage("onca-pintada", "/mascotes/curio_onca_principal_heroica.png")} alt="Onça do Plumareli" width={230} height={270} priority /></div>
-              <div className="mascot-orbit mascot-orbit-bottom"><Image src={mascotImage("boto-cor-de-rosa", "/mascotes/curio_boto_principal_imaginando_saudando.png")} alt="Boto do Plumareli" width={230} height={270} priority /></div>
-              <div className="hero-sticker sticker-stars">★  ★  ★</div>
-              <div className="hero-sticker sticker-note">Pense · Crie · Resolva</div>
+            <div className="hero-mascot-stage" aria-label="Irara, personagem do universo Plumareli">
+              <div className="mascot-orbit mascot-orbit-main"><Image src={mascotImage("irara", "/mascotes/plumareli_irara_principal.webp")} alt="Irara do Plumareli" width={430} height={520} priority /></div>
+              <div className="hero-mascot-caption"><strong>Irara</strong><span>Curiosidade em movimento</span></div>
             </div>
           </div>
         </section>
