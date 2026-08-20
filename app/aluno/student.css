@@ -1,0 +1,8 @@
+/* PLUMARELI — estilos do ambiente Aluno.
+   Este é o único entrypoint CSS do layout do aluno; a ordem interna fica explícita aqui. */
+@import "./student-workspace.css";
+@import "./student-profile-extra.css";
+@import "./student-delight.css";
+@import "./student-extra-icons.css";
+@import "./student-interactions.css";
+@import "./student-celebrations.css";
