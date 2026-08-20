@@ -10,8 +10,8 @@ import "./design-system.css";
 import "./themes.css";
 import "./app-shell.css";
 import "./brand-slot.css";
-import "./public-site.css";
 import "./responsive.css";
+import "./public.css";
 import "./accessibility.css";
 import "./onboarding-launcher-compact.css";
 
