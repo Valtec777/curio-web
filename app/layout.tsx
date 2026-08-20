@@ -7,6 +7,7 @@ import { BRAND_LOGO_ENDPOINT } from "@/lib/brand-assets";
 import { getSiteOrigin } from "@/lib/site-url";
 import "./globals.css";
 import "./design-system.css";
+import "./themes.css";
 import "./app-shell.css";
 import "./brand-slot.css";
 import "./referrals.css";
