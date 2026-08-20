@@ -42,6 +42,7 @@ const mascots = [
 
 const faqItems = [
   ["Para quais anos o Plumareli atende?", "O Plumareli está preparado para acompanhar estudantes do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio, respeitando a idade, a série e as necessidades de cada aluno."],
+  ["O que acontece depois que eu envio meu contato?", "A equipe entra em contato para entender melhor a rotina do aluno e explicar como funciona o acompanhamento. Informações detalhadas e a matrícula ficam para a etapa seguinte, caso a família decida continuar."],
   ["Como acontecem os encontros?", "Os encontros são online e fazem parte de um percurso de acompanhamento organizado para cada aluno."],
   ["O acompanhamento é individual?", "O percurso é organizado por aluno e pode incluir encontros individuais e outras estratégias pedagógicas quando fizer sentido."],
   ["As atividades precisam ser feitas no caderno?", "Algumas sim. O Caderno Plumareli mantém escrita, raciocínio e produção fora da tela como parte da aprendizagem."],
@@ -150,14 +151,15 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
           <div className="site-shell hero-grid">
             <div className="hero-copy">
               <div className="kicker kicker-pill">Acompanhamento escolar online</div>
-              <h1>Acompanhamento escolar que <span className="hero-highlight-blue">entende o momento</span> do aluno e ajuda a <span className="hero-highlight-pink">avançar.</span></h1>
+              <h1>Organize o que estudar <span className="hero-highlight-blue">agora</span> e ajude o aluno a <span className="hero-highlight-pink">avançar com clareza.</span></h1>
               <p className="hero-grade">Do <strong>1º ano do Ensino Fundamental</strong> ao <strong>3º ano do Ensino Médio.</strong></p>
-              <p>Missões, atividades no caderno, encontros e acompanhamento humano em uma rotina organizada para aprender com mais clareza e autonomia.</p>
+              <p>O Plumareli reúne missões, atividades no caderno, encontros e acompanhamento humano para transformar dúvidas da rotina em próximos passos mais claros.</p>
               <p className="brain-line"><span>Tecnologia ajuda.</span> Seu cérebro resolve.</p>
               <div className="hero-buttons">
-                <a className="button button-primary" href="#quero-conhecer">Quero conhecer o Plumareli</a>
+                <a className="button button-primary" href="#quero-conhecer">Quero entender se faz sentido</a>
                 <a className="button button-pink" href="#como-funciona">Ver como funciona</a>
               </div>
+              <div className="hero-reassurance">Contato inicial com poucos dados · Detalhes do aluno só na etapa de matrícula</div>
               <div className="hero-chips">
                 <span>Acompanhamento humano</span>
                 <span>Progresso fácil de acompanhar</span>
@@ -219,6 +221,88 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
           </div>
         </section>
 
+        <section className="section map-promise-section">
+          <div className="site-shell map-promise-grid">
+            <div>
+              <div className="eyebrow">Acompanhamento</div>
+              <h2>Mais clareza sobre o que está evoluindo.</h2>
+              <p>A família e o professor conseguem acompanhar o que está sendo estudado, pontos fortes, habilidades em desenvolvimento e os próximos objetivos.</p>
+            </div>
+            <div className="map-mini-card">
+              <div><span>Estudando agora</span><strong>Conteúdo atual</strong></div>
+              <div><span>Ponto forte</span><strong>O que já está avançando</strong></div>
+              <div><span>Em desenvolvimento</span><strong>O que precisa de prática</strong></div>
+              <div><span>Próximo passo</span><strong>Objetivo do acompanhamento</strong></div>
+              <small>Uma visão simples para orientar a rotina de estudos.</small>
+            </div>
+          </div>
+        </section>
+
+        <section className="section" id="plano">
+          <div className="site-shell">
+            <div className="section-heading">
+              <div className="eyebrow eyebrow-yellow">Planos Plumareli</div>
+              <h2>Escolha o ritmo de acompanhamento que combina com a rotina.</h2>
+              <p>Compare os encontros e recursos de cada plano. Se ainda houver dúvida, o contato inicial serve justamente para entender qual ritmo faz mais sentido.</p>
+            </div>
+            {publicPlans?.length ? (
+              <div className="public-plan-grid">
+                {publicPlans.map((plan: any) => (
+                  <article className={`public-plan-card ${plan.badge === "Recomendado" ? "public-plan-featured" : ""}`} key={plan.id}>
+                    <div className="flex gap-8 wrap"><span className="public-plan-badge">{plan.badge || "Plumareli"}</span></div>
+                    <h3>{plan.name}</h3>
+                    <p>{plan.description}</p>
+                    <div className="public-plan-price"><strong>R$ {Number(plan.monthly_price || 0).toFixed(0)}</strong><span>/ mês</span></div>
+                    <div className="public-plan-meta"><span>{plan.meetings_per_month} encontros/mês</span><span>{plan.delivery_mode === "online" ? "Online" : plan.delivery_mode}</span></div>
+                    {(plan.features || []).length ? <ul>{(plan.features || []).slice(0, 5).map((feature: string) => <li key={feature}>✓ {feature}</li>)}</ul> : null}
+                    <a className={`button ${plan.badge === "Recomendado" ? "button-primary" : "button-secondary"}`} href="#quero-conhecer">Quero conversar sobre este plano</a>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="plan-panel"><div><h2>Conheça o acompanhamento Plumareli</h2><p>Entre em contato para entender qual ritmo combina melhor com a rotina do aluno.</p></div><a className="button button-primary" href="#quero-conhecer">Quero conhecer</a></div>
+            )}
+            <div className="plan-decision-note">Você não precisa chegar com o plano decidido. O primeiro contato também serve para comparar as opções com calma.</div>
+          </div>
+        </section>
+
+        <section className="section section-soft" id="quero-conhecer">
+          <div className="site-shell lead-grid">
+            <div className="lead-copy">
+              <div className="eyebrow eyebrow-pink">Quero conhecer o Plumareli</div>
+              <h2>Comece pelo essencial. A conversa vem depois.</h2>
+              <p>Pedimos só os dados necessários para retornar o contato. Informações detalhadas sobre o aluno ficam para a etapa de matrícula, se você decidir seguir.</p>
+              <div className="lead-journey" aria-label="Etapas do primeiro contato">
+                <div><b>01</b><span>Você deixa seu contato e o ano escolar.</span></div>
+                <div><b>02</b><span>A equipe conversa com você e explica o acompanhamento.</span></div>
+                <div><b>03</b><span>Os detalhes e a matrícula ficam para depois, se fizer sentido continuar.</span></div>
+              </div>
+              <div className="lead-price">
+                <strong>{startingPrice ? `Planos a partir de R$ ${startingPrice.toFixed(0)}/mês` : "Acompanhamento personalizado"}</strong>
+                <span>Encontros online · Missões Cuca · Caderno Plumareli · acompanhamento da evolução</span>
+              </div>
+            </div>
+
+            <form className="lead-form" action={createEnrollmentRequest}>
+              {lead === "sucesso" && <div className="form-message form-success">Recebemos seu interesse. A equipe Plumareli entrará em contato.</div>}
+              {lead === "erro" && <div className="form-message form-error">Não foi possível enviar agora. Confira os campos e tente novamente.</div>}
+              <div className="lead-form-intro"><strong>Seu primeiro contato</strong><span>Leva só os dados necessários para a equipe retornar.</span></div>
+              <div className="form-row">
+                <div className="field"><label>Nome do responsável *</label><input className="input" name="guardian_name" required maxLength={120} autoComplete="name" placeholder="Seu nome" /></div>
+                <div className="field"><label>WhatsApp *</label><input className="input" name="phone_whatsapp" required maxLength={40} inputMode="tel" autoComplete="tel" placeholder="(71) 9 ....-...." /></div>
+              </div>
+              <div className="field"><label>E-mail *</label><input className="input" type="email" name="email" required maxLength={320} autoComplete="email" placeholder="voce@exemplo.com" /></div>
+              <div className="field"><label>Ano escolar *</label><select className="select" name="grade_name" required defaultValue=""><option value="" disabled>Selecione</option>{gradeOptions.map((grade) => <option key={grade}>{grade}</option>)}</select></div>
+              <p className="muted">Nesta etapa não pedimos nome da criança, dificuldades detalhadas, matérias ou arquivos.</p>
+              <label className="consent-line">
+                <input type="checkbox" name="consent_contact" required />
+                <span>Autorizo o contato do Plumareli sobre esta solicitação e declaro que li a <Link href="/legal/politica-de-privacidade">Política de Privacidade</Link>.</span>
+              </label>
+              <button className="button button-primary button-block" type="submit">Enviar meu contato</button>
+            </form>
+          </div>
+        </section>
+
         <section className="section" id="universo">
           <div className="site-shell">
             <div className="section-heading">
@@ -233,23 +317,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
                   <div className="mascot-caption"><span className="mascot-name-pill">{mascot.name}</span><h3>{mascot.trait}</h3><p>“{mascot.line}”</p></div>
                 </article>
               ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="section map-promise-section">
-          <div className="site-shell map-promise-grid">
-            <div>
-              <div className="eyebrow">Acompanhamento</div>
-              <h2>Mais clareza sobre o que está evoluindo.</h2>
-              <p>A família e o professor conseguem acompanhar o que está sendo estudado, pontos fortes, habilidades em desenvolvimento e os próximos objetivos.</p>
-            </div>
-            <div className="map-mini-card">
-              <div><span>Estudando agora</span><strong>Conteúdo atual</strong></div>
-              <div><span>Ponto forte</span><strong>O que já está avançando</strong></div>
-              <div><span>Em desenvolvimento</span><strong>O que precisa de prática</strong></div>
-              <div><span>Próximo passo</span><strong>Objetivo do acompanhamento</strong></div>
-              <small>Uma visão simples para orientar a rotina de estudos.</small>
             </div>
           </div>
         </section>
@@ -274,64 +341,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
           </div>
         </section>
 
-        <section className="section" id="plano">
-          <div className="site-shell">
-            <div className="section-heading">
-              <div className="eyebrow eyebrow-yellow">Planos Plumareli</div>
-              <h2>Escolha o ritmo de acompanhamento que combina com a rotina.</h2>
-              <p>Os recursos e a quantidade de encontros são definidos em cada plano e podem variar conforme a configuração vigente.</p>
-            </div>
-            {publicPlans?.length ? (
-              <div className="public-plan-grid">
-                {publicPlans.map((plan: any) => (
-                  <article className={`public-plan-card ${plan.badge === "Recomendado" ? "public-plan-featured" : ""}`} key={plan.id}>
-                    <div className="flex gap-8 wrap"><span className="public-plan-badge">{plan.badge || "Plumareli"}</span></div>
-                    <h3>{plan.name}</h3>
-                    <p>{plan.description}</p>
-                    <div className="public-plan-price"><strong>R$ {Number(plan.monthly_price || 0).toFixed(0)}</strong><span>/ mês</span></div>
-                    <div className="public-plan-meta"><span>{plan.meetings_per_month} encontros/mês</span><span>{plan.delivery_mode === "online" ? "Online" : plan.delivery_mode}</span></div>
-                    {(plan.features || []).length ? <ul>{(plan.features || []).slice(0, 5).map((feature: string) => <li key={feature}>✓ {feature}</li>)}</ul> : null}
-                    <a className={`button ${plan.badge === "Recomendado" ? "button-primary" : "button-secondary"}`} href="#quero-conhecer">Quero conhecer</a>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <div className="plan-panel"><div><h2>Conheça o acompanhamento Plumareli</h2><p>Entre em contato para entender qual ritmo combina melhor com a rotina do aluno.</p></div><a className="button button-primary" href="#quero-conhecer">Quero conhecer</a></div>
-            )}
-          </div>
-        </section>
-
-        <section className="section section-soft" id="quero-conhecer">
-          <div className="site-shell lead-grid">
-            <div className="lead-copy">
-              <div className="eyebrow eyebrow-pink">Quero conhecer o Plumareli</div>
-              <h2>Deixe seu contato para conhecer o Plumareli.</h2>
-              <p>Pedimos só os dados necessários para retornar o contato. Informações detalhadas sobre o aluno ficam para a etapa de matrícula, se você decidir seguir.</p>
-              <div className="lead-price" style={{ color: "var(--plum-text)" }}>
-                <strong style={{ color: "var(--plum-text-strong)" }}>{startingPrice ? `Planos a partir de R$ ${startingPrice.toFixed(0)}/mês` : "Acompanhamento personalizado"}</strong>
-                <span style={{ color: "var(--plum-text-muted)" }}>Encontros online · Missões Cuca · Caderno Plumareli · acompanhamento da evolução</span>
-              </div>
-            </div>
-
-            <form className="lead-form" action={createEnrollmentRequest}>
-              {lead === "sucesso" && <div className="form-message form-success">Recebemos seu interesse. A equipe Plumareli entrará em contato.</div>}
-              {lead === "erro" && <div className="form-message form-error">Não foi possível enviar agora. Confira os campos e tente novamente.</div>}
-              <div className="form-row">
-                <div className="field"><label>Nome do responsável *</label><input className="input" name="guardian_name" required maxLength={120} autoComplete="name" placeholder="Seu nome" /></div>
-                <div className="field"><label>WhatsApp *</label><input className="input" name="phone_whatsapp" required maxLength={40} inputMode="tel" autoComplete="tel" placeholder="(71) 9 ....-...." /></div>
-              </div>
-              <div className="field"><label>E-mail *</label><input className="input" type="email" name="email" required maxLength={320} autoComplete="email" placeholder="voce@exemplo.com" /></div>
-              <div className="field"><label>Ano escolar *</label><select className="select" name="grade_name" required defaultValue=""><option value="" disabled>Selecione</option>{gradeOptions.map((grade) => <option key={grade}>{grade}</option>)}</select></div>
-              <p className="muted">Nesta etapa não pedimos nome da criança, dificuldades detalhadas, matérias ou arquivos.</p>
-              <label className="consent-line">
-                <input type="checkbox" name="consent_contact" required />
-                <span>Autorizo o contato do Plumareli sobre esta solicitação e declaro que li a <Link href="/legal/politica-de-privacidade">Política de Privacidade</Link>.</span>
-              </label>
-              <button className="button button-primary button-block" type="submit">Quero conhecer o Plumareli</button>
-            </form>
-          </div>
-        </section>
-
         <section className="section" id="sobre">
           <div className="site-shell about-grid">
             <div>
@@ -346,8 +355,19 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
 
         <section className="section section-soft" id="faq">
           <div className="site-shell">
-            <div className="section-heading"><div className="eyebrow eyebrow-pink">Dúvidas frequentes</div><h2>Antes de começar</h2></div>
+            <div className="section-heading"><div className="eyebrow eyebrow-pink">Dúvidas frequentes</div><h2>Antes de começar</h2><p>As perguntas que costumam aparecer antes do primeiro contato, reunidas em um só lugar.</p></div>
             <FaqAccordion items={faqItems} />
+          </div>
+        </section>
+
+        <section className="section final-conversion-section" aria-labelledby="final-conversion-title">
+          <div className="site-shell final-conversion-card">
+            <div>
+              <div className="eyebrow eyebrow-green">Próximo passo</div>
+              <h2 id="final-conversion-title">Quer entender se o Plumareli faz sentido para essa rotina?</h2>
+              <p>Comece deixando apenas o contato do responsável e o ano escolar. A conversa sobre o aluno vem depois.</p>
+            </div>
+            <a className="button button-primary" href="#quero-conhecer">Quero conhecer o Plumareli</a>
           </div>
         </section>
       </main>
