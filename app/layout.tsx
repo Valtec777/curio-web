@@ -8,8 +8,6 @@ import { getSiteOrigin } from "@/lib/site-url";
 import "./globals.css";
 import "./design-system.css";
 import "./app-shell.css";
-import "./family-workspace.css";
-import "./family-mobile-selector.css";
 import "./brand-slot.css";
 import "./referrals.css";
 import "./responsive.css";
