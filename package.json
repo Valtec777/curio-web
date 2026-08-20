@@ -8,6 +8,7 @@
     "prebuild": "node scripts/materialize-brand-assets.mjs",
     "brand:materialize": "node scripts/materialize-brand-assets.mjs",
     "assets:check": "node scripts/check-public-assets.mjs",
+    "css:check": "node scripts/check-css-architecture.mjs",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit"
