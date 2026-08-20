@@ -1,0 +1,5 @@
+/* PLUMARELI — estilos do ambiente Professor.
+   Este é o único entrypoint CSS do layout do professor. */
+@import "./teacher-workspace.css";
+@import "./teacher-fixes.css";
+@import "./teacher-manual.css";
