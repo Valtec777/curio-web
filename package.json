@@ -5,7 +5,7 @@
   "scripts": {
     "predev": "node scripts/materialize-brand-assets.mjs",
     "dev": "next dev",
-    "prebuild": "node scripts/materialize-brand-assets.mjs",
+    "prebuild": "node scripts/materialize-brand-assets.mjs && node scripts/check-css-architecture.mjs",
     "brand:materialize": "node scripts/materialize-brand-assets.mjs",
     "assets:check": "node scripts/check-public-assets.mjs",
     "css:check": "node scripts/check-css-architecture.mjs",
