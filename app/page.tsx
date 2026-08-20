@@ -305,8 +305,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
           <div className="site-shell lead-grid">
             <div className="lead-copy">
               <div className="eyebrow eyebrow-pink">Quero conhecer o Plumareli</div>
-              <h2>Conte um pouco sobre a rotina escolar.</h2>
-              <p>Com essas informações, conseguimos entender melhor o momento do aluno e orientar os próximos passos.</p>
+              <h2>Deixe seu contato para conhecer o Plumareli.</h2>
+              <p>Pedimos só os dados necessários para retornar o contato. Informações detalhadas sobre o aluno ficam para a etapa de matrícula, se você decidir seguir.</p>
               <div className="lead-price"><strong>{startingPrice ? `Planos a partir de R$ ${startingPrice.toFixed(0)}/mês` : "Acompanhamento personalizado"}</strong><span>Encontros online · Missões Cuca · Caderno Plumareli · acompanhamento da evolução</span></div>
             </div>
 
@@ -314,19 +314,16 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
               {lead === "sucesso" && <div className="form-message form-success">Recebemos seu interesse. A equipe Plumareli entrará em contato.</div>}
               {lead === "erro" && <div className="form-message form-error">Não foi possível enviar agora. Confira os campos e tente novamente.</div>}
               <div className="form-row">
-                <div className="field"><label>Nome do responsável *</label><input className="input" name="guardian_name" required placeholder="Seu nome" /></div>
-                <div className="field"><label>WhatsApp *</label><input className="input" name="phone_whatsapp" required placeholder="(71) 9 ....-...." /></div>
+                <div className="field"><label>Nome do responsável *</label><input className="input" name="guardian_name" required maxLength={120} autoComplete="name" placeholder="Seu nome" /></div>
+                <div className="field"><label>WhatsApp *</label><input className="input" name="phone_whatsapp" required maxLength={40} inputMode="tel" autoComplete="tel" placeholder="(71) 9 ....-...." /></div>
               </div>
-              <div className="field"><label>E-mail *</label><input className="input" type="email" name="email" required placeholder="voce@exemplo.com" /></div>
-              <div className="form-row">
-                <div className="field"><label>Nome do aluno</label><input className="input" name="child_name" placeholder="Nome do aluno" /></div>
-                <div className="field"><label>Idade</label><input className="input" type="number" name="child_age" min="5" max="18" placeholder="Ex.: 12" /></div>
-              </div>
+              <div className="field"><label>E-mail *</label><input className="input" type="email" name="email" required maxLength={320} autoComplete="email" placeholder="voce@exemplo.com" /></div>
               <div className="field"><label>Ano escolar *</label><select className="select" name="grade_name" required defaultValue=""><option value="" disabled>Selecione</option>{gradeOptions.map((grade) => <option key={grade}>{grade}</option>)}</select></div>
-              <fieldset className="subject-fieldset"><legend>Matérias que precisam de acompanhamento</legend><div className="subject-checks">{["Língua Portuguesa", "Matemática", "Ciências", "História", "Geografia", "Inglês", "Outras"].map((subject) => <label key={subject}><input type="checkbox" name="subjects" value={subject} /> {subject}</label>)}</div></fieldset>
-              <div className="field"><label>O que mais preocupa hoje?</label><textarea className="textarea" name="main_difficulties" placeholder="Conte brevemente as principais dificuldades" /></div>
-              <div className="field"><label>Mensagem (opcional)</label><textarea className="textarea" name="message" placeholder="Se quiser, compartilhe mais alguma informação" /></div>
-              <label className="consent-line"><input type="checkbox" name="consent_contact" required /> Autorizo o contato do Plumareli sobre esta solicitação.</label>
+              <p className="muted">Nesta etapa não pedimos nome da criança, dificuldades detalhadas, matérias ou arquivos.</p>
+              <label className="consent-line">
+                <input type="checkbox" name="consent_contact" required />
+                <span>Autorizo o contato do Plumareli sobre esta solicitação e declaro que li a <Link href="/legal/politica-de-privacidade">Política de Privacidade</Link>.</span>
+              </label>
               <button className="button button-primary button-block" type="submit">Quero conhecer o Plumareli</button>
             </form>
           </div>
