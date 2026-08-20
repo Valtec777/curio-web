@@ -13,12 +13,27 @@ html[data-theme="light"] {
   --plum-surface-tint: #f2f4ff;
   --plum-text: #222a3d;
   --plum-text-strong: #17213a;
-  --plum-text-muted: #687184;
+  --plum-text-muted: #60697c;
   --plum-border: #e2ded5;
   --plum-border-strong: #d3d0c8;
   --plum-input-bg: #fffefb;
   --plum-hover: #f2efe8;
   --plum-overlay: rgba(23, 33, 58, .48);
+
+  /* Acentos usados como texto precisam ser mais escuros que os tons decorativos. */
+  --plum-blue-ink: #3157d2;
+  --plum-pink-ink: #c23a75;
+  --plum-green-ink: #4f6f18;
+  --plum-yellow-ink: #876400;
+  --plum-purple-ink: #6642d5;
+
+  /* Preenchimentos de ação são separados dos acentos de texto. */
+  --plum-action-start: #3458db;
+  --plum-action-end: #6847cf;
+  --plum-action-text: #ffffff;
+  --plum-on-bright: #17213a;
+  --plum-pink-fill-start: #ef5799;
+  --plum-pink-fill-end: #ff7b8e;
 
   --plum-shadow-xs: 0 1px 2px rgba(28, 38, 62, .035);
   --plum-shadow-sm: 0 8px 24px rgba(28, 38, 62, .055);
@@ -60,6 +75,19 @@ html[data-theme="dark"] {
   --plum-lime: #b9e94f;
   --plum-yellow: #f4d77c;
   --plum-focus: #b9e94f;
+
+  --plum-blue-ink: #91a9ff;
+  --plum-pink-ink: #f29fc3;
+  --plum-green-ink: #c8ec7a;
+  --plum-yellow-ink: #f4de9b;
+  --plum-purple-ink: #b9a8f3;
+
+  --plum-action-start: #425fd3;
+  --plum-action-end: #6746bf;
+  --plum-action-text: #ffffff;
+  --plum-on-bright: #111827;
+  --plum-pink-fill-start: #f17aac;
+  --plum-pink-fill-end: #ff8fa5;
 
   --plum-shadow-xs: 0 1px 2px rgba(0, 0, 0, .12);
   --plum-shadow-sm: 0 8px 24px rgba(0, 0, 0, .16);
@@ -106,6 +134,16 @@ h1, h2, h3, h4, h5, h6,
 .empty-state p {
   color: var(--plum-text-muted);
 }
+
+/* Cores decorativas e cores de leitura não são a mesma coisa. */
+.kicker,
+.eyebrow,
+.eyebrow-blue { color: var(--plum-blue-ink); }
+.eyebrow-pink { color: var(--plum-pink-ink); }
+.eyebrow-green { color: var(--plum-green-ink); }
+.eyebrow-yellow { color: var(--plum-yellow-ink); }
+.eyebrow-purple { color: var(--plum-purple-ink); }
+.role-card strong { color: var(--plum-blue-ink); }
 
 /* Superfícies: pouco contraste no claro e profundidade controlada no escuro. */
 .panel,
@@ -271,7 +309,7 @@ textarea {
 .textarea::placeholder,
 input::placeholder,
 textarea::placeholder {
-  color: color-mix(in srgb, var(--plum-text-muted) 76%, transparent);
+  color: color-mix(in srgb, var(--plum-text-muted) 92%, transparent);
   opacity: 1;
 }
 
@@ -294,6 +332,24 @@ textarea:focus {
   border-color: var(--plum-blue);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--plum-blue) 14%, transparent);
 }
+
+/* Ações usam preenchimentos próprios para manter texto legível nos dois temas. */
+.button-primary {
+  color: var(--plum-action-text);
+  background: linear-gradient(135deg, var(--plum-action-start), var(--plum-action-end));
+}
+.button-primary:hover {
+  color: var(--plum-action-text);
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--plum-action-start) 90%, black),
+    color-mix(in srgb, var(--plum-action-end) 90%, black));
+}
+.button-pink {
+  color: var(--plum-on-bright);
+  background: linear-gradient(135deg, var(--plum-pink-fill-start), var(--plum-pink-fill-end));
+  text-shadow: none;
+}
+.button-pink:hover { color: var(--plum-on-bright); }
 
 .button-secondary,
 .button-ghost {
