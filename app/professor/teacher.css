@@ -3,3 +3,26 @@
 @import "./teacher-workspace.css";
 @import "./teacher-fixes.css";
 @import "./teacher-manual.css";
+
+.app-frame-teacher .sidebar-nav-link,
+.app-frame-teacher .sidebar-nav-label {
+  color: rgba(255,255,255,.88) !important;
+}
+
+.app-frame-teacher .sidebar-nav-link:hover {
+  color: #fff !important;
+  background: rgba(255,255,255,.10) !important;
+}
+
+.app-frame-teacher .sidebar-nav-link.is-active,
+.app-frame-teacher .sidebar-nav-link[aria-current="page"] {
+  color: #fff !important;
+  background: rgba(255,255,255,.16) !important;
+  border-color: rgba(255,255,255,.18) !important;
+  box-shadow: inset 3px 0 0 #d2f66f !important;
+}
+
+.app-frame-teacher .sidebar-nav-link.is-active .sidebar-nav-icon,
+.app-frame-teacher .sidebar-nav-link[aria-current="page"] .sidebar-nav-icon {
+  color: #d8fb78 !important;
+}
