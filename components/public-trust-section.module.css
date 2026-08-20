@@ -1,8 +1,8 @@
 .section {
   position: relative;
   overflow: hidden;
-  padding-top: clamp(92px, 10vw, 144px);
-  padding-bottom: clamp(92px, 10vw, 144px);
+  padding-top: clamp(86px, 9vw, 132px);
+  padding-bottom: clamp(86px, 9vw, 132px);
   background: var(--plum-surface);
 }
 
@@ -23,14 +23,14 @@
   grid-template-columns: minmax(0, 1.15fr) minmax(300px, .65fr);
   gap: clamp(32px, 6vw, 78px);
   align-items: end;
-  margin-bottom: clamp(34px, 5vw, 56px);
+  margin-bottom: clamp(34px, 5vw, 54px);
 }
 
 .intro h2 {
   max-width: 860px;
   margin: 10px 0 0;
-  font-size: clamp(42px, 5.5vw, 76px);
-  line-height: .97;
+  font-size: clamp(42px, 5.3vw, 72px);
+  line-height: .98;
   letter-spacing: -.045em;
 }
 
@@ -50,9 +50,9 @@
 
 .card {
   grid-column: span 6;
-  min-height: 250px;
-  padding: clamp(24px, 3vw, 36px);
-  border: 0;
+  min-height: 252px;
+  padding: clamp(24px, 3vw, 34px);
+  border: 1px solid transparent;
   border-radius: var(--plum-radius-xl);
   background: var(--plum-surface-soft);
   box-shadow: none;
@@ -60,47 +60,63 @@
 
 .card:nth-child(1) {
   grid-column: span 7;
-  background: #141d36;
+  background: #17284e;
   color: #f5f7ff;
 }
 
 .card:nth-child(2) {
   grid-column: span 5;
-  background: color-mix(in srgb, var(--plum-lime) 34%, var(--plum-surface));
+  border-color: #d5ed9f;
+  background: #eaf8c9;
+  color: #17284e;
 }
 
 .card:nth-child(3) {
   grid-column: span 5;
-  background: color-mix(in srgb, var(--plum-pink) 13%, var(--plum-surface));
+  border-color: #ffd2e3;
+  background: #ffe9f2;
+  color: #17284e;
 }
 
 .card:nth-child(4) {
   grid-column: span 7;
-  background: color-mix(in srgb, var(--plum-blue) 11%, var(--plum-surface));
+  border-color: #dae3ff;
+  background: #edf2ff;
+  color: #17284e;
 }
 
 .number {
-  display: inline-flex;
-  margin-bottom: clamp(46px, 5vw, 70px);
-  color: color-mix(in srgb, currentColor 52%, transparent);
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: clamp(42px, 4.5vw, 62px);
+  border-radius: 50%;
+  background: rgba(255,255,255,.72);
+  color: #17284e;
   font-family: var(--plum-font-display);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 800;
-  letter-spacing: .06em;
+  letter-spacing: .02em;
+}
+
+.card:first-child .number {
+  background: #7190f5;
+  color: #fff;
 }
 
 .card h3 {
   margin: 0 0 10px;
   color: inherit;
-  font-size: clamp(27px, 2.8vw, 39px);
-  line-height: 1.02;
+  font-size: clamp(27px, 2.6vw, 37px);
+  line-height: 1.03;
   letter-spacing: -.035em;
 }
 
 .card p {
-  max-width: 570px;
+  max-width: 590px;
   margin: 0;
-  color: color-mix(in srgb, currentColor 70%, transparent);
+  color: color-mix(in srgb, currentColor 72%, transparent);
   font-size: 16px;
   line-height: 1.65;
 }
@@ -108,23 +124,35 @@
 .note {
   position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 16px;
+  gap: 24px;
   margin-top: 16px;
-  padding: 18px 22px;
+  padding: 20px 22px;
   border: 1px solid var(--plum-border);
   border-radius: var(--plum-radius-lg);
   background: var(--plum-surface-raised);
   color: var(--plum-text);
 }
 
+.note > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
 .note strong {
   color: var(--plum-blue-strong);
+  font-size: 16px;
 }
 
 .note span {
   color: var(--plum-text-muted);
+  line-height: 1.5;
+}
+
+.note :global(.button) {
+  white-space: nowrap;
 }
 
 :global(html[data-theme="dark"]) .section {
@@ -144,9 +172,14 @@
 }
 
 :global(html[data-theme="dark"]) .card:not(:first-child) {
+  border-color: var(--plum-border);
   background: var(--plum-surface);
   color: var(--plum-text);
-  border: 1px solid var(--plum-border);
+}
+
+:global(html[data-theme="dark"]) .card:not(:first-child) .number {
+  background: #253248;
+  color: #dfe6f3;
 }
 
 :global(html[data-theme="dark"]) .note {
@@ -172,6 +205,15 @@
   .card:nth-child(n) {
     grid-column: span 1;
   }
+
+  .note {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+
+  .note :global(.button) {
+    width: fit-content;
+  }
 }
 
 @media (max-width: 640px) {
@@ -184,8 +226,7 @@
     min-height: 220px;
   }
 
-  .note {
-    grid-template-columns: 1fr;
-    align-items: flex-start;
+  .note :global(.button) {
+    width: 100%;
   }
 }
