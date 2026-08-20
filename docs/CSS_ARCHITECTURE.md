@@ -17,7 +17,7 @@ A ordem em `app/layout.tsx` é deliberada:
 3. **`themes.css`** — valores semânticos e ambientação dos temas claro/escuro. É o único arquivo que deve decidir canvas, superfícies, contraste, inputs e atmosfera temática.
 4. **`app-shell.css`** — sidebar, navegação, modo compacto e ações flutuantes dos ambientes internos.
 5. **`brand-slot.css`** — dimensões e comportamento da assinatura/símbolo da marca.
-6. **`referrals.css`** — contexto específico do programa de indicações.
+6. **`public-site.css`** — direção editorial da landing e demais padrões exclusivamente públicos; também agrega `referrals.css` para não criar uma camada global adicional.
 7. **`responsive.css`** — única camada global de viewport, grids, tabelas, shell mobile/tablet e telas especiais.
 8. **`accessibility.css`** — preferências assistivas: leitura confortável, foco/simplicidade, redução de estímulos e foco visível. Não define tema claro/escuro.
 9. **`onboarding-launcher-compact.css`** — launcher específico de onboarding.
@@ -47,6 +47,17 @@ Claro e escuro são ambientes desenhados separadamente, não uma simples invers�
 - Cards não devem depender de uma borda forte para existir; hierarquia vem de superfície, espaçamento e tipografia.
 - A sidebar pode manter mais identidade de marca, mas precisa diminuir luminosidade no modo escuro e evitar cards brancos isolados.
 
+## Direção do site público
+
+A landing usa uma linguagem mais editorial sem mudar a identidade visual da marca.
+
+- hero com escala de capa e mascotes como parte da composição;
+- seções alternam ritmos, superfícies e escalas em vez de repetir grades de cards iguais;
+- azul-marinho/grafite funciona como palco; lima, rosa, roxo e amarelo entram como acentos;
+- personagens podem ocupar a composição livremente, mas não devem competir com a leitura;
+- movimento deve ser pequeno, opcional e respeitar redução de estímulos;
+- imagens ou vídeos de fases antigas da marca não devem ser publicados apenas por serem visualmente atraentes: novos elementos públicos precisam ler claramente como PLUMARELI.
+
 ## Ambientes autenticados
 
 Cada layout importa exatamente um entrypoint:
@@ -65,6 +76,7 @@ Os estilos de Família ficam no layout da Família e não são mais enviados par
 - Cor de marca, fonte, raio, sombra, espaçamento ou primitiva: `design-system.css`.
 - Canvas, superfície, contraste e comportamento específico de claro/escuro: `themes.css`.
 - Sidebar, navegação ou comportamento compacto: `app-shell.css`.
+- Composição, ritmo e direção de arte do site público: `public-site.css`.
 - Regra que existe apenas por causa do tamanho da tela: `responsive.css`.
 - Regra exclusiva de um perfil: entrypoint/contexto daquele perfil.
 - Regra exclusiva de um produto/módulo: arquivo do módulo, desde que não repita uma primitiva do design system.
