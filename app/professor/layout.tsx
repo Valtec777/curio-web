@@ -5,9 +5,7 @@ import { CurioPlayfulSoundEffects } from "@/components/curio-playful-sound-effec
 import { MonthlyInterestPrompt } from "@/components/monthly-interest-prompt";
 import { getCurrentTeacher } from "@/lib/teacher";
 import { shouldShowMonthlyInterest } from "@/lib/monthly-interest";
-import "./teacher-workspace.css";
-import "./teacher-fixes.css";
-import "./teacher-manual.css";
+import "./teacher.css";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
