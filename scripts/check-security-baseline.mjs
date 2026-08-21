@@ -20,7 +20,7 @@ if (missingHeaders.length) {
   process.exit(1);
 }
 
-const requiredCsp = ["base-uri 'self'", "frame-ancestors 'self'", "form-action 'self'", "object-src 'none'"];
+const requiredCsp = ["base-uri 'self'", "frame-ancestors 'none'", "form-action 'self'", "object-src 'none'"];
 const missingCsp = requiredCsp.filter((directive) => !nextConfig.includes(directive));
 if (missingCsp.length) {
   console.error(`Security baseline: missing CSP directives: ${missingCsp.join(", ")}`);
