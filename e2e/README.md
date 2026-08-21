@@ -23,7 +23,7 @@ PLAYWRIGHT_TEST_BASE_URL="https://seu-preview.exemplo" npm --prefix e2e test
 
 ## Testes autenticados por perfil
 
-Os testes de login real ficam automaticamente ignorados enquanto as credenciais abaixo não estiverem configuradas:
+No CI comum, os testes de login real ficam automaticamente ignorados enquanto as credenciais abaixo não estiverem configuradas:
 
 - `E2E_ADMIN_EMAIL` e `E2E_ADMIN_PASSWORD`
 - `E2E_TEACHER_EMAIL` e `E2E_TEACHER_PASSWORD`
@@ -31,6 +31,17 @@ Os testes de login real ficam automaticamente ignorados enquanto as credenciais 
 - `E2E_STUDENT_EMAIL` e `E2E_STUDENT_PASSWORD`
 
 Use somente contas exclusivas de teste, sem dados reais de alunos. Quando essas variáveis forem fornecidas junto com `PLAYWRIGHT_TEST_BASE_URL`, a suíte confirma que cada papel entra no portal correto.
+
+### Modo estrito de go-live
+
+A Fase 9 adiciona `E2E_REQUIRE_AUTH=1`. Nesse modo, faltar qualquer e-mail ou senha deixa de gerar `skip` e passa a falhar a suíte. O workflow `.github/workflows/go-live-readiness.yml` ativa esse modo automaticamente e executa a suíte completa contra uma URL HTTPS candidata.
+
+O gate manual também exige:
+
+- confirmação de `Leaked Password Protection` habilitada no Supabase Auth;
+- confirmação de plano/responsável de rollback pronto;
+- URL candidata HTTPS que não seja localhost ou domínio de exemplo;
+- os oito secrets E2E dos quatro perfis.
 
 ## Cobertura do modelo atual
 
@@ -41,4 +52,5 @@ Use somente contas exclusivas de teste, sem dados reais de alunos. Quando essas 
 - bloqueio de `/admin`, `/professor`, `/familia` e `/aluno` para visitantes;
 - login dos quatro papéis quando credenciais E2E estiverem disponíveis;
 - contrato responsivo do header e ausência de rolagem horizontal;
-- execução em Chromium desktop e viewport Pixel 7.
+- execução em Chromium desktop e viewport Pixel 7;
+- gate estrito separado para autorização de go-live.
