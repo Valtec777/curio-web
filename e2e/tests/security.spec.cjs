@@ -7,14 +7,14 @@ test.describe("segurança pública", () => {
 
     const headers = response.headers();
     expect(headers["x-content-type-options"]).toBe("nosniff");
-    expect(headers["x-frame-options"]).toBe("SAMEORIGIN");
+    expect(headers["x-frame-options"]).toBe("DENY");
     expect(headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
     expect(headers["x-permitted-cross-domain-policies"]).toBe("none");
     expect(headers["permissions-policy"]).toContain("geolocation=()");
 
     const csp = headers["content-security-policy"] || "";
     expect(csp).toContain("base-uri 'self'");
-    expect(csp).toContain("frame-ancestors 'self'");
+    expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).toContain("form-action 'self'");
     expect(csp).toContain("object-src 'none'");
   });
