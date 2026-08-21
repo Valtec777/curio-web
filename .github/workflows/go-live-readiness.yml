@@ -31,6 +31,7 @@ jobs:
     environment: production
     env:
       PLAYWRIGHT_TEST_BASE_URL: ${{ inputs.target_url }}
+      MONITOR_TARGET_URL: ${{ inputs.target_url }}
       E2E_REQUIRE_AUTH: "1"
       GO_LIVE_STRICT: "1"
       GO_LIVE_LEAKED_PASSWORD_PROTECTION: ${{ inputs.confirm_leaked_password_protection }}
@@ -57,8 +58,11 @@ jobs:
       - name: Install application dependencies
         run: npm ci
 
-      - name: Validate release and strict go-live contract
-        run: npm run css:check && npm run responsive:check && npm run color:check && npm run security:check && npm run performance:check && npm run discoverability:check && npm run dependencies:check && npm run release:check && npm run go-live:check
+      - name: Validate release, go-live and observability contracts
+        run: npm run css:check && npm run responsive:check && npm run color:check && npm run security:check && npm run performance:check && npm run discoverability:check && npm run dependencies:check && npm run release:check && npm run go-live:check && npm run observability:check
+
+      - name: Run synthetic public monitor against candidate
+        run: npm run synthetic:monitor
 
       - name: Typecheck selected release ref
         run: npm run typecheck
