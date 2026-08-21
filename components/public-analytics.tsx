@@ -62,7 +62,7 @@ export function PublicAnalytics() {
       }
     };
 
-    const onSubmit = (event: SubmitEvent) => {
+    const onSubmit = (event: Event) => {
       const form = event.target;
       if (!(form instanceof HTMLFormElement)) return;
       if (!form.querySelector('[name="guardian_name"]') || !form.querySelector('[name="consent_contact"]')) return;
