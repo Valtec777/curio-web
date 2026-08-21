@@ -4,6 +4,12 @@
 
 Transformar os bloqueios externos da release candidate em gates explícitos e verificáveis antes de qualquer publicação em produção. Esta fase não faz deploy, merge ou promoção automática.
 
+## Status atual do gate
+
+Na auditoria de 21/08/2026, a organização Supabase está no plano **Free** e o Security Advisor continua apontando `Leaked Password Protection Disabled`. A documentação atual do Supabase informa que essa proteção, baseada no HaveIBeenPwned, está disponível no plano **Pro e superiores**.
+
+Consequência: o estado atual é **NO-GO para produção** segundo o critério de segurança definido na Fase 8. O gate só pode receber a confirmação `confirm_leaked_password_protection=true` depois de upgrade para um plano compatível e ativação efetiva do recurso no Supabase Auth.
+
 ## O que a Fase 9 adiciona
 
 1. `npm run go-live:check` valida que o contrato de go-live está versionado.
@@ -33,7 +39,7 @@ Antes de executar o gate manual:
 
 - Release Candidate aprovada e CI verde.
 - Preview/deployment candidato já publicado em URL HTTPS.
-- `Leaked Password Protection` habilitada no Supabase Auth. A documentação atual do Supabase recomenda impedir senhas já vazadas via HaveIBeenPwned; o recurso é oferecido no plano Pro e superiores.
+- Organização Supabase em plano compatível e `Leaked Password Protection` efetivamente habilitada no Auth.
 - Quatro contas E2E válidas e vinculadas aos portais corretos.
 - Plano de rollback definido, com pessoa responsável pelo corte.
 - Nenhuma migration destrutiva ou mudança irreversível pendente no mesmo corte.
@@ -66,6 +72,7 @@ O corte só está autorizado quando, na mesma ref candidata:
 
 Não publicar/promover se ocorrer qualquer um destes casos:
 
+- organização ainda em plano sem suporte à proteção contra senhas vazadas;
 - proteção contra senhas vazadas não confirmada;
 - qualquer credencial E2E ausente;
 - qualquer login de papel falha ou redireciona para portal incorreto;
@@ -109,7 +116,7 @@ Se um gate crítico pós-corte falhar:
 
 ## Itens que continuam fora do escopo automático
 
-- habilitar `Leaked Password Protection` no Supabase Auth, pois o conector atual não oferece escrita dessa configuração;
+- upgrade do plano Supabase e habilitação de `Leaked Password Protection`, pois o conector atual não oferece escrita dessa configuração;
 - cadastrar/rotacionar secrets E2E no GitHub;
 - aprovar manualmente environment/reviewer rules;
 - promover deployment para produção;
