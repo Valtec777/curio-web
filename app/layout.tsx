@@ -16,13 +16,13 @@ import "./family-workspace.css";
 import "./family-mobile-selector.css";
 import "./sidebar-final.css";
 import "./brand-slot.css";
-import "./site-polish.css";
-import "./final-polish.css";
 import "./referrals.css";
 import "./mobile-tablet-final.css";
 import "./mobile-tablet-complete.css";
 import "./mobile-targeted-fixes.css";
 import "./dark-mode-safety.css";
+import "./site-polish.css";
+import "./final-polish.css";
 import "./onboarding-launcher-compact.css";
 
 const fredoka = Fredoka({ subsets: ["latin"], variable: "--font-curio-display", weight: ["500", "600", "700"], display: "swap" });
