@@ -1,0 +1,81 @@
+name: Go-live readiness gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: "URL HTTPS candidata ao go-live"
+        required: true
+        type: string
+      confirm_leaked_password_protection:
+        description: "Confirmo Leaked Password Protection habilitada no Supabase Auth"
+        required: true
+        type: boolean
+      confirm_rollback_ready:
+        description: "Confirmo plano e responsável de rollback prontos"
+        required: true
+        type: boolean
+
+concurrency:
+  group: go-live-readiness-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate production candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: production
+    env:
+      PLAYWRIGHT_TEST_BASE_URL: ${{ inputs.target_url }}
+      E2E_REQUIRE_AUTH: "1"
+      GO_LIVE_STRICT: "1"
+      GO_LIVE_LEAKED_PASSWORD_PROTECTION: ${{ inputs.confirm_leaked_password_protection }}
+      GO_LIVE_ROLLBACK_READY: ${{ inputs.confirm_rollback_ready }}
+      E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+      E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+      E2E_TEACHER_EMAIL: ${{ secrets.E2E_TEACHER_EMAIL }}
+      E2E_TEACHER_PASSWORD: ${{ secrets.E2E_TEACHER_PASSWORD }}
+      E2E_GUARDIAN_EMAIL: ${{ secrets.E2E_GUARDIAN_EMAIL }}
+      E2E_GUARDIAN_PASSWORD: ${{ secrets.E2E_GUARDIAN_PASSWORD }}
+      E2E_STUDENT_EMAIL: ${{ secrets.E2E_STUDENT_EMAIL }}
+      E2E_STUDENT_PASSWORD: ${{ secrets.E2E_STUDENT_PASSWORD }}
+
+    steps:
+      - name: Checkout selected release ref
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install application dependencies
+        run: npm ci
+
+      - name: Validate release and strict go-live contract
+        run: npm run css:check && npm run responsive:check && npm run color:check && npm run security:check && npm run performance:check && npm run discoverability:check && npm run dependencies:check && npm run release:check && npm run go-live:check
+
+      - name: Typecheck selected release ref
+        run: npm run typecheck
+
+      - name: Install E2E dependencies
+        run: npm install --prefix e2e
+
+      - name: Install Chromium
+        run: cd e2e && npx playwright install chromium --with-deps
+
+      - name: Run full E2E against candidate URL with required authenticated profiles
+        run: npm --prefix e2e test
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-live-playwright-report
+          path: e2e/playwright-report/
+          retention-days: 30

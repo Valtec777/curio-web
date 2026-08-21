@@ -8,7 +8,7 @@
   "scripts": {
     "predev": "node scripts/materialize-brand-assets.mjs",
     "dev": "next dev",
-    "prebuild": "node scripts/materialize-brand-assets.mjs && node scripts/check-css-architecture.mjs && node scripts/check-responsive-contract.mjs && node scripts/check-color-contrast.mjs && node scripts/check-security-baseline.mjs && node scripts/check-public-cache.mjs && node scripts/check-discoverability.mjs && node scripts/check-dependency-policy.mjs && node scripts/check-release-candidate.mjs",
+    "prebuild": "node scripts/materialize-brand-assets.mjs && node scripts/check-css-architecture.mjs && node scripts/check-responsive-contract.mjs && node scripts/check-color-contrast.mjs && node scripts/check-security-baseline.mjs && node scripts/check-public-cache.mjs && node scripts/check-discoverability.mjs && node scripts/check-dependency-policy.mjs && node scripts/check-release-candidate.mjs && node scripts/check-go-live-readiness.mjs",
     "brand:materialize": "node scripts/materialize-brand-assets.mjs",
     "assets:check": "node scripts/check-public-assets.mjs",
     "css:check": "node scripts/check-css-architecture.mjs",
@@ -19,6 +19,7 @@
     "discoverability:check": "node scripts/check-discoverability.mjs",
     "dependencies:check": "node scripts/check-dependency-policy.mjs",
     "release:check": "node scripts/check-release-candidate.mjs",
+    "go-live:check": "node scripts/check-go-live-readiness.mjs",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit"
