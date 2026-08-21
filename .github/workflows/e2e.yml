@@ -28,8 +28,17 @@ jobs:
       - name: Install application dependencies
         run: npm ci
 
-      - name: Validate current CSS, security, performance and discoverability model
-        run: npm run css:check && npm run responsive:check && npm run color:check && npm run security:check && npm run performance:check && npm run discoverability:check
+      - name: Validate current CSS, security, performance, discoverability and dependency model
+        run: npm run css:check && npm run responsive:check && npm run color:check && npm run security:check && npm run performance:check && npm run discoverability:check && npm run dependencies:check
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_test
+        run: npm run build
 
       - name: Install E2E dependencies
         run: npm install --prefix e2e
