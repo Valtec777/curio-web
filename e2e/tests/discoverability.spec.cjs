@@ -6,12 +6,12 @@ test.describe("descoberta pública", () => {
 
     const ogImage = await page.locator('meta[property="og:image"]').getAttribute("content");
     const twitterImage = await page.locator('meta[name="twitter:image"]').getAttribute("content");
-    expect(ogImage || "").toContain("/opengraph-image");
-    expect(twitterImage || "").toContain("/twitter-image");
+    expect(ogImage || "").toContain("/brand/plumareli-logo-oficial.webp");
+    expect(twitterImage || "").toContain("/brand/plumareli-logo-oficial.webp");
 
-    const imageResponse = await request.get("/opengraph-image");
+    const imageResponse = await request.get("/brand/plumareli-logo-oficial.webp");
     expect(imageResponse.ok()).toBeTruthy();
-    expect(imageResponse.headers()["content-type"] || "").toContain("image/png");
+    expect(imageResponse.headers()["content-type"] || "").toContain("image/webp");
   });
 
   test("robots protege áreas autenticadas e sitemap não anuncia termos não publicados", async ({ request }) => {
