@@ -152,6 +152,19 @@ html[data-theme="dark"] #universo .mascot-name-pill {
   color: #aebfff;
 }
 
+/* public.css redefine o hero depois de public-site.css; este breakpoint fecha a
+   cascata no entrypoint final para que tablet/mobile não mantenham duas colunas. */
+@media (max-width: 980px) {
+  .curio-public-hero .hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .curio-public-hero .hero-copy {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
 @media (max-width: 1080px) {
   #universo .mascot-free-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
