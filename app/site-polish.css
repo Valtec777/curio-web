@@ -109,6 +109,10 @@ h1, h2, h3, h4,
   padding-bottom: clamp(68px, 7vw, 92px);
 }
 
+.section[id] {
+  scroll-margin-top: 96px;
+}
+
 .section-heading {
   margin-bottom: 40px;
 }
@@ -118,13 +122,51 @@ h1, h2, h3, h4,
   margin-bottom: 0;
 }
 
+.public-header-inner {
+  min-height: 76px;
+  height: auto;
+  padding-block: 8px;
+}
+
+.public-nav {
+  gap: clamp(12px, 1.55vw, 22px);
+}
+
+.public-nav a {
+  padding-block: 10px;
+  white-space: nowrap;
+}
+
+.public-actions {
+  flex: 0 0 auto;
+}
+
+.curio-public-hero .hero-grid {
+  gap: clamp(32px, 5vw, 64px);
+}
+
+.curio-public-hero .hero-copy {
+  min-width: 0;
+}
+
+.curio-public-hero .hero-copy h1 {
+  max-width: 15ch;
+  font-size: clamp(42px, 5.6vw, 68px);
+  line-height: 1;
+}
+
 .hero-copy > p {
+  max-width: 60ch;
   line-height: 1.62;
 }
 
 .hero-buttons,
 .hero-chips {
   row-gap: 12px;
+}
+
+.hero-buttons .button-primary {
+  min-width: min(100%, 240px);
 }
 
 .step-card,
@@ -150,6 +192,165 @@ h1, h2, h3, h4,
 .steps-grid,
 .mascot-grid {
   gap: clamp(18px, 2vw, 26px);
+}
+
+.steps-grid > *,
+.experience-grid > *,
+.public-plan-grid > * {
+  min-width: 0;
+  height: 100%;
+}
+
+.public-plan-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.public-plan-card > .button {
+  margin-top: auto;
+}
+
+.lead-form .input,
+.lead-form .select {
+  min-height: 48px;
+}
+
+.lead-form .textarea {
+  min-height: 120px;
+}
+
+.lead-form .consent-line {
+  line-height: 1.5;
+}
+
+@media (max-width: 1180px) and (min-width: 981px) {
+  .public-header-inner {
+    gap: 16px;
+  }
+
+  .public-nav {
+    gap: 11px;
+    font-size: 12px;
+  }
+
+  .public-actions .button {
+    padding-inline: 14px;
+  }
+
+  .curio-public-hero .hero-grid {
+    gap: 36px;
+  }
+}
+
+@media (max-width: 980px) {
+  .curio-public-hero {
+    padding-top: clamp(46px, 7vw, 64px);
+  }
+
+  .curio-public-hero .hero-grid {
+    gap: 30px;
+  }
+
+  .curio-public-hero .hero-copy h1 {
+    max-width: 18ch;
+  }
+
+  .hero-mascot-stage {
+    min-height: 430px;
+  }
+
+  .map-promise-grid,
+  .course-public-grid,
+  .lead-grid,
+  .about-grid {
+    gap: 30px;
+  }
+}
+
+@media (max-width: 720px) {
+  .public-header-inner {
+    min-height: 68px;
+    padding-block: 6px;
+  }
+
+  .public-actions .button-primary {
+    min-height: 42px;
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .curio-public-hero {
+    padding-top: 38px;
+    padding-bottom: 46px;
+  }
+
+  .curio-public-hero .hero-copy h1 {
+    max-width: none;
+    font-size: clamp(38px, 11vw, 52px);
+    line-height: 1.02;
+    letter-spacing: -.045em;
+  }
+
+  .hero-copy > p,
+  .lead-copy > p,
+  .map-promise-grid > div > p,
+  .about-grid p {
+    font-size: 17px;
+  }
+
+  .hero-buttons {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero-buttons .button {
+    width: 100%;
+  }
+
+  .hero-chips {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero-chips span {
+    width: 100%;
+    text-align: center;
+  }
+
+  .hero-mascot-stage {
+    min-height: 350px;
+    border-radius: 28px;
+  }
+
+  .section {
+    padding-top: 56px;
+    padding-bottom: 56px;
+  }
+
+  .section-heading {
+    margin-bottom: 30px;
+  }
+
+  .section-heading h2,
+  .map-promise-grid h2,
+  .lead-copy h2,
+  .about-grid h2 {
+    font-size: clamp(31px, 9vw, 42px);
+  }
+
+  .method-flow {
+    justify-content: flex-start;
+  }
+
+  .lead-form {
+    padding: 20px;
+    border-radius: 22px;
+  }
+
+  .subject-checks {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 640px) {
@@ -179,8 +380,27 @@ h1, h2, h3, h4,
   .question-box {
     padding: 18px;
   }
+}
 
-  .section-heading {
-    margin-bottom: 30px;
+@media (max-width: 420px) {
+  .site-shell {
+    width: min(100% - 24px, 1180px);
+  }
+
+  .curio-public-hero .hero-copy h1 {
+    font-size: clamp(35px, 10.8vw, 44px);
+  }
+
+  .hero-mascot-stage {
+    min-height: 320px;
+  }
+
+  .step-card,
+  .experience-card,
+  .public-plan-card,
+  .course-public-card,
+  .map-mini-card,
+  .lead-form {
+    padding: 18px;
   }
 }
