@@ -28,8 +28,8 @@ jobs:
       - name: Install application dependencies
         run: npm ci
 
-      - name: Validate current CSS model
-        run: npm run css:check && npm run responsive:check && npm run color:check
+      - name: Validate current CSS and security model
+        run: npm run css:check && npm run responsive:check && npm run color:check && npm run security:check
 
       - name: Install E2E dependencies
         run: npm install --prefix e2e
