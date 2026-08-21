@@ -1,17 +1,18 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const root = process.cwd();
 const layout = readFileSync(resolve(root, "app/layout.tsx"), "utf8");
 const robots = readFileSync(resolve(root, "app/robots.ts"), "utf8");
 const sitemap = readFileSync(resolve(root, "app/sitemap.ts"), "utf8");
-const ogImage = readFileSync(resolve(root, "app/opengraph-image.tsx"), "utf8");
 const publicAnalytics = readFileSync(resolve(root, "components/public-analytics.tsx"), "utf8");
 const publicEvents = readFileSync(resolve(root, "app/api/public-events/route.ts"), "utf8");
+const socialAsset = resolve(root, "public/brand/plumareli-logo-oficial.webp");
 
 const requiredLayout = [
-  'url: "/opengraph-image"',
-  'images: ["/twitter-image"]',
+  'const socialImage = "/brand/plumareli-logo-oficial.webp"',
+  "url: socialImage",
+  "images: [socialImage]",
   "<PublicAnalytics />",
   'locale: "pt_BR"',
   'alternates: { canonical: "/" }',
@@ -22,6 +23,11 @@ for (const fragment of requiredLayout) {
     console.error(`Discoverability baseline: layout missing ${fragment}`);
     process.exit(1);
   }
+}
+
+if (!existsSync(socialAsset)) {
+  console.error("Discoverability baseline: static social image is missing.");
+  process.exit(1);
 }
 
 for (const path of ["/admin/", "/aluno/", "/familia/", "/professor/", "/auth/", "/api/", "/convite/"]) {
@@ -40,13 +46,6 @@ for (const publicUrl of ["politica-de-privacidade", "privacidade-da-crianca"]) {
 if (sitemap.includes("termos-de-uso")) {
   console.error("Discoverability baseline: unpublished terms must not be hard-coded in sitemap.");
   process.exit(1);
-}
-
-for (const fragment of ["1200", "630", "PLUMARELI", "Acompanhamento escolar online"]) {
-  if (!ogImage.includes(fragment)) {
-    console.error(`Discoverability baseline: social image missing ${fragment}`);
-    process.exit(1);
-  }
 }
 
 for (const eventName of ["landing_view", "lead_cta_click", "lead_form_submit", "lead_success", "login_click"]) {
@@ -68,4 +67,4 @@ if (!publicEvents.includes('privacy: "no_pii"') || !publicEvents.includes('"cach
   process.exit(1);
 }
 
-console.log("Discoverability baseline OK: social cards, crawler rules and no-PII public analytics verified.");
+console.log("Discoverability baseline OK: static social card, crawler rules and no-PII public analytics verified.");
