@@ -60,7 +60,28 @@ function leadDestination(referralCode: string | null, kind: "sucesso" | "erro") 
   return `/?lead=${kind}#quero-conhecer`;
 }
 
+function logPublicLead(
+  level: "info" | "warn" | "error",
+  outcome: string,
+  startedAt: number,
+  extra: Record<string, string | number | boolean | null> = {},
+) {
+  const payload = JSON.stringify({
+    level,
+    msg: "public_lead",
+    outcome,
+    ms: Date.now() - startedAt,
+    privacy: "no_pii",
+    ...extra,
+  });
+
+  if (level === "error") console.error(payload);
+  else if (level === "warn") console.warn(payload);
+  else console.log(payload);
+}
+
 export async function createEnrollmentRequest(formData: FormData) {
+  const startedAt = Date.now();
   const parsed = leadSchema.safeParse({
     guardian_name: formData.get("guardian_name"),
     phone_whatsapp: formData.get("phone_whatsapp"),
@@ -74,6 +95,7 @@ export async function createEnrollmentRequest(formData: FormData) {
   const referralCode = /^[A-Z0-9]{6,24}$/.test(rawReferralCode) ? rawReferralCode : null;
 
   if (!parsed.success) {
+    logPublicLead("warn", "rejected_validation", startedAt);
     redirect(leadDestination(referralCode, "erro"));
   }
 
@@ -85,7 +107,9 @@ export async function createEnrollmentRequest(formData: FormData) {
     .maybeSingle();
 
   if (gradeError || !grade?.id) {
-    console.error("Falha ao validar ano escolar do interesse público", gradeError?.code || "grade_not_found");
+    logPublicLead("error", "grade_lookup_failed", startedAt, {
+      error_code: gradeError?.code || "grade_not_found",
+    });
     redirect(leadDestination(referralCode, "erro"));
   }
 
@@ -118,8 +142,14 @@ export async function createEnrollmentRequest(formData: FormData) {
   });
 
   if (error && error.code !== "23505") {
-    console.error("Falha ao registrar interesse no PLUMARELI", error.code);
+    logPublicLead("error", "insert_failed", startedAt, { error_code: error.code });
     redirect(leadDestination(referralCode, "erro"));
+  }
+
+  if (error?.code === "23505") {
+    logPublicLead("info", "duplicate_accepted", startedAt);
+  } else {
+    logPublicLead("info", "created", startedAt);
   }
 
   redirect(leadDestination(referralCode, "sucesso"));
