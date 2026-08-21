@@ -5,7 +5,7 @@
   "scripts": {
     "predev": "node scripts/materialize-brand-assets.mjs",
     "dev": "next dev",
-    "prebuild": "node scripts/materialize-brand-assets.mjs && node scripts/check-css-architecture.mjs && node scripts/check-responsive-contract.mjs && node scripts/check-color-contrast.mjs && node scripts/check-security-baseline.mjs && node scripts/check-public-cache.mjs",
+    "prebuild": "node scripts/materialize-brand-assets.mjs && node scripts/check-css-architecture.mjs && node scripts/check-responsive-contract.mjs && node scripts/check-color-contrast.mjs && node scripts/check-security-baseline.mjs && node scripts/check-public-cache.mjs && node scripts/check-discoverability.mjs",
     "brand:materialize": "node scripts/materialize-brand-assets.mjs",
     "assets:check": "node scripts/check-public-assets.mjs",
     "css:check": "node scripts/check-css-architecture.mjs",
@@ -13,6 +13,7 @@
     "color:check": "node scripts/check-color-contrast.mjs",
     "security:check": "node scripts/check-security-baseline.mjs",
     "performance:check": "node scripts/check-public-cache.mjs",
+    "discoverability:check": "node scripts/check-discoverability.mjs",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit"
