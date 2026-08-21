@@ -1,5 +1,7 @@
 const { test, expect } = require("@playwright/test");
 
+const requireAuthenticatedProfiles = process.env.E2E_REQUIRE_AUTH === "1";
+
 const roles = [
   {
     name: "admin",
@@ -32,7 +34,15 @@ for (const role of roles) {
     const email = process.env[role.emailEnv];
     const password = process.env[role.passwordEnv];
 
-    test.skip(!email || !password, `Configure ${role.emailEnv} e ${role.passwordEnv}.`);
+    if (!email || !password) {
+      if (requireAuthenticatedProfiles) {
+        throw new Error(
+          `Go-live exige ${role.emailEnv} e ${role.passwordEnv} configurados com uma conta E2E exclusiva.`,
+        );
+      }
+
+      test.skip(true, `Configure ${role.emailEnv} e ${role.passwordEnv}.`);
+    }
 
     await page.goto("/login");
     await page.locator('input[name="email"]').fill(email);
