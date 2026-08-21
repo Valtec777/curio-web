@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { Fredoka, Nunito_Sans } from "next/font/google";
 import { ExperiencePreferences } from "@/components/experience-preferences";
+import { PublicAnalytics } from "@/components/public-analytics";
 import { ReferralTeacherPrefill } from "@/components/referral-teacher-prefill";
 import { BRAND_LOGO_ENDPOINT } from "@/lib/brand-assets";
 import { getSiteOrigin } from "@/lib/site-url";
@@ -19,6 +20,7 @@ const fredoka = Fredoka({ subsets: ["latin"], variable: "--font-curio-display", 
 const nunito = Nunito_Sans({ subsets: ["latin"], variable: "--font-curio-body", weight: ["400", "600", "700", "800", "900"], display: "swap" });
 const siteUrl = getSiteOrigin();
 const officialLogo = BRAND_LOGO_ENDPOINT;
+const socialDescription = "Acompanhamento escolar online com missões, Caderno Plumareli, preparação para provas e acompanhamento humano do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio.";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -58,14 +60,21 @@ export const metadata: Metadata = {
     url: "/",
     siteName: "PLUMARELI",
     title: "PLUMARELI | Organize os estudos e avance com clareza",
-    description: "Acompanhamento escolar online com missões, Caderno Plumareli, preparação para provas e acompanhamento humano do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio.",
-    images: [{ url: officialLogo, alt: "PLUMARELI" }],
+    description: socialDescription,
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "PLUMARELI — acompanhamento escolar online com clareza e acompanhamento humano",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "PLUMARELI | Acompanhamento escolar online personalizado",
     description: "Organize a rotina de estudos com missões, atividades no caderno, preparação para provas e acompanhamento humano.",
-    images: [officialLogo],
+    images: ["/twitter-image"],
   },
   robots: {
     index: true,
@@ -87,6 +96,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <ExperiencePreferences />
         <Suspense fallback={null}><ReferralTeacherPrefill /></Suspense>
         {children}
+        <PublicAnalytics />
       </body>
     </html>
   );
