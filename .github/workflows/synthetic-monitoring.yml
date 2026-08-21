@@ -1,0 +1,56 @@
+name: Synthetic production monitoring
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: "URL HTTPS a monitorar"
+        required: true
+        type: string
+  schedule:
+    - cron: "*/30 * * * *"
+
+concurrency:
+  group: synthetic-production-monitor
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  monitor:
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.MONITOR_TARGET_URL != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      DISPATCH_TARGET_URL: ${{ inputs.target_url }}
+      SCHEDULE_TARGET_URL: ${{ vars.MONITOR_TARGET_URL }}
+
+    steps:
+      - name: Checkout monitored release
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Resolve HTTPS target
+        id: target
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TARGET="$DISPATCH_TARGET_URL"
+          else
+            TARGET="$SCHEDULE_TARGET_URL"
+          fi
+
+          if [[ "$TARGET" != https://* ]]; then
+            echo "Synthetic monitoring requires an HTTPS target." >&2
+            exit 1
+          fi
+
+          echo "url=$TARGET" >> "$GITHUB_OUTPUT"
+
+      - name: Check public availability, security headers and discovery
+        run: node scripts/synthetic-monitor.mjs "${{ steps.target.outputs.url }}"
