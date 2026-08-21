@@ -20,6 +20,7 @@ const fredoka = Fredoka({ subsets: ["latin"], variable: "--font-curio-display", 
 const nunito = Nunito_Sans({ subsets: ["latin"], variable: "--font-curio-body", weight: ["400", "600", "700", "800", "900"], display: "swap" });
 const siteUrl = getSiteOrigin();
 const officialLogo = BRAND_LOGO_ENDPOINT;
+const socialImage = "/brand/plumareli-logo-oficial.webp";
 const socialDescription = "Acompanhamento escolar online com missões, Caderno Plumareli, preparação para provas e acompanhamento humano do 1º ano do Ensino Fundamental ao 3º ano do Ensino Médio.";
 
 export const viewport: Viewport = {
@@ -63,9 +64,9 @@ export const metadata: Metadata = {
     description: socialDescription,
     images: [
       {
-        url: "/opengraph-image",
-        width: 1200,
-        height: 630,
+        url: socialImage,
+        width: 440,
+        height: 253,
         alt: "PLUMARELI — acompanhamento escolar online com clareza e acompanhamento humano",
       },
     ],
@@ -74,7 +75,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "PLUMARELI | Acompanhamento escolar online personalizado",
     description: "Organize a rotina de estudos com missões, atividades no caderno, preparação para provas e acompanhamento humano.",
-    images: ["/twitter-image"],
+    images: [socialImage],
   },
   robots: {
     index: true,
