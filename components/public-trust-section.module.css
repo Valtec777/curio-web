@@ -41,6 +41,337 @@
   line-height: 1.7;
 }
 
+.productIntro {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, .72fr);
+  gap: 32px;
+  align-items: end;
+  margin-bottom: 18px;
+  padding-top: 8px;
+}
+
+.productIntro > div {
+  display: grid;
+  gap: 7px;
+}
+
+.productEyebrow {
+  color: var(--plum-blue-strong);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.productIntro h3 {
+  max-width: 720px;
+  margin: 0;
+  color: var(--plum-text);
+  font-size: clamp(28px, 3vw, 40px);
+  line-height: 1.04;
+  letter-spacing: -.035em;
+}
+
+.productIntro p {
+  margin: 0;
+  color: var(--plum-text-muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.productGrid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: clamp(42px, 5vw, 64px);
+}
+
+.productCard {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--plum-border);
+  border-radius: var(--plum-radius-xl);
+  background: var(--plum-surface-raised);
+  box-shadow: 0 18px 44px rgba(23, 40, 78, .07);
+}
+
+.studentCard {
+  background: linear-gradient(180deg, #f7faff 0%, #ffffff 78%);
+  border-color: #d9e2ff;
+}
+
+.productHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.productHead > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.productHead span {
+  color: var(--plum-blue-strong);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.productHead strong {
+  color: #17284e;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.starPill,
+.activePill,
+.softPill {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.starPill {
+  background: #fff0ad;
+  color: #755800;
+}
+
+.activePill {
+  background: #e8f8c7;
+  color: #3f6817;
+}
+
+.softPill {
+  background: #edf1f7;
+  color: #586479;
+}
+
+.missionPreview {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+  padding: 13px;
+  border: 1px solid #e5e9f2;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.missionPreview > strong {
+  color: #1c2947;
+  font-size: 14px;
+}
+
+.missionPreview > small {
+  color: #737d91;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.missionMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #315efb;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.missionMeta b {
+  color: #815e00;
+  font-size: 9px;
+}
+
+.progressTrack {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf1f7;
+}
+
+.progressTrack span {
+  display: block;
+  width: 60%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #315efb, #ff4aa2);
+}
+
+.notebookPreview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 11px 12px;
+  border-radius: 14px;
+  background: #f2edff;
+}
+
+.notebookPreview span {
+  color: #6842c2;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.notebookPreview strong {
+  color: #493873;
+  font-size: 11px;
+  text-align: right;
+}
+
+.familyMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.familyMetrics > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  padding: 11px 9px;
+  border-radius: 14px;
+  background: var(--plum-surface-soft);
+}
+
+.familyMetrics strong {
+  color: #17284e;
+  font-size: 20px;
+}
+
+.familyMetrics span {
+  color: #6d778b;
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.familyList {
+  display: grid;
+  gap: 9px;
+}
+
+.familyList > div {
+  display: grid;
+  grid-template-columns: 9px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 11px 12px;
+  border: 1px solid var(--plum-border);
+  border-radius: 14px;
+}
+
+.familyList > div > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.familyList small {
+  color: #7a8498;
+  font-size: 10px;
+}
+
+.familyList strong {
+  overflow-wrap: anywhere;
+  color: #2b3652;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.blueDot,
+.pinkDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.blueDot { background: #315efb; }
+.pinkDot { background: #ff4aa2; }
+
+.skillList {
+  display: grid;
+  gap: 10px;
+}
+
+.skillRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 12px;
+  padding: 12px;
+  border: 1px solid var(--plum-border);
+  border-radius: 15px;
+}
+
+.skillRow > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.skillRow strong {
+  color: #25304a;
+  font-size: 12px;
+}
+
+.skillRow small {
+  color: #7b8496;
+  font-size: 10px;
+}
+
+.skillMeter {
+  grid-column: 1;
+  display: flex;
+  gap: 4px;
+}
+
+.skillMeter i,
+.skillMeter em {
+  width: 25px;
+  height: 7px;
+  border-radius: 999px;
+}
+
+.skillMeter i { background: #6577ee; }
+.skillMeter em { background: #e8ecf4; }
+
+.goodTrend,
+.stableTrend,
+.attentionTrend {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  padding: 6px 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.goodTrend { background: #eafbdc; color: #43731a; }
+.stableTrend { background: #eaf0ff; color: #3155bd; }
+.attentionTrend { background: #fff1c9; color: #805e00; }
+
+.productFootnote {
+  margin: 13px 2px 0;
+  color: #7a8498;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
 .grid {
   position: relative;
   display: grid;
@@ -163,12 +494,53 @@
   background: rgba(126, 111, 255, .09);
 }
 
-:global(html[data-theme="dark"]) .intro h2 {
+:global(html[data-theme="dark"]) .intro h2,
+:global(html[data-theme="dark"]) .productIntro h3 {
   color: var(--plum-text);
 }
 
-:global(html[data-theme="dark"]) .intro > p {
+:global(html[data-theme="dark"]) .intro > p,
+:global(html[data-theme="dark"]) .productIntro p,
+:global(html[data-theme="dark"]) .productFootnote {
   color: var(--plum-text-muted);
+}
+
+:global(html[data-theme="dark"]) .productCard,
+:global(html[data-theme="dark"]) .missionPreview {
+  background: var(--plum-surface);
+  border-color: var(--plum-border);
+  box-shadow: none;
+}
+
+:global(html[data-theme="dark"]) .familyMetrics > div,
+:global(html[data-theme="dark"]) .familyList > div,
+:global(html[data-theme="dark"]) .skillRow {
+  background: var(--plum-surface-soft);
+  border-color: var(--plum-border);
+}
+
+:global(html[data-theme="dark"]) .productHead strong,
+:global(html[data-theme="dark"]) .missionPreview > strong,
+:global(html[data-theme="dark"]) .familyMetrics strong,
+:global(html[data-theme="dark"]) .familyList strong,
+:global(html[data-theme="dark"]) .skillRow strong {
+  color: var(--plum-text);
+}
+
+:global(html[data-theme="dark"]) .missionPreview > small,
+:global(html[data-theme="dark"]) .familyMetrics span,
+:global(html[data-theme="dark"]) .familyList small,
+:global(html[data-theme="dark"]) .skillRow small {
+  color: var(--plum-text-muted);
+}
+
+:global(html[data-theme="dark"]) .notebookPreview {
+  background: #302b44;
+}
+
+:global(html[data-theme="dark"]) .notebookPreview span,
+:global(html[data-theme="dark"]) .notebookPreview strong {
+  color: #e7e0ff;
 }
 
 :global(html[data-theme="dark"]) .card:not(:first-child) {
@@ -191,8 +563,19 @@
   color: var(--plum-lime);
 }
 
+@media (max-width: 1050px) {
+  .productGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .productGrid > :last-child {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 900px) {
-  .intro {
+  .intro,
+  .productIntro {
     grid-template-columns: 1fr;
     gap: 16px;
   }
@@ -216,6 +599,16 @@
   }
 }
 
+@media (max-width: 700px) {
+  .productGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .productGrid > :last-child {
+    grid-column: auto;
+  }
+}
+
 @media (max-width: 640px) {
   .grid {
     grid-template-columns: 1fr;
@@ -226,7 +619,39 @@
     min-height: 220px;
   }
 
+  .familyMetrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .note :global(.button) {
     width: 100%;
+  }
+}
+
+@media (max-width: 430px) {
+  .productCard {
+    padding: 16px;
+  }
+
+  .productHead {
+    align-items: flex-start;
+  }
+
+  .familyMetrics {
+    grid-template-columns: 1fr;
+  }
+
+  .notebookPreview {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .notebookPreview strong {
+    text-align: left;
+  }
+
+  .skillMeter i,
+  .skillMeter em {
+    width: 21px;
   }
 }

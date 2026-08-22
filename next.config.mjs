@@ -13,9 +13,29 @@ try {
   // A configuração inválida será percebida pelo cliente Supabase; não bloqueie o build por isso.
 }
 
+const securityHeaders = [
+  {
+    key: "Content-Security-Policy",
+    value: "base-uri 'self'; frame-ancestors 'none'; form-action 'self'; object-src 'none'",
+  },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
+  { key: "Permissions-Policy", value: "geolocation=(), browsing-topics=()" },
+];
+
 const nextConfig = {
   images: {
     remotePatterns: supabaseRemotePatterns,
+  },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: securityHeaders,
+      },
+    ];
   },
   async rewrites() {
     return {
