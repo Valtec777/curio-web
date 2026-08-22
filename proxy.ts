@@ -22,12 +22,13 @@ export async function proxy(request: NextRequest) {
   const studentContext = request.cookies.get("curio_student_context")?.value;
   const pathname = request.nextUrl.pathname;
   const privateBeta = isPrivateBetaEnabled();
+  const presentationPreview = request.nextUrl.searchParams.get("apresentacao") === "plumareli";
 
   if (privateBeta && pathname === "/llms.txt") {
     return applySecurityHeaders(new NextResponse("Not Found", { status: 404 }), privateBeta);
   }
 
-  if (privateBeta && pathname === "/") {
+  if (privateBeta && pathname === "/" && !presentationPreview) {
     const url = request.nextUrl.clone();
     url.pathname = "/beta";
     return applySecurityHeaders(NextResponse.rewrite(url), privateBeta);
