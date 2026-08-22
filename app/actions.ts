@@ -3,6 +3,7 @@
 import { createHash } from "node:crypto";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { isPrivateBetaEnabled } from "@/lib/public-launch";
 import { createClient } from "@/lib/supabase/server";
 
 const leadSchema = z.object({
@@ -49,6 +50,22 @@ export async function createEnrollmentRequest(formData: FormData) {
   }
 
   const supabase = await createClient();
+
+  if (!referralCode && isPrivateBetaEnabled()) {
+    redirect("/?convite=necessario");
+  }
+
+  if (referralCode) {
+    const { data: referralRows, error: referralError } = await supabase.rpc("referral_landing", {
+      p_code: referralCode,
+    });
+    const referral = Array.isArray(referralRows) ? referralRows[0] : null;
+
+    if (referralError || !referral?.program_active) {
+      redirect(leadDestination(referralCode, "erro"));
+    }
+  }
+
   const { data: grade } = await supabase
     .from("grades")
     .select("id")
