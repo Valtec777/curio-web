@@ -1,0 +1,24 @@
+/* Ajuste específico da apresentação reservada.
+   A Irara do hero não pode ficar parcialmente abaixo do palco: o recorte fazia
+   a pata/perna parecer deformada quando o container (overflow:hidden) cortava
+   os pixels inferiores da imagem. */
+.curio-public-hero .mascot-orbit-main {
+  bottom: 8px !important;
+}
+
+.curio-public-hero .mascot-orbit-main img {
+  display: block;
+  width: 100%;
+  height: auto !important;
+  max-height: 470px;
+  object-fit: contain !important;
+  object-position: center bottom !important;
+  clip-path: none !important;
+  transform: none !important;
+}
+
+@media (max-width: 640px) {
+  .curio-public-hero .mascot-orbit-main {
+    bottom: 12px !important;
+  }
+}
