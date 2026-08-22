@@ -12,6 +12,13 @@ function date(value?: string | null) {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeZone: "UTC" }).format(new Date(`${String(value).slice(0, 10)}T12:00:00Z`));
 }
 
+function readingSupportLabel(value?: string | null) {
+  if (value === "needs_support") return "Precisa de apoio para ler instruções";
+  if (value === "developing") return "Autonomia de leitura em desenvolvimento";
+  if (value === "independent") return "Lê com autonomia";
+  return "Ainda não configurado pela família";
+}
+
 export default async function TeacherStudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { teacher, supabase } = await getCurrentTeacher();
@@ -22,6 +29,7 @@ export default async function TeacherStudentDetailPage({ params }: { params: Pro
   if (!student) return <EmptyState title="Aluno indisponível" description="Este aluno não está vinculado ao seu perfil de professor." />;
 
   const [
+    { data: support },
     { data: contents },
     { data: states },
     { data: uploads },
@@ -30,6 +38,7 @@ export default async function TeacherStudentDetailPage({ params }: { params: Pro
     { data: notebooks },
     { data: events },
   ] = await Promise.all([
+    supabase.from("student_support_preferences").select("reading_autonomy,guided_mode,audio_instructions,updated_at").eq("student_id", id).maybeSingle(),
     supabase.from("student_current_contents").select("subjects(name),contents(name),confirmed,is_manual").eq("student_id", id).eq("active", true).limit(20),
     supabase.from("student_skill_states").select("domain_level,autonomy_level,evidence_count,trend,priority,needs_teacher_review,skills(name)").eq("student_id", id).order("updated_at", { ascending: false }).limit(80),
     supabase.from("family_school_uploads").select("id,title,content_type,description,related_date,file_path,file_name,status,created_at,subjects(name)").eq("student_id", id).order("created_at", { ascending: false }).limit(40),
@@ -66,6 +75,20 @@ export default async function TeacherStudentDetailPage({ params }: { params: Pro
         description={`${student.grades?.name || "Ano não informado"} · ${student.school_name || "Escola não informada"}`}
         action={<Link className="button button-secondary" href="/professor/alunos">← Meus alunos</Link>}
       />
+
+      <section className="panel family-highlight">
+        <div className="panel-head">
+          <div>
+            <h2>Apoio de leitura e navegação</h2>
+            <p>{readingSupportLabel(support?.reading_autonomy)}. Use esta informação para ajustar a condução, sem retirar do aluno a oportunidade de pensar e responder.</p>
+          </div>
+          <div className="flex gap-8 wrap">
+            {support?.guided_mode ? <Badge tone="purple">Modo Acompanhado</Badge> : <Badge tone="neutral">Modo independente</Badge>}
+            {support?.audio_instructions ? <Badge tone="blue">Áudio ativo</Badge> : null}
+          </div>
+        </div>
+        {support?.guided_mode ? <div className="notice">O responsável pode ajudar a entrar, navegar e ler orientações. As respostas e tentativas devem continuar sendo construídas pelo aluno.</div> : null}
+      </section>
 
       <div className="family-dashboard-grid">
         <article className="family-summary-card"><Badge tone="blue">Progresso</Badge><h3>{evidenced.length ? `${progress}%` : "Começando"}</h3><p>Baseado nas habilidades com evidências.</p></article>
