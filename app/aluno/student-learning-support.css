@@ -1,0 +1,99 @@
+/* PLUMARELI · Modo Acompanhado e apoio à leitura */
+
+.student-guided-banner {
+  margin-bottom: 18px;
+  padding: 16px 18px;
+  border: 2px solid #d7e5aa;
+  border-bottom-width: 5px;
+  border-radius: 18px;
+  background: #f5ffe2;
+  color: #31451a;
+}
+
+.student-guided-banner > div {
+  display: grid;
+  gap: 4px;
+}
+
+.student-guided-banner strong {
+  font-size: 16px;
+}
+
+.student-guided-banner span {
+  line-height: 1.45;
+}
+
+.student-audio-assistant {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 80;
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+  max-width: min(330px, calc(100vw - 28px));
+}
+
+.student-audio-button {
+  min-height: 50px;
+  box-shadow: 0 12px 30px rgba(23, 40, 78, .18);
+}
+
+.student-audio-assistant small {
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: #fff;
+  color: #667188;
+  box-shadow: 0 8px 20px rgba(23, 40, 78, .08);
+}
+
+html[data-reading-autonomy="developing"] .kid-dashboard .app-main {
+  font-size: 103%;
+}
+
+html[data-reading-autonomy="needs_support"] .kid-dashboard .app-main {
+  font-size: 108%;
+  line-height: 1.58;
+}
+
+html[data-student-guided="true"] .kid-dashboard .button,
+html[data-reading-autonomy="needs_support"] .kid-dashboard .button {
+  min-height: 50px;
+}
+
+html[data-student-guided="true"] .kid-dashboard .input,
+html[data-student-guided="true"] .kid-dashboard .select,
+html[data-student-guided="true"] .kid-dashboard .textarea,
+html[data-reading-autonomy="needs_support"] .kid-dashboard .input,
+html[data-reading-autonomy="needs_support"] .kid-dashboard .select,
+html[data-reading-autonomy="needs_support"] .kid-dashboard .textarea {
+  min-height: 50px;
+  font-size: 1rem;
+}
+
+html[data-student-guided="true"] .kid-dashboard .question-box,
+html[data-reading-autonomy="needs_support"] .kid-dashboard .question-box {
+  padding: clamp(22px, 3vw, 30px);
+}
+
+html[data-student-guided="true"] .kid-dashboard .quiz-option,
+html[data-reading-autonomy="needs_support"] .kid-dashboard .quiz-option {
+  min-height: 54px;
+}
+
+html[data-theme="dark"] .student-guided-banner {
+  border-color: rgba(185, 233, 79, .3);
+  background: rgba(168, 238, 37, .1);
+  color: #eef7dc;
+}
+
+@media (max-width: 640px) {
+  .student-audio-assistant {
+    right: 14px;
+    bottom: 14px;
+  }
+
+  .student-audio-button {
+    min-height: 48px;
+  }
+}

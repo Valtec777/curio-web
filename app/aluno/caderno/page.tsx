@@ -51,13 +51,13 @@ export default async function StudentNotebookPage({ searchParams }: { searchPara
       <div className="flex space-between gap-8 wrap">
         <div>
           <div className="flex gap-8 wrap"><Badge tone="purple">{subject?.name || "Caderno Plumareli"}</Badge><Badge tone={row.needs_redo ? "pink" : row.status === "reviewed" ? "green" : row.status === "submitted" ? "blue" : "yellow"}>{label(row)}</Badge></div>
-          <h3>{activity?.title || "Atividade do Caderno Plumareli"}</h3>
-          <p>{activity?.description || "Faça a atividade à mão e envie quando terminar."}</p>
+          <h3 data-audio-instruction>{activity?.title || "Atividade do Caderno Plumareli"}</h3>
+          <p data-audio-instruction>{activity?.description || "Faça a atividade à mão e envie quando terminar."}</p>
         </div>
         {worksheetUrls.get(row.id) ? <a className="button button-secondary button-small" href={worksheetUrls.get(row.id)} target="_blank" rel="noreferrer">Baixar / abrir caderno ↗</a> : null}
       </div>
       <div className="student-resource-meta"><span>Prazo: {dt(row.due_at)}</span>{row.submitted_at ? <span>Enviado: {dt(row.submitted_at)}</span> : null}{row.score != null ? <span>Nota: {row.score}</span> : null}{row.stars_awarded ? <span>+{row.stars_awarded} ★</span> : null}</div>
-      {row.needs_redo && row.redo_note ? <div className="student-feedback redo"><strong>Vamos tentar mais uma vez</strong><p>{row.redo_note}</p></div> : null}
+      {row.needs_redo && row.redo_note ? <div className="student-feedback redo"><strong>Vamos tentar mais uma vez</strong><p data-audio-instruction>{row.redo_note}</p></div> : null}
       {row.teacher_note && !row.needs_redo ? <div className="student-feedback"><strong>Recado da professora</strong><p>{row.teacher_note}</p></div> : null}
       {submissionUrls.get(row.id) ? <a href={submissionUrls.get(row.id)} target="_blank" rel="noreferrer">Ver o arquivo que você enviou ↗</a> : null}
       {canSubmit ? <PrivateFamilyUploadForm action={submitStudentNotebook} studentId={student.id} kind="student-activity" fileField="activityFile" className="student-upload-box"><input type="hidden" name="assignmentId" value={row.id} /><label>{row.needs_redo ? "Enviar atividade refeita" : "Enviar foto ou PDF"}<input type="file" name="activityFile" accept="application/pdf,image/png,image/jpeg,image/webp,.pdf,.png,.jpg,.jpeg,.webp" required /></label><small className="muted">PDF ou imagem · até 15 MB · envio direto ao armazenamento privado.</small><button className="button button-primary button-small" type="submit">Enviar para a professora</button></PrivateFamilyUploadForm> : null}
@@ -70,7 +70,7 @@ export default async function StudentNotebookPage({ searchParams }: { searchPara
     {query.erro && <div className="form-message form-error">{query.erro}</div>}
     {query.sucesso && <div className="form-message form-success">{query.sucesso}</div>}
     <div className="student-metric-row"><div><strong>{pending.length}</strong><span>Pendentes</span></div><div><strong>{done.length}</strong><span>Enviadas / corrigidas</span></div><div><strong>{(rows ?? []).filter((r:any)=>r.needs_redo).length}</strong><span>Para refazer</span></div></div>
-    <section className="panel"><div className="panel-head"><div><h2>Para fazer</h2><p>Abra o arquivo, faça no caderno e envie a foto ou PDF.</p></div></div>{pending.length ? <div className="student-notebook-list">{pending.map(card)}</div> : <EmptyState title="Tudo em dia por aqui" description="Quando a professora enviar uma atividade de caderno, ela aparecerá aqui." />}</section>
+    <section className="panel"><div className="panel-head"><div><h2 data-audio-instruction>Para fazer</h2><p data-audio-instruction>Abra o arquivo, faça no caderno e envie a foto ou PDF.</p></div></div>{pending.length ? <div className="student-notebook-list">{pending.map(card)}</div> : <EmptyState title="Tudo em dia por aqui" description="Quando a professora enviar uma atividade de caderno, ela aparecerá aqui." />}</section>
     <section className="panel"><div className="panel-head"><div><h2>Já enviadas</h2><p>Você pode rever suas entregas e o feedback recebido.</p></div></div>{done.length ? <div className="student-notebook-list">{done.map(card)}</div> : <EmptyState title="Nenhuma entrega ainda" description="Suas atividades enviadas aparecerão aqui." />}</section>
   </>;
 }

@@ -37,8 +37,8 @@ export default async function StudentMissionPage({
           <Badge tone="pink">Missão Cuca</Badge>
           <Badge tone="neutral">{(assignment as any).missions?.estimated_minutes || 20} min</Badge>
         </div>
-        <h1>{(assignment as any).missions?.title}</h1>
-        <p>{(assignment as any).missions?.objective}</p>
+        <h1 data-audio-instruction>{(assignment as any).missions?.title}</h1>
+        <p data-audio-instruction>{(assignment as any).missions?.objective}</p>
       </section>
 
       {query.erro && <div className="form-message form-error">{query.erro}</div>}
@@ -48,18 +48,18 @@ export default async function StudentMissionPage({
 
         <section className="panel family-highlight">
           <div className="eyebrow">1. Primeiro, vamos entender</div>
-          <h2>Leia com calma. Depois tente explicar do seu jeito.</h2>
-          <p className="muted">Você não precisa responder rápido. Pensar faz parte da missão.</p>
+          <h2 data-audio-instruction>Leia com calma. Depois tente explicar do seu jeito.</h2>
+          <p className="muted" data-audio-instruction>Você não precisa responder rápido. Pensar faz parte da missão.</p>
         </section>
 
         {(questions ?? []).map((question, index) => (
           <section className="question-box" key={question.id}>
             <div className="eyebrow">{index + 2}. Agora é sua vez</div>
-            <h3>{question.prompt}</h3>
+            <h3 data-audio-instruction>{question.prompt}</h3>
             {question.hint && (
               <details className="notice" style={{ marginBottom: 14 }}>
                 <summary><strong>Preciso de uma pista</strong></summary>
-                <p>{question.hint}</p>
+                <p data-audio-instruction>{question.hint}</p>
               </details>
             )}
             {(["multiple_choice", "true_false"].includes((question as any).question_type) && Array.isArray((question as any).options) && (question as any).options.length) ? (
@@ -67,7 +67,7 @@ export default async function StudentMissionPage({
                 {(question as any).options.map((option: string) => (
                   <label className="quiz-option" key={option}>
                     <input type="radio" name={`answer_${question.id}`} value={option} required />
-                    <span>{option}</span>
+                    <span data-audio-instruction>{option}</span>
                   </label>
                 ))}
               </div>

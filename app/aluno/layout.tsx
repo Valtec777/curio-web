@@ -3,6 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { CurioFirstVisitGuide } from "@/components/curio-first-visit-guide";
 import { CurioPlayfulSoundEffects } from "@/components/curio-playful-sound-effects";
 import { MonthlyInterestPrompt } from "@/components/monthly-interest-prompt";
+import { StudentLearningSupport } from "@/components/student-learning-support";
 import { getCurrentStudent } from "@/lib/student";
 import { shouldShowMonthlyInterest } from "@/lib/monthly-interest";
 import "./student-workspace.css";
@@ -11,14 +12,18 @@ import "./student-delight.css";
 import "./student-extra-icons.css";
 import "./student-interactions.css";
 import "./student-celebrations.css";
+import "./student-learning-support.css";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function StudentLayout({ children }: { children: React.ReactNode }) {
   const { viewer, student, supabase } = await getCurrentStudent();
-  const [{ data: game }, showInterest] = await Promise.all([
+  const [{ data: game }, { data: support }, showInterest] = await Promise.all([
     student
       ? supabase.from("student_game_profiles").select("stars,level_name,avatar_character_id,characters(name,assets)").eq("student_id", student.id).maybeSingle()
+      : Promise.resolve({ data: null } as any),
+    student
+      ? supabase.from("student_support_preferences").select("reading_autonomy,guided_mode,audio_instructions").eq("student_id", student.id).maybeSingle()
       : Promise.resolve({ data: null } as any),
     shouldShowMonthlyInterest(supabase, viewer.user.id, "student"),
   ]);
@@ -40,6 +45,11 @@ export default async function StudentLayout({ children }: { children: React.Reac
         metricValue={game?.stars ?? 0}
         avatarUrl={avatarUrl}
       >
+        <StudentLearningSupport
+          readingAutonomy={(support?.reading_autonomy || "independent") as "independent" | "developing" | "needs_support"}
+          guidedMode={support?.guided_mode === true}
+          audioInstructions={support?.audio_instructions === true}
+        />
         {children}
         <CurioFirstVisitGuide role="student" viewerId={viewer.user.id} />
         <CurioPlayfulSoundEffects viewerId={viewer.user.id} />
