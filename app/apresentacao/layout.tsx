@@ -5,6 +5,7 @@ import "../app-shell.css";
 import "../presentation-responsive.css";
 import "../public-brand.css";
 import "../presentation-accessibility.css";
+import "../presentation-mascot-fixes.css";
 
 export const metadata: Metadata = {
   title: "PLUMARELI | Apresentação",
