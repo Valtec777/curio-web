@@ -6,6 +6,7 @@ const trustItems = [
   ["Acompanhamento humano", "A tecnologia ajuda a organizar a rotina, mas o acompanhamento continua sendo feito por pessoas."],
   ["Família acompanha o percurso", "Progresso, agenda, atividades e próximos passos ficam reunidos em um espaço próprio para a família."],
   ["Aprendizagem além da tela", "O Caderno Plumareli mantém escrita, raciocínio e produção manual como parte do percurso."],
+  ["Experiência que se adapta", "Em fase de alfabetização, o aluno pode usar o Modo Acompanhado, receber apoio do responsável nos primeiros acessos e ouvir instruções em áudio quando necessário."],
 ] as const;
 
 function StudentPreview() {
