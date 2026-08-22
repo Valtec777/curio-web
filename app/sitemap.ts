@@ -1,7 +1,10 @@
 import type { MetadataRoute } from "next";
+import { isPrivateBetaEnabled } from "@/lib/public-launch";
 import { getSiteOrigin } from "@/lib/site-url";
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  if (isPrivateBetaEnabled()) return [];
+
   const siteUrl = getSiteOrigin();
   const now = new Date();
   return [
