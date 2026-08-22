@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { createEnrollmentRequest } from "@/app/actions";
 import { createClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Convite PLUMARELI",
+  robots: { index: false, follow: false },
+};
 
 export default async function ReferralLandingPage({
   params,
@@ -21,13 +27,13 @@ export default async function ReferralLandingPage({
   const landing: any = landingRows?.[0] || null;
 
   if (!landing?.program_active) {
-    return <main className="site-shell section"><div className="flex space-between align-center wrap" style={{ marginBottom: 38 }}><Logo /><Link className="button button-secondary" href="/">Voltar ao início</Link></div><section className="panel" style={{ maxWidth: 720, margin: "70px auto" }}><div className="eyebrow">Convite PLUMARELI</div><h1>Este convite não está disponível agora.</h1><p className="muted">A campanha pode ter sido encerrada ou pausada. Você ainda pode conhecer o PLUMARELI pela página principal.</p><Link className="button button-primary mt-16" href="/">Conhecer o PLUMARELI</Link></section></main>;
+    return <main className="site-shell section"><div className="flex space-between align-center wrap" style={{ marginBottom: 38 }}><Logo /><Link className="button button-secondary" href="/">Voltar ao início</Link></div><section className="panel" style={{ maxWidth: 720, margin: "70px auto" }}><div className="eyebrow">Convite PLUMARELI</div><h1>Este convite não está disponível agora.</h1><p className="muted">A campanha pode ter sido encerrada ou pausada. Você ainda pode falar com a equipe PLUMARELI pela página principal.</p><Link className="button button-primary mt-16" href="/">Voltar ao PLUMARELI</Link></section></main>;
   }
 
   const inviter = landing.owner_type === "teacher" ? `Você recebeu um convite de ${landing.owner_name}.` : "Uma família PLUMARELI convidou você para conhecer a plataforma.";
 
   return <>
-    <header className="public-header"><div className="site-shell public-header-inner"><Logo /><Link className="button button-secondary" href="/">Conhecer o site</Link></div></header>
+    <header className="public-header"><div className="site-shell public-header-inner"><Logo /><Link className="button button-secondary" href="/">Página inicial</Link></div></header>
     <main>
       <section className="section curio-public-hero referral-invite-section">
         <div className="site-shell lead-grid referral-invite-grid">
@@ -41,7 +47,7 @@ export default async function ReferralLandingPage({
           <form className="lead-form referral-invite-form" action={createEnrollmentRequest} id="quero-conhecer">
             <input type="hidden" name="referral_code" value={code} />
             {lead === "sucesso" && <div className="form-message form-success">Recebemos seu interesse. A equipe PLUMARELI entrará em contato com você.</div>}
-            {lead === "erro" && <div className="form-message form-error">Não foi possível enviar agora. Confira os campos e tente novamente.</div>}
+            {lead === "erro" && <div className="form-message form-error">Não foi possível enviar agora. Confira se o convite continua válido e tente novamente.</div>}
             <div className="form-row">
               <div className="field"><label>Nome do responsável *</label><input className="input" name="guardian_name" required placeholder="Seu nome" /></div>
               <div className="field"><label>WhatsApp *</label><input className="input" name="phone_whatsapp" required placeholder="(71) 9 ....-...." /></div>
