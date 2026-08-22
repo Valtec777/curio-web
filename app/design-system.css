@@ -1,0 +1,445 @@
+/* PLUMARELI — design system canônico
+   Tokens -> base -> primitives -> themes.
+   Mantém aliases legados enquanto a aplicação migra gradualmente. */
+
+:root {
+  /* Brand */
+  --plum-navy: #17264a;
+  --plum-blue: #3b63ee;
+  --plum-blue-strong: #2f50ce;
+  --plum-purple: #704be8;
+  --plum-pink: #ef5799;
+  --plum-lime: #b8ed4b;
+  --plum-yellow: #ffd66b;
+
+  /* Semantic color */
+  --plum-canvas: #f8f6f0;
+  --plum-surface: #ffffff;
+  --plum-surface-raised: #fffefa;
+  --plum-surface-soft: #f3f5fa;
+  --plum-text: #202b43;
+  --plum-text-muted: #667188;
+  --plum-border: #e2e6ee;
+  --plum-border-strong: #d3d9e5;
+  --plum-success: #287a50;
+  --plum-danger: #b42318;
+  --plum-focus: #8ecf22;
+
+  /* Type */
+  --plum-font-display: var(--font-curio-display), var(--font-curio-body), Arial, Helvetica, sans-serif;
+  --plum-font-body: var(--font-curio-body), Arial, Helvetica, sans-serif;
+
+  /* Space */
+  --plum-space-1: 4px;
+  --plum-space-2: 8px;
+  --plum-space-3: 12px;
+  --plum-space-4: 16px;
+  --plum-space-5: 20px;
+  --plum-space-6: 24px;
+  --plum-space-7: 32px;
+  --plum-space-8: 40px;
+  --plum-space-9: 56px;
+
+  /* Shape */
+  --plum-radius-sm: 12px;
+  --plum-radius-md: 16px;
+  --plum-radius-lg: 22px;
+  --plum-radius-xl: 30px;
+  --plum-radius-pill: 999px;
+
+  /* Elevation */
+  --plum-shadow-xs: 0 1px 2px rgba(23, 38, 74, .05);
+  --plum-shadow-sm: 0 8px 24px rgba(23, 38, 74, .07);
+  --plum-shadow-md: 0 16px 42px rgba(23, 38, 74, .10);
+  --plum-shadow-lg: 0 26px 70px rgba(23, 38, 74, .16);
+
+  /* Motion */
+  --plum-ease: cubic-bezier(.2, .7, .2, 1);
+  --plum-duration: 160ms;
+
+  /* Legacy aliases — remove only after all selectors migrate. */
+  --navy: var(--plum-navy);
+  --blue: var(--plum-blue);
+  --blue-dark: var(--plum-blue-strong);
+  --pink: var(--plum-pink);
+  --purple: var(--plum-purple);
+  --lime: var(--plum-lime);
+  --yellow: var(--plum-yellow);
+  --ink: var(--plum-text);
+  --muted: var(--plum-text-muted);
+  --line: var(--plum-border);
+  --soft: var(--plum-surface-soft);
+  --white: var(--plum-surface);
+  --danger: var(--plum-danger);
+  --success: var(--plum-success);
+  --radius: var(--plum-radius-lg);
+  --shadow: var(--plum-shadow-md);
+
+  --curio-surface: var(--plum-surface);
+  --curio-surface-raised: var(--plum-surface-raised);
+  --curio-surface-soft: var(--plum-surface-soft);
+  --curio-text: var(--plum-text);
+  --curio-text-muted: var(--plum-text-muted);
+  --curio-border: var(--plum-border);
+  --curio-input-bg: var(--plum-surface);
+  --curio-hover: #f0f3f9;
+  --curio-radius-sm: var(--plum-radius-sm);
+  --curio-radius-md: var(--plum-radius-lg);
+  --curio-radius-lg: var(--plum-radius-xl);
+  --curio-space-1: var(--plum-space-2);
+  --curio-space-2: var(--plum-space-3);
+  --curio-space-3: var(--plum-space-4);
+  --curio-space-4: var(--plum-space-5);
+  --curio-space-5: var(--plum-space-6);
+  --curio-space-6: var(--plum-space-7);
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --plum-canvas: #141a24;
+  --plum-surface: #202733;
+  --plum-surface-raised: #252d3a;
+  --plum-surface-soft: #181f2a;
+  --plum-text: #f1f4f9;
+  --plum-text-muted: #b7c1d1;
+  --plum-border: #3d485b;
+  --plum-border-strong: #4c596f;
+  --plum-focus: #b8ed4b;
+  --curio-input-bg: #171e29;
+  --curio-hover: #2a3342;
+}
+
+html {
+  background: var(--plum-canvas);
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  color: var(--plum-text);
+  background:
+    radial-gradient(circle at 8% 0%, rgba(112, 75, 232, .035), transparent 28rem),
+    var(--plum-canvas);
+  font-family: var(--plum-font-body);
+  line-height: 1.58;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6,
+.page-header h1,
+.section-heading h2,
+.hero h1 {
+  color: var(--plum-text);
+  font-family: var(--plum-font-display);
+  text-wrap: balance;
+}
+
+p { text-wrap: pretty; }
+
+::selection {
+  background: rgba(184, 237, 75, .42);
+  color: var(--plum-navy);
+}
+
+a, button, input, select, textarea, summary {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--plum-focus) 72%, white);
+  outline-offset: 3px;
+}
+
+/* Shared layout rhythm */
+.app-main {
+  background: transparent;
+  padding: clamp(28px, 3.2vw, 46px);
+}
+
+.app-main > * + * { margin-top: var(--plum-space-6); }
+.page-header { margin-bottom: var(--plum-space-7); }
+.page-header p,
+.panel-head p,
+.mission-card p,
+.family-summary-card p,
+.family-upload-card p,
+.notice,
+.empty-state p { line-height: 1.65; }
+
+.grid-2 { gap: var(--plum-space-6); }
+.grid-3,
+.stats-grid { gap: var(--plum-space-5); }
+
+/* Surfaces */
+.panel,
+.stat-card,
+.mission-card,
+.question-box,
+.resource-card,
+.role-card,
+.family-summary-card,
+.family-upload-card,
+.teacher-today-card,
+.teacher-side-card,
+.public-plan-card,
+.course-public-card,
+.map-mini-card,
+.step-card,
+.experience-card,
+.auth-card,
+.notice,
+.form-message,
+.modal-card,
+.dialog-card {
+  border-color: var(--plum-border);
+  border-radius: var(--plum-radius-lg);
+}
+
+.panel,
+.stat-card,
+.mission-card,
+.resource-card,
+.family-summary-card,
+.family-upload-card,
+.teacher-today-card,
+.teacher-side-card,
+.auth-card {
+  background: var(--plum-surface-raised);
+  color: var(--plum-text);
+  box-shadow: var(--plum-shadow-xs);
+}
+
+.panel {
+  padding: clamp(22px, 2.3vw, 30px);
+  margin-bottom: var(--plum-space-6);
+}
+
+.panel-head {
+  gap: var(--plum-space-5);
+  margin-bottom: var(--plum-space-5);
+}
+
+.stat-card,
+.mission-card,
+.question-box { padding: 22px; }
+
+/* Controls */
+.button {
+  min-height: 44px;
+  border-radius: var(--plum-radius-md);
+  transition:
+    transform var(--plum-duration) var(--plum-ease),
+    box-shadow var(--plum-duration) var(--plum-ease),
+    background var(--plum-duration) var(--plum-ease),
+    border-color var(--plum-duration) var(--plum-ease);
+}
+
+.button:hover { transform: translateY(-1px); }
+.button:active { transform: translateY(0); }
+.button-small { min-height: 38px; border-radius: var(--plum-radius-sm); }
+
+.button-primary {
+  background: linear-gradient(135deg, var(--plum-blue), var(--plum-purple));
+  box-shadow: 0 10px 24px rgba(59, 99, 238, .18);
+}
+.button-primary:hover { box-shadow: 0 14px 30px rgba(59, 99, 238, .24); }
+.button-secondary,
+.button-ghost {
+  background: var(--plum-surface);
+  color: var(--plum-text);
+  border-color: var(--plum-border);
+}
+
+.input,
+.select,
+.textarea,
+.segmented-control,
+.segmented-control button,
+.preference-toggle input,
+.sound-preview button,
+.experience-close,
+.experience-trigger {
+  border-radius: var(--plum-radius-md);
+}
+
+.input,
+.select,
+.textarea {
+  background: var(--curio-input-bg);
+  color: var(--plum-text);
+  border-color: var(--plum-border-strong);
+  transition: border-color var(--plum-duration) var(--plum-ease), box-shadow var(--plum-duration) var(--plum-ease);
+}
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: var(--plum-blue);
+  box-shadow: 0 0 0 4px rgba(59, 99, 238, .10);
+}
+
+.badge { border-radius: var(--plum-radius-pill); }
+.progress { background: color-mix(in srgb, var(--plum-border) 70%, transparent); }
+.progress > span { background: linear-gradient(90deg, var(--plum-blue), var(--plum-pink)); }
+
+/* Public site rhythm */
+.section {
+  padding-top: clamp(68px, 7vw, 92px);
+  padding-bottom: clamp(68px, 7vw, 92px);
+}
+.section-heading { margin-bottom: var(--plum-space-8); }
+.section-heading p,
+.hero-copy > p { line-height: 1.65; }
+
+.public-header {
+  border-bottom-color: color-mix(in srgb, var(--plum-border) 80%, transparent);
+  background: color-mix(in srgb, var(--plum-surface) 88%, transparent);
+}
+
+/* Slightly more refined card language without changing the identity. */
+.feature-card,
+.method-card,
+.role-card,
+.public-plan-card,
+.course-public-card,
+.step-card,
+.experience-card,
+.family-summary-card,
+.teacher-today-card,
+.teacher-side-card {
+  box-shadow: var(--plum-shadow-sm);
+}
+
+.feature-card:hover,
+.method-card:hover,
+.role-card:hover,
+.public-plan-card:hover,
+.course-public-card:hover {
+  border-color: color-mix(in srgb, var(--plum-blue) 24%, var(--plum-border));
+  box-shadow: var(--plum-shadow-md);
+}
+
+/* Accessibility preferences */
+html[data-text-size="large"] { font-size: 108%; }
+html[data-text-size="extra"] { font-size: 116%; }
+
+html[data-access-epilepsy="true"] *,
+html[data-access-epilepsy="true"] *::before,
+html[data-access-epilepsy="true"] *::after {
+  animation-duration: .001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .001ms !important;
+  scroll-behavior: auto !important;
+}
+html[data-access-epilepsy="true"] .hero-sticker,
+html[data-access-epilepsy="true"] .student-hero-orbit,
+html[data-access-focus="true"] .hero-sticker,
+html[data-access-focus="true"] .student-hero-orbit { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Dark theme: one semantic surface model instead of component-by-component patches. */
+html[data-theme="dark"] body,
+html[data-theme="dark"] .app-main {
+  background: var(--plum-canvas);
+  color: var(--plum-text);
+}
+
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .stat-card,
+html[data-theme="dark"] .mission-card,
+html[data-theme="dark"] .question-box,
+html[data-theme="dark"] .resource-card,
+html[data-theme="dark"] .admin-module-card,
+html[data-theme="dark"] .admin-welcome-card,
+html[data-theme="dark"] .course-module-admin,
+html[data-theme="dark"] .course-add-module,
+html[data-theme="dark"] .plan-editor,
+html[data-theme="dark"] .course-admin-create,
+html[data-theme="dark"] .access-invite-card,
+html[data-theme="dark"] .enrollment-flow,
+html[data-theme="dark"] .enrollment-step,
+html[data-theme="dark"] .enrollment-review-card,
+html[data-theme="dark"] .record-editor,
+html[data-theme="dark"] .second-guardian,
+html[data-theme="dark"] .family-summary-card,
+html[data-theme="dark"] .family-upload-card,
+html[data-theme="dark"] .teacher-today-card,
+html[data-theme="dark"] .teacher-side-card,
+html[data-theme="dark"] .teacher-recent-item,
+html[data-theme="dark"] .teacher-agenda-item,
+html[data-theme="dark"] .student-notebook-mini,
+html[data-theme="dark"] .achievement-inline,
+html[data-theme="dark"] .map-mini-card,
+html[data-theme="dark"] .public-plan-card,
+html[data-theme="dark"] .course-public-card,
+html[data-theme="dark"] .referral-card,
+html[data-theme="dark"] .report-card,
+html[data-theme="dark"] .course-card,
+html[data-theme="dark"] .child-space-button,
+html[data-theme="dark"] .role-card,
+html[data-theme="dark"] .auth-card,
+html[data-theme="dark"] .experience-panel,
+html[data-theme="dark"] .modal-card,
+html[data-theme="dark"] .dialog-card {
+  background: var(--plum-surface);
+  color: var(--plum-text);
+  border-color: var(--plum-border);
+  box-shadow: none;
+}
+
+html[data-theme="dark"] .panel h1,
+html[data-theme="dark"] .panel h2,
+html[data-theme="dark"] .panel h3,
+html[data-theme="dark"] .panel h4,
+html[data-theme="dark"] .mission-card h3,
+html[data-theme="dark"] .resource-card h3,
+html[data-theme="dark"] .page-header h1 { color: var(--plum-text); }
+
+html[data-theme="dark"] .panel p,
+html[data-theme="dark"] .panel small,
+html[data-theme="dark"] .mission-card p,
+html[data-theme="dark"] .mission-card small,
+html[data-theme="dark"] .resource-card p,
+html[data-theme="dark"] .page-header p,
+html[data-theme="dark"] .muted,
+html[data-theme="dark"] .field-optional { color: var(--plum-text-muted); }
+
+html[data-theme="dark"] .input,
+html[data-theme="dark"] .select,
+html[data-theme="dark"] .textarea,
+html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea {
+  background: var(--curio-input-bg);
+  color: var(--plum-text);
+  border-color: var(--plum-border-strong);
+}
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder { color: #96a3b7; opacity: 1; }
+html[data-theme="dark"] option { background: var(--curio-input-bg); color: var(--plum-text); }
+html[data-theme="dark"] label { color: #dce3ee; }
+html[data-theme="dark"] .data-table th { color: #aeb9ca; border-bottom-color: var(--plum-border); }
+html[data-theme="dark"] .data-table td { color: #e7ecf4; border-bottom-color: #303a4c; }
+html[data-theme="dark"] .button-secondary,
+html[data-theme="dark"] .button-ghost {
+  background: var(--plum-surface-raised);
+  color: var(--plum-text);
+  border-color: var(--plum-border-strong);
+}
+html[data-theme="dark"] .button-secondary:hover,
+html[data-theme="dark"] .button-ghost:hover { background: var(--curio-hover); }
+html[data-theme="dark"] .form-success { background: #173729; color: #baf2d2; }
+html[data-theme="dark"] .form-error { background: #412128; color: #ffd0d5; }
+
+@media (max-width: 640px) {
+  html[data-text-size="extra"] { font-size: 112%; }
+  .panel { padding: 18px; margin-bottom: 18px; }
+  .stat-card, .mission-card, .question-box { padding: 18px; }
+  .section-heading { margin-bottom: 30px; }
+}
