@@ -1,0 +1,190 @@
+@import "./public.css";
+
+/* PLUMARELI — refinamentos finais da presença de marca no site público. */
+
+#universo .mascot-free-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+#universo .mascot-character {
+  grid-column: auto;
+  min-height: 390px;
+  border: 1px solid var(--plum-border);
+  background: #fffdf9;
+  box-shadow: 0 12px 34px rgba(23, 40, 78, .055);
+}
+
+#universo .mascot-character:nth-child(1) {
+  background: linear-gradient(180deg, #eaf8c9 0 63%, #fffdf9 63%);
+  border-color: #d6eca7;
+}
+#universo .mascot-character:nth-child(2) {
+  background: linear-gradient(180deg, #ffe8f2 0 63%, #fffdf9 63%);
+  border-color: #ffd2e4;
+}
+#universo .mascot-character:nth-child(3) {
+  background: linear-gradient(180deg, #e8efff 0 63%, #fffdf9 63%);
+  border-color: #d3defd;
+}
+#universo .mascot-character:nth-child(4) {
+  background: linear-gradient(180deg, #fff1bf 0 63%, #fffdf9 63%);
+  border-color: #f4dfa1;
+}
+#universo .mascot-character:nth-child(5) {
+  background: linear-gradient(180deg, #eaf7e8 0 63%, #fffdf9 63%);
+  border-color: #d5ead0;
+}
+#universo .mascot-character:nth-child(6) {
+  background: linear-gradient(180deg, #f1eaff 0 63%, #fffdf9 63%);
+  border-color: #dfd2fb;
+}
+#universo .mascot-character:nth-child(7) {
+  background: linear-gradient(180deg, #e9edff 0 63%, #fffdf9 63%);
+  border-color: #d4dcff;
+}
+#universo .mascot-character:nth-child(8) {
+  background: linear-gradient(180deg, #edf8d9 0 63%, #fffdf9 63%);
+  border-color: #d8ebad;
+}
+
+#universo .mascot-image-free {
+  height: 255px;
+  padding: 16px 16px 0;
+  place-items: end center;
+}
+
+#universo .mascot-image-free img {
+  width: auto;
+  max-width: 86%;
+  height: 242px;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 15px 20px rgba(23, 38, 74, .12));
+}
+
+/* Personagens de silhueta larga precisam de menos altura para ter o mesmo peso visual. */
+#universo .mascot-image-free img[src*="irara"] {
+  width: 94%;
+  max-width: 94%;
+  height: auto;
+  max-height: 205px;
+  margin-bottom: 16px;
+}
+
+#universo .mascot-image-free img[src*="harpia"] {
+  max-width: 90%;
+  height: 218px;
+}
+
+#universo .mascot-caption {
+  min-height: 132px;
+  padding: 20px 22px 24px;
+}
+
+#universo .mascot-caption h3 {
+  margin: 9px 0 5px;
+  color: #17284e;
+  font-size: 21px;
+  line-height: 1.05;
+}
+
+#universo .mascot-caption p {
+  color: #667188;
+  line-height: 1.45;
+}
+
+#universo .mascot-name-pill {
+  border: 1px solid #dce3f1;
+  background: #fff;
+  color: #315efb;
+  box-shadow: none;
+}
+
+html[data-theme="dark"] #universo .mascot-character {
+  border-color: #344052;
+  background: #1b2432;
+  box-shadow: none;
+}
+
+html[data-theme="dark"] #universo .mascot-character:nth-child(1) {
+  background: linear-gradient(180deg, rgba(168,238,37,.12) 0 63%, #1b2432 63%);
+  border-color: rgba(185,233,79,.25);
+}
+html[data-theme="dark"] #universo .mascot-character:nth-child(2) {
+  background: linear-gradient(180deg, rgba(255,74,162,.11) 0 63%, #1b2432 63%);
+  border-color: rgba(241,122,172,.25);
+}
+html[data-theme="dark"] #universo .mascot-character:nth-child(3) {
+  background: linear-gradient(180deg, rgba(49,94,251,.14) 0 63%, #1b2432 63%);
+  border-color: rgba(113,144,245,.28);
+}
+html[data-theme="dark"] #universo .mascot-character:nth-child(4) {
+  background: linear-gradient(180deg, rgba(255,214,107,.10) 0 63%, #1b2432 63%);
+  border-color: rgba(244,215,124,.24);
+}
+html[data-theme="dark"] #universo .mascot-character:nth-child(5) {
+  background: linear-gradient(180deg, rgba(168,238,37,.08) 0 63%, #1b2432 63%);
+  border-color: rgba(185,233,79,.20);
+}
+html[data-theme="dark"] #universo .mascot-character:nth-child(6) {
+  background: linear-gradient(180deg, rgba(112,75,232,.13) 0 63%, #1b2432 63%);
+  border-color: rgba(146,117,239,.27);
+}
+html[data-theme="dark"] #universo .mascot-character:nth-child(7) {
+  background: linear-gradient(180deg, rgba(113,144,245,.12) 0 63%, #1b2432 63%);
+  border-color: rgba(113,144,245,.25);
+}
+html[data-theme="dark"] #universo .mascot-character:nth-child(8) {
+  background: linear-gradient(180deg, rgba(168,238,37,.10) 0 63%, #1b2432 63%);
+  border-color: rgba(185,233,79,.23);
+}
+
+html[data-theme="dark"] #universo .mascot-caption h3 {
+  color: #f4f6fa;
+}
+html[data-theme="dark"] #universo .mascot-caption p {
+  color: #c2cbd8;
+}
+html[data-theme="dark"] #universo .mascot-name-pill {
+  border-color: rgba(113,144,245,.28);
+  background: rgba(113,144,245,.10);
+  color: #aebfff;
+}
+
+/* public.css redefine o hero depois de public-site.css; este breakpoint fecha a
+   cascata no entrypoint final para que tablet/mobile não mantenham duas colunas. */
+@media (max-width: 980px) {
+  .curio-public-hero .hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .curio-public-hero .hero-copy {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 1080px) {
+  #universo .mascot-free-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  #universo .mascot-free-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #universo .mascot-character {
+    min-height: 370px;
+  }
+
+  #universo .mascot-image-free {
+    height: 240px;
+  }
+
+  #universo .mascot-image-free img {
+    height: 225px;
+  }
+}

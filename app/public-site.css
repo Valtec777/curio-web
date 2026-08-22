@@ -1,0 +1,944 @@
+@import "./referrals.css";
+
+/* PLUMARELI — direção editorial do site público.
+   Usa o design system; não redefine tokens globais nem regras de produto. */
+
+.public-header {
+  top: 0;
+  border-bottom: 0;
+  background: transparent;
+  padding: 12px 0 0;
+}
+
+.public-header-inner {
+  height: 66px;
+  padding: 0 12px 0 18px;
+  border: 1px solid color-mix(in srgb, var(--plum-border) 76%, transparent);
+  border-radius: var(--plum-radius-pill);
+  background: color-mix(in srgb, var(--plum-surface) 88%, transparent);
+  box-shadow: 0 10px 36px rgba(23, 38, 74, .08);
+  backdrop-filter: blur(18px) saturate(1.2);
+}
+
+.public-nav {
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--plum-radius-pill);
+  background: color-mix(in srgb, var(--plum-surface-soft) 82%, transparent);
+}
+
+.public-nav a {
+  padding: 8px 10px;
+  border-radius: var(--plum-radius-pill);
+  color: var(--plum-text-muted);
+  transition: background var(--plum-duration) var(--plum-ease), color var(--plum-duration) var(--plum-ease);
+}
+
+.public-nav a:hover {
+  background: var(--plum-surface);
+  color: var(--plum-text);
+}
+
+.public-actions .button {
+  border-radius: var(--plum-radius-pill);
+}
+
+/* Hero — menos "template", mais capa editorial. */
+.curio-public-hero {
+  position: relative;
+  min-height: min(900px, calc(100svh - 20px));
+  display: grid;
+  align-items: center;
+  padding: clamp(72px, 8vw, 118px) 0 clamp(68px, 8vw, 106px);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 78% 12%, color-mix(in srgb, var(--plum-yellow) 28%, transparent), transparent 22rem),
+    radial-gradient(circle at 10% 72%, color-mix(in srgb, var(--plum-purple) 11%, transparent), transparent 28rem),
+    var(--plum-canvas);
+}
+
+.curio-public-hero::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--plum-border), transparent);
+}
+
+.curio-public-hero .hero-grid {
+  grid-template-columns: minmax(0, 1.08fr) minmax(390px, .92fr);
+  gap: clamp(38px, 6vw, 86px);
+}
+
+.curio-public-hero .hero-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 760px;
+}
+
+.curio-public-hero .kicker-pill {
+  display: inline-flex;
+  width: fit-content;
+  padding: 8px 13px;
+  border: 1px solid color-mix(in srgb, var(--plum-blue) 18%, var(--plum-border));
+  border-radius: var(--plum-radius-pill);
+  background: color-mix(in srgb, var(--plum-blue) 8%, var(--plum-surface));
+  color: var(--plum-blue-strong);
+  letter-spacing: .075em;
+}
+
+.curio-public-hero h1 {
+  margin: 18px 0 22px;
+  max-width: 780px;
+  font-size: clamp(54px, 6.1vw, 92px);
+  line-height: .94;
+  letter-spacing: -.055em;
+}
+
+.curio-public-hero .hero-highlight-blue,
+.curio-public-hero .hero-highlight-pink {
+  position: relative;
+  display: inline;
+  color: inherit;
+  background-repeat: no-repeat;
+  background-position: 0 92%;
+  background-size: 100% .18em;
+}
+
+.curio-public-hero .hero-highlight-blue {
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--plum-lime) 88%, white), var(--plum-lime));
+}
+
+.curio-public-hero .hero-highlight-pink {
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--plum-pink) 55%, white), var(--plum-pink));
+}
+
+.curio-public-hero .hero-grade {
+  width: fit-content;
+  margin: 0 0 16px;
+  padding: 8px 12px;
+  border-radius: var(--plum-radius-sm);
+  background: var(--plum-surface-soft);
+  color: var(--plum-text-muted);
+  font-size: 14px;
+}
+
+.curio-public-hero .hero-copy > p:not(.hero-grade):not(.brain-line) {
+  max-width: 650px;
+  font-size: clamp(17px, 1.5vw, 20px);
+  color: var(--plum-text-muted);
+}
+
+.curio-public-hero .brain-line {
+  margin: 22px 0 0;
+  color: var(--plum-text);
+  font-family: var(--plum-font-display);
+  font-size: clamp(18px, 1.6vw, 23px);
+  font-weight: 700;
+}
+
+.curio-public-hero .brain-line span {
+  color: var(--plum-blue-strong);
+}
+
+.curio-public-hero .hero-buttons {
+  margin-top: 30px;
+}
+
+.curio-public-hero .hero-buttons .button {
+  min-height: 50px;
+  padding-inline: 20px;
+  border-radius: var(--plum-radius-pill);
+}
+
+.curio-public-hero .hero-chips {
+  margin-top: 28px;
+  gap: 8px;
+}
+
+.curio-public-hero .hero-chips span {
+  padding: 8px 11px;
+  border: 1px solid var(--plum-border);
+  border-radius: var(--plum-radius-pill);
+  background: color-mix(in srgb, var(--plum-surface) 74%, transparent);
+  color: var(--plum-text-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.curio-public-hero .hero-mascot-stage {
+  position: relative;
+  min-height: clamp(500px, 52vw, 620px);
+  border: 1px solid color-mix(in srgb, var(--plum-blue) 28%, transparent);
+  border-radius: clamp(32px, 4vw, 52px);
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 70% 18%, rgba(239, 87, 153, .30), transparent 25%),
+    radial-gradient(circle at 18% 85%, rgba(184, 237, 75, .18), transparent 28%),
+    linear-gradient(145deg, #11182c 0%, #19264c 56%, #392c73 100%);
+  box-shadow: 0 34px 90px rgba(23, 38, 74, .20);
+}
+
+.curio-public-hero .hero-mascot-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: .48;
+  background-image:
+    linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,.9), transparent 88%);
+}
+
+.curio-public-hero .hero-mascot-stage::after {
+  content: "MENTES CURIOSAS";
+  position: absolute;
+  left: 24px;
+  bottom: 18px;
+  color: rgba(255,255,255,.13);
+  font-family: var(--plum-font-display);
+  font-size: clamp(34px, 4.4vw, 66px);
+  font-weight: 700;
+  letter-spacing: -.04em;
+  white-space: nowrap;
+}
+
+.curio-public-hero .hero-sticker {
+  border-radius: var(--plum-radius-pill);
+  box-shadow: none;
+}
+
+/* Títulos editoriais compartilhados. */
+main > .section .section-heading {
+  max-width: 900px;
+}
+
+main > .section .section-heading h2,
+.map-promise-section h2,
+.course-public-copy h2,
+.lead-copy h2,
+.about-grid h2 {
+  font-size: clamp(40px, 5vw, 70px);
+  line-height: .98;
+  letter-spacing: -.045em;
+}
+
+main > .section .section-heading p,
+.map-promise-section p,
+.course-public-copy > p,
+.lead-copy > p,
+.about-grid p {
+  max-width: 720px;
+  color: var(--plum-text-muted);
+  font-size: clamp(16px, 1.55vw, 19px);
+}
+
+/* Como funciona — quatro blocos com ritmo em vez de quatro cards iguais. */
+#como-funciona {
+  padding-top: clamp(88px, 9vw, 132px);
+}
+
+#como-funciona .steps-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px;
+}
+
+#como-funciona .step-card {
+  grid-column: span 6;
+  position: relative;
+  min-height: 260px;
+  padding: clamp(24px, 3vw, 38px);
+  border: 0;
+  border-radius: var(--plum-radius-xl);
+  overflow: hidden;
+  box-shadow: none;
+}
+
+#como-funciona .step-card:nth-child(1) {
+  background: color-mix(in srgb, var(--plum-lime) 32%, var(--plum-surface));
+}
+
+#como-funciona .step-card:nth-child(2) {
+  background: color-mix(in srgb, var(--plum-purple) 13%, var(--plum-surface));
+}
+
+#como-funciona .step-card:nth-child(3) {
+  background: color-mix(in srgb, var(--plum-pink) 14%, var(--plum-surface));
+}
+
+#como-funciona .step-card:nth-child(4) {
+  background: #141d36;
+  color: #f5f7ff;
+}
+
+#como-funciona .step-card > span {
+  display: block;
+  margin-bottom: clamp(48px, 6vw, 78px);
+  color: color-mix(in srgb, currentColor 58%, transparent);
+  font-family: var(--plum-font-display);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+#como-funciona .step-card h3 {
+  margin: 0 0 10px;
+  font-size: clamp(28px, 3vw, 42px);
+  letter-spacing: -.035em;
+}
+
+#como-funciona .step-card p {
+  max-width: 520px;
+  margin: 0;
+  color: color-mix(in srgb, currentColor 72%, transparent);
+  font-size: 16px;
+}
+
+#como-funciona .step-card:nth-child(4) h3,
+#como-funciona .step-card:nth-child(4) p {
+  color: inherit;
+}
+
+/* Experiência — composição assimétrica inspirada em editorial. */
+#o-que-recebe {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--plum-surface-soft) 78%, var(--plum-canvas));
+}
+
+#o-que-recebe .experience-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px;
+}
+
+#o-que-recebe .experience-card {
+  grid-column: span 4;
+  min-height: 280px;
+  padding: clamp(24px, 2.7vw, 34px);
+  border: 1px solid color-mix(in srgb, var(--plum-border) 72%, transparent);
+  border-radius: var(--plum-radius-xl);
+  background: var(--plum-surface-raised);
+  box-shadow: none;
+}
+
+#o-que-recebe .experience-card:nth-child(1) {
+  grid-column: span 7;
+  background: #171f38;
+  color: #f7f8ff;
+}
+
+#o-que-recebe .experience-card:nth-child(2) {
+  grid-column: span 5;
+  background: color-mix(in srgb, var(--plum-yellow) 52%, var(--plum-surface));
+}
+
+#o-que-recebe .experience-card:nth-child(3) {
+  grid-column: span 5;
+  background: color-mix(in srgb, var(--plum-purple) 15%, var(--plum-surface));
+}
+
+#o-que-recebe .experience-card:nth-child(4) {
+  grid-column: span 7;
+  background: color-mix(in srgb, var(--plum-lime) 34%, var(--plum-surface));
+}
+
+#o-que-recebe .experience-card:nth-child(5) {
+  grid-column: span 8;
+  background: color-mix(in srgb, var(--plum-pink) 14%, var(--plum-surface));
+}
+
+#o-que-recebe .experience-card:nth-child(6) {
+  grid-column: span 4;
+}
+
+#o-que-recebe .experience-number {
+  display: block;
+  margin-bottom: clamp(44px, 5vw, 72px);
+  color: color-mix(in srgb, currentColor 48%, transparent);
+  font-family: var(--plum-font-display);
+  font-weight: 700;
+}
+
+#o-que-recebe .experience-card h3 {
+  margin: 0 0 10px;
+  font-size: clamp(27px, 2.7vw, 40px);
+  letter-spacing: -.035em;
+}
+
+#o-que-recebe .experience-card p {
+  max-width: 530px;
+  margin: 0;
+  color: color-mix(in srgb, currentColor 70%, transparent);
+}
+
+#o-que-recebe .experience-card:nth-child(1) h3,
+#o-que-recebe .experience-card:nth-child(1) p {
+  color: inherit;
+}
+
+/* Método — seção pôster. */
+.method-band {
+  position: relative;
+  padding: clamp(100px, 11vw, 160px) 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 85% 10%, rgba(112,75,232,.34), transparent 26rem),
+    radial-gradient(circle at 10% 100%, rgba(184,237,75,.12), transparent 30rem),
+    #0e1425;
+}
+
+.method-band::before {
+  content: "PENSE  ·  CRIE  ·  RESOLVA";
+  position: absolute;
+  left: -1vw;
+  top: 34px;
+  color: rgba(255,255,255,.045);
+  font-family: var(--plum-font-display);
+  font-size: clamp(58px, 10vw, 148px);
+  font-weight: 700;
+  letter-spacing: -.055em;
+  white-space: nowrap;
+}
+
+.method-band .site-shell {
+  position: relative;
+  z-index: 1;
+}
+
+.method-band .method-title {
+  max-width: 1000px;
+  margin: 14px 0 24px;
+  color: #f7f8ff;
+  font-size: clamp(58px, 8.4vw, 122px);
+  line-height: .88;
+  letter-spacing: -.06em;
+}
+
+.method-band .method-title span {
+  display: block;
+  color: var(--plum-lime);
+}
+
+.method-band .method-intro {
+  max-width: 690px;
+  color: #c1c9dc;
+  font-size: clamp(17px, 1.7vw, 21px);
+}
+
+.method-band .method-flow {
+  margin-top: 54px;
+  justify-content: flex-start;
+}
+
+.method-band .method-dot {
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: none;
+}
+
+.method-band .method-callout {
+  width: fit-content;
+  max-width: 760px;
+  margin-top: 54px;
+  padding: 17px 20px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: var(--plum-radius-lg);
+  background: rgba(255,255,255,.07);
+  color: #dfe4f0;
+  backdrop-filter: blur(12px);
+}
+
+/* Universo — personagens soltos, cada um como cena. */
+#universo {
+  padding-top: clamp(92px, 10vw, 146px);
+  padding-bottom: clamp(92px, 10vw, 146px);
+}
+
+#universo .mascot-free-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px;
+}
+
+#universo .mascot-character {
+  grid-column: span 4;
+  position: relative;
+  min-height: 430px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--plum-radius-xl);
+  background: var(--plum-surface-soft);
+  box-shadow: none;
+}
+
+#universo .mascot-character:nth-child(1),
+#universo .mascot-character:nth-child(6) {
+  background: color-mix(in srgb, var(--plum-lime) 30%, var(--plum-surface));
+}
+
+#universo .mascot-character:nth-child(2),
+#universo .mascot-character:nth-child(5) {
+  background: color-mix(in srgb, var(--plum-pink) 13%, var(--plum-surface));
+}
+
+#universo .mascot-character:nth-child(3) {
+  background: color-mix(in srgb, var(--plum-blue) 12%, var(--plum-surface));
+}
+
+#universo .mascot-character:nth-child(4) {
+  background: color-mix(in srgb, var(--plum-yellow) 46%, var(--plum-surface));
+}
+
+#universo .mascot-image-free {
+  height: 290px;
+  display: grid;
+  place-items: end center;
+  margin: 0;
+  overflow: visible;
+}
+
+#universo .mascot-image-free img {
+  width: auto;
+  max-width: 88%;
+  height: 290px;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 18px 24px rgba(23,38,74,.13));
+  transition: transform 260ms var(--plum-ease);
+}
+
+#universo .mascot-character:hover .mascot-image-free img {
+  transform: translateY(-7px) rotate(-1deg);
+}
+
+#universo .mascot-caption {
+  position: relative;
+  z-index: 1;
+  padding: 0 24px 26px;
+}
+
+#universo .mascot-caption h3 {
+  margin: 10px 0 5px;
+  font-size: 23px;
+}
+
+#universo .mascot-caption p {
+  margin: 0;
+  color: var(--plum-text-muted);
+}
+
+/* Acompanhamento — faixa lima memorável e legível. */
+.map-promise-section {
+  padding: clamp(86px, 9vw, 126px) 0;
+  background:
+    radial-gradient(circle at 88% 18%, rgba(255,255,255,.44), transparent 22rem),
+    color-mix(in srgb, var(--plum-lime) 78%, #d9ff84);
+  color: #14213b;
+}
+
+.map-promise-section .map-promise-grid {
+  gap: clamp(42px, 7vw, 92px);
+  align-items: center;
+}
+
+.map-promise-section h2,
+.map-promise-section .eyebrow {
+  color: #14213b;
+}
+
+.map-promise-section p {
+  color: #33405a;
+}
+
+.map-promise-section .map-mini-card {
+  border: 0;
+  border-radius: var(--plum-radius-xl);
+  background: #121a2d;
+  color: #f5f7ff;
+  box-shadow: 0 28px 70px rgba(38,58,24,.18);
+}
+
+.map-promise-section .map-mini-card > div {
+  border-color: rgba(255,255,255,.10);
+}
+
+.map-promise-section .map-mini-card span,
+.map-promise-section .map-mini-card small {
+  color: #aeb9cd;
+}
+
+.map-promise-section .map-mini-card strong {
+  color: #f5f7ff;
+}
+
+/* Modo Pensar — palco escuro, card claro. */
+.course-public-section {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(96px, 10vw, 144px) 0;
+  background: #111827;
+}
+
+.course-public-section::after {
+  content: "?";
+  position: absolute;
+  right: -20px;
+  bottom: -140px;
+  color: rgba(184,237,75,.10);
+  font-family: var(--plum-font-display);
+  font-size: 520px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.course-public-section .course-public-grid {
+  position: relative;
+  z-index: 1;
+  gap: clamp(42px, 7vw, 96px);
+  align-items: center;
+}
+
+.course-public-section .course-public-copy h2,
+.course-public-section .course-public-copy p {
+  color: #f5f7ff;
+}
+
+.course-public-section .course-public-copy p {
+  color: #b9c2d5;
+}
+
+.course-public-section .course-public-pills span {
+  border-color: rgba(255,255,255,.13);
+  background: rgba(255,255,255,.06);
+  color: #dce2ef;
+}
+
+.course-public-section .course-public-card {
+  padding: clamp(30px, 4vw, 48px);
+  border: 0;
+  border-radius: 36px;
+  background: #f8f4e9;
+  color: #18233e;
+  box-shadow: 0 34px 86px rgba(0,0,0,.24);
+  transform: rotate(1.2deg);
+}
+
+.course-public-section .course-public-card h3 {
+  color: #18233e;
+  font-size: clamp(32px, 4vw, 52px);
+}
+
+.course-public-section .course-public-step {
+  border-color: #e2ddd1;
+}
+
+/* Planos — pausa visual limpa depois das faixas intensas. */
+#plano {
+  padding: clamp(92px, 10vw, 140px) 0;
+}
+
+#plano .public-plan-grid {
+  gap: 16px;
+  align-items: stretch;
+}
+
+#plano .public-plan-card {
+  border-radius: var(--plum-radius-xl);
+  box-shadow: none;
+}
+
+#plano .public-plan-featured {
+  transform: translateY(-10px);
+  border-color: color-mix(in srgb, var(--plum-blue) 34%, var(--plum-border));
+  box-shadow: var(--plum-shadow-md);
+}
+
+/* Lead — grande bloco acolhedor, não mais um formulário perdido no fim. */
+#quero-conhecer {
+  position: relative;
+  padding: clamp(88px, 9vw, 132px) 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 10% 85%, rgba(255,255,255,.54), transparent 24rem),
+    color-mix(in srgb, var(--plum-pink) 18%, #fff4dd);
+}
+
+#quero-conhecer .lead-grid {
+  gap: clamp(42px, 7vw, 88px);
+  align-items: center;
+}
+
+#quero-conhecer .lead-copy h2 {
+  max-width: 650px;
+}
+
+#quero-conhecer .lead-price {
+  margin-top: 28px;
+  border-radius: var(--plum-radius-lg);
+  background: color-mix(in srgb, var(--plum-surface) 66%, transparent);
+  border-color: rgba(255,255,255,.5);
+}
+
+#quero-conhecer .lead-form {
+  padding: clamp(26px, 3vw, 38px);
+  border: 1px solid color-mix(in srgb, var(--plum-border) 80%, transparent);
+  border-radius: 34px;
+  background: color-mix(in srgb, var(--plum-surface) 94%, transparent);
+  box-shadow: 0 28px 72px rgba(69, 41, 78, .12);
+  backdrop-filter: blur(16px);
+}
+
+/* Sobre — uma frase final com escala de pôster. */
+#sobre {
+  padding: clamp(100px, 11vw, 164px) 0;
+}
+
+#sobre .about-grid {
+  gap: clamp(42px, 8vw, 110px);
+  align-items: center;
+}
+
+#sobre .about-quote {
+  min-height: 430px;
+  padding: clamp(32px, 5vw, 56px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  border-radius: 38px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 78% 18%, rgba(239,87,153,.30), transparent 24%),
+    linear-gradient(145deg, #121a31, #2a2058);
+  color: #f7f8ff;
+  box-shadow: var(--plum-shadow-lg);
+}
+
+#sobre .about-quote strong,
+#sobre .about-quote span,
+#sobre .about-quote b {
+  display: block;
+  color: inherit;
+  font-family: var(--plum-font-display);
+  line-height: .95;
+  letter-spacing: -.045em;
+}
+
+#sobre .about-quote strong {
+  font-size: clamp(38px, 5vw, 68px);
+}
+
+#sobre .about-quote span {
+  margin-top: 18px;
+  color: #b9c2d6;
+  font-size: clamp(22px, 2.6vw, 34px);
+}
+
+#sobre .about-quote b {
+  margin-top: 4px;
+  color: var(--plum-lime);
+  font-size: clamp(30px, 4vw, 52px);
+}
+
+#faq {
+  padding: clamp(88px, 9vw, 126px) 0;
+}
+
+.curio-footer {
+  padding-top: 62px;
+  background: #0d1425;
+}
+
+/* Dark mode: a direção continua editorial, mas sem perder camadas. */
+html[data-theme="dark"] .public-header-inner {
+  border-color: rgba(255,255,255,.10);
+  background: rgba(24,31,45,.86);
+  box-shadow: 0 12px 38px rgba(0,0,0,.22);
+}
+
+html[data-theme="dark"] .public-nav {
+  background: rgba(255,255,255,.05);
+}
+
+html[data-theme="dark"] .public-nav a:hover {
+  background: rgba(255,255,255,.08);
+}
+
+html[data-theme="dark"] .curio-public-hero {
+  background:
+    radial-gradient(circle at 78% 12%, rgba(255,214,107,.10), transparent 22rem),
+    radial-gradient(circle at 10% 72%, rgba(112,75,232,.12), transparent 28rem),
+    var(--plum-canvas);
+}
+
+html[data-theme="dark"] .curio-public-hero .hero-grade,
+html[data-theme="dark"] .curio-public-hero .hero-chips span {
+  background: color-mix(in srgb, var(--plum-surface) 88%, transparent);
+}
+
+html[data-theme="dark"] #como-funciona .step-card:nth-child(1),
+html[data-theme="dark"] #como-funciona .step-card:nth-child(2),
+html[data-theme="dark"] #como-funciona .step-card:nth-child(3),
+html[data-theme="dark"] #o-que-recebe .experience-card:not(:nth-child(1)),
+html[data-theme="dark"] #universo .mascot-character {
+  color: var(--plum-text);
+  background: var(--plum-surface);
+  border-color: var(--plum-border);
+}
+
+html[data-theme="dark"] #o-que-recebe {
+  background: var(--plum-canvas);
+}
+
+html[data-theme="dark"] #universo .mascot-caption p {
+  color: var(--plum-text-muted);
+}
+
+html[data-theme="dark"] #quero-conhecer {
+  background:
+    radial-gradient(circle at 12% 88%, rgba(239,87,153,.13), transparent 26rem),
+    #171d2b;
+}
+
+html[data-theme="dark"] #quero-conhecer .lead-form,
+html[data-theme="dark"] #quero-conhecer .lead-price {
+  background: color-mix(in srgb, var(--plum-surface) 92%, transparent);
+  border-color: var(--plum-border);
+}
+
+html[data-theme="dark"] .course-public-section .course-public-card {
+  background: #f1eadc;
+  color: #18233e;
+}
+
+/* Movimento pequeno e opcional. */
+@media (prefers-reduced-motion: no-preference) {
+  .curio-public-hero .hero-mascot-stage {
+    animation: plumareli-stage-in 700ms var(--plum-ease) both;
+  }
+
+  @keyframes plumareli-stage-in {
+    from { opacity: 0; transform: translateY(18px) rotate(.7deg); }
+    to { opacity: 1; transform: translateY(0) rotate(0); }
+  }
+}
+
+html[data-access-epilepsy="true"] #universo .mascot-character:hover .mascot-image-free img,
+html[data-access-focus="true"] #universo .mascot-character:hover .mascot-image-free img {
+  transform: none;
+}
+
+@media (max-width: 980px) {
+  .public-header { padding-top: 8px; }
+  .public-header-inner { border-radius: 22px; }
+
+  .curio-public-hero {
+    min-height: auto;
+    padding-top: 74px;
+  }
+
+  .curio-public-hero .hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .curio-public-hero .hero-copy {
+    max-width: 820px;
+  }
+
+  .curio-public-hero .hero-mascot-stage {
+    width: min(720px, 100%);
+    min-height: 520px;
+    margin: 0 auto;
+  }
+
+  #universo .mascot-character {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 720px) {
+  .public-header { padding: 0; }
+  .public-header-inner {
+    width: 100%;
+    border-radius: 0 0 20px 20px;
+    border-top: 0;
+  }
+
+  .curio-public-hero {
+    padding-top: 56px;
+  }
+
+  .curio-public-hero h1 {
+    font-size: clamp(44px, 13vw, 66px);
+    line-height: .96;
+  }
+
+  .curio-public-hero .hero-buttons .button {
+    width: 100%;
+  }
+
+  .curio-public-hero .hero-mascot-stage {
+    min-height: 430px;
+    border-radius: 30px;
+  }
+
+  main > .section .section-heading h2,
+  .map-promise-section h2,
+  .course-public-copy h2,
+  .lead-copy h2,
+  .about-grid h2 {
+    font-size: clamp(36px, 10vw, 52px);
+  }
+
+  #como-funciona .step-card,
+  #o-que-recebe .experience-card,
+  #o-que-recebe .experience-card:nth-child(n),
+  #universo .mascot-character {
+    grid-column: 1 / -1;
+  }
+
+  #como-funciona .step-card,
+  #o-que-recebe .experience-card {
+    min-height: 230px;
+  }
+
+  .method-band .method-title {
+    font-size: clamp(52px, 15vw, 82px);
+  }
+
+  .method-band .method-flow {
+    gap: 8px;
+  }
+
+  .method-band .method-flow-item b {
+    display: none;
+  }
+
+  #universo .mascot-character {
+    min-height: 390px;
+  }
+
+  .course-public-section .course-public-card {
+    transform: none;
+  }
+
+  #sobre .about-quote {
+    min-height: 340px;
+  }
+}
+
+@media (max-width: 480px) {
+  .curio-public-hero .hero-mascot-stage {
+    min-height: 365px;
+  }
+
+  #universo .mascot-image-free,
+  #universo .mascot-image-free img {
+    height: 250px;
+  }
+}

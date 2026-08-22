@@ -1,0 +1,218 @@
+/* PLUMARELI — acessibilidade e preferências de conforto.
+   Este arquivo NÃO define o tema claro/escuro. Cores de tema pertencem a themes.css. */
+
+/* Metadados de contratos/códigos PLUMARELI ficam no backend/Admin e não na experiência do Professor. */
+.generator-source-card + .family-highlight {
+  display: none !important;
+}
+
+/* Foco visível consistente em todos os temas. */
+:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--plum-focus) 78%, white);
+  outline-offset: 3px;
+}
+
+/* Painel de Aparência e acessibilidade usa somente tokens semânticos. */
+.experience-trigger {
+  color: var(--plum-text-strong);
+  background: color-mix(in srgb, var(--plum-surface-raised) 94%, transparent);
+  border-color: var(--plum-border-strong);
+  box-shadow: var(--plum-shadow-md);
+}
+
+.experience-trigger:hover {
+  background: var(--plum-hover);
+}
+
+.experience-panel {
+  color: var(--plum-text);
+  background: var(--plum-surface-raised);
+  border-color: var(--plum-border-strong);
+  box-shadow: var(--plum-shadow-lg);
+}
+
+.experience-panel-head {
+  border-bottom-color: var(--plum-border);
+}
+
+.experience-panel-head strong,
+.preference-toggle strong,
+.experience-label {
+  color: var(--plum-text-strong);
+}
+
+.experience-panel-head small,
+.preference-toggle small {
+  color: var(--plum-text-muted);
+}
+
+.experience-close,
+.sound-preview button {
+  color: var(--plum-text);
+  background: var(--plum-surface-soft);
+  border-color: var(--plum-border);
+}
+
+.experience-close:hover,
+.sound-preview button:hover {
+  background: var(--plum-hover);
+}
+
+.segmented-control {
+  background: var(--plum-surface-soft);
+  border-color: var(--plum-border);
+}
+
+.segmented-control button {
+  color: var(--plum-text-muted);
+  background: transparent;
+  border-color: transparent;
+}
+
+.segmented-control button:hover {
+  color: var(--plum-text-strong);
+}
+
+.segmented-control button[aria-pressed="true"],
+.segmented-control button.is-active {
+  color: var(--plum-text-strong);
+  background: var(--plum-surface-raised);
+  border-color: var(--plum-border-strong);
+  box-shadow: var(--plum-shadow-xs);
+}
+
+.preference-toggle {
+  border-bottom-color: var(--plum-border);
+}
+
+.preference-toggle input {
+  background: var(--plum-border-strong);
+  border-color: var(--plum-border-strong);
+}
+
+.preference-toggle input::before {
+  background: var(--plum-surface-raised);
+}
+
+.preference-toggle input:checked {
+  background: var(--plum-blue);
+  border-color: var(--plum-blue);
+}
+
+/* Leitura confortável: contraste reforçado apenas quando o usuário pede. */
+html[data-access-visual="true"] {
+  --plum-border: color-mix(in srgb, var(--plum-text) 22%, transparent);
+  --plum-border-strong: color-mix(in srgb, var(--plum-text) 34%, transparent);
+}
+
+html[data-theme="light"][data-access-visual="true"] {
+  --plum-text-muted: #4f5868;
+}
+
+html[data-theme="dark"][data-access-visual="true"] {
+  --plum-text-muted: #c6ced9;
+}
+
+html[data-access-visual="true"] :focus-visible {
+  outline-width: 4px;
+  outline-offset: 4px;
+}
+
+html[data-access-visual="true"] .input,
+html[data-access-visual="true"] .select,
+html[data-access-visual="true"] .textarea,
+html[data-access-visual="true"] input:not([type="checkbox"]):not([type="radio"]),
+html[data-access-visual="true"] select,
+html[data-access-visual="true"] textarea {
+  border-width: 2px;
+}
+
+html[data-access-visual="true"] .panel,
+html[data-access-visual="true"] .mission-card,
+html[data-access-visual="true"] .resource-card,
+html[data-access-visual="true"] .family-summary-card,
+html[data-access-visual="true"] .teacher-today-card,
+html[data-access-visual="true"] .teacher-side-card,
+html[data-access-visual="true"] .admin-module-card {
+  border-color: var(--plum-border-strong);
+}
+
+html[data-access-visual="true"] .app-main a:not(.button),
+html[data-access-visual="true"] .legal-public-body a {
+  text-decoration: underline;
+  text-decoration-thickness: .08em;
+  text-underline-offset: .18em;
+}
+
+/* Foco e simplicidade: reduz decoração sem esconder ações ou conteúdo. */
+html[data-access-focus="true"] body {
+  background-image: none;
+}
+
+html[data-access-focus="true"] .hero-sticker,
+html[data-access-focus="true"] .student-hero-orbit,
+html[data-access-focus="true"] .mascot-orbit::before,
+html[data-access-focus="true"] .mascot-orbit::after,
+html[data-access-focus="true"] .seasonal-mission::before,
+html[data-access-focus="true"] .seasonal-mission::after {
+  display: none !important;
+}
+
+html[data-access-focus="true"] .panel,
+html[data-access-focus="true"] .mission-card,
+html[data-access-focus="true"] .resource-card,
+html[data-access-focus="true"] .feature-card,
+html[data-access-focus="true"] .method-card,
+html[data-access-focus="true"] .role-card,
+html[data-access-focus="true"] .family-summary-card,
+html[data-access-focus="true"] .teacher-today-card,
+html[data-access-focus="true"] .teacher-side-card,
+html[data-access-focus="true"] .admin-module-card {
+  box-shadow: none;
+}
+
+html[data-access-focus="true"] .feature-card:hover,
+html[data-access-focus="true"] .method-card:hover,
+html[data-access-focus="true"] .role-card:hover,
+html[data-access-focus="true"] .public-plan-card:hover,
+html[data-access-focus="true"] .course-public-card:hover,
+html[data-access-focus="true"] .button:hover {
+  transform: none;
+}
+
+/* Redução de estímulos: movimento e autoplay deixam de disputar atenção. */
+html[data-access-epilepsy="true"] *,
+html[data-access-epilepsy="true"] *::before,
+html[data-access-epilepsy="true"] *::after {
+  animation-duration: .001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .001ms !important;
+  scroll-behavior: auto !important;
+}
+
+html[data-access-epilepsy="true"] .hero-sticker,
+html[data-access-epilepsy="true"] .student-hero-orbit {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Elementos desabilitados continuam legíveis sem parecer ativos. */
+:disabled,
+[aria-disabled="true"] {
+  opacity: .62;
+}
+
+@media (max-width: 640px) {
+  .experience-panel {
+    max-height: calc(100dvh - 86px);
+    overflow-y: auto;
+  }
+}
