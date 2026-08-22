@@ -28,7 +28,14 @@ export async function proxy(request: NextRequest) {
     return applySecurityHeaders(new NextResponse("Not Found", { status: 404 }), privateBeta);
   }
 
-  if (privateBeta && pathname === "/" && !presentationPreview) {
+  if (privateBeta && pathname === "/" && presentationPreview) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/apresentacao";
+    url.search = "";
+    return applySecurityHeaders(NextResponse.redirect(url), privateBeta);
+  }
+
+  if (privateBeta && pathname === "/") {
     const url = request.nextUrl.clone();
     url.pathname = "/beta";
     return applySecurityHeaders(NextResponse.rewrite(url), privateBeta);
