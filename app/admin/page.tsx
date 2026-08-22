@@ -2,6 +2,73 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader, Badge } from "@/components/ui";
 
+const growthMilestones = [
+  {
+    threshold: 0,
+    label: "Agora",
+    title: "Revisar base jurídica e privacidade",
+    description: "Conferir Termos, Privacidade, Privacidade da Criança, consentimentos e contrato antes de escalar novas matrículas.",
+    href: "/admin/documentos",
+    action: "Abrir documentos",
+  },
+  {
+    threshold: 5,
+    label: "5 alunos",
+    title: "Fazer busca da marca PLUMARELI no INPI",
+    description: "Tratar a proteção do nome e da identidade como prioridade de marca. O número de alunos é só um marco interno, não um prazo legal.",
+    href: "/admin/documentos",
+    action: "Ver checklist",
+  },
+  {
+    threshold: 10,
+    label: "10 alunos",
+    title: "Revisar formalização com contador",
+    description: "Avaliar CNPJ, atividades/CNAEs, emissão de nota, tributação, conta empresarial e rotina financeira antes de crescer mais.",
+    href: "/admin/financeiro",
+    action: "Abrir financeiro",
+  },
+  {
+    threshold: 20,
+    label: "20 alunos",
+    title: "Avaliar registro do software no INPI",
+    description: "Com uma versão mais estável da plataforma, revisar titularidade do código e decidir se é o momento de registrar o programa de computador.",
+    href: "/admin/auditoria",
+    action: "Abrir auditoria",
+  },
+  {
+    threshold: 30,
+    label: "30 alunos",
+    title: "Revisar modelo de trabalho das instrutoras",
+    description: "Conferir contrato, responsabilidades, repasses, acesso a dados, rotina pedagógica e apoio profissional jurídico/contábil.",
+    href: "/admin/professores",
+    action: "Abrir professores",
+  },
+  {
+    threshold: 40,
+    label: "40 alunos",
+    title: "Revisar segurança e acessos",
+    description: "Checar permissões, backups, dados de crianças, incidentes, contas administrativas e boas práticas de segurança.",
+    href: "/admin/auditoria",
+    action: "Abrir auditoria",
+  },
+  {
+    threshold: 50,
+    label: "50 alunos",
+    title: "Revisar preços, capacidade e estrutura",
+    description: "Comparar margem, carga das instrutoras, suporte às famílias, custos de infraestrutura e capacidade antes da próxima fase.",
+    href: "/admin/planos",
+    action: "Abrir planos",
+  },
+  {
+    threshold: 100,
+    label: "100 alunos",
+    title: "Planejar a próxima estrutura de escala",
+    description: "Reavaliar regime tributário, contabilidade, suporte, segurança, infraestrutura, equipe e processos internos.",
+    href: "/admin/financeiro",
+    action: "Abrir financeiro",
+  },
+] as const;
+
 export default async function AdminPage() {
   const supabase = await createClient();
   const [
@@ -32,8 +99,11 @@ export default async function AdminPage() {
     supabase.from("payment_receipts").select("id", { count: "exact", head: true }).eq("status", "pending"),
   ]);
 
+  const studentCount = students ?? 0;
+  const nextGrowthMilestone = growthMilestones.find((item) => item.threshold > studentCount) ?? null;
+
   const kpis = [
-    { label: "Alunos", value: students ?? 0, href: "/admin/alunos" },
+    { label: "Alunos", value: studentCount, href: "/admin/alunos" },
     { label: "Famílias", value: families ?? 0, href: "/admin/familias" },
     { label: "Professores", value: teachers ?? 0, href: "/admin/professores" },
     { label: "Matrículas", value: enrollments ?? 0, href: "/admin/matriculas" },
@@ -124,6 +194,48 @@ export default async function AdminPage() {
             <Link href={item.href}>Abrir →</Link>
           </article>
         ))}
+      </section>
+
+      <section className="panel">
+        <div className="panel-head">
+          <div>
+            <div className="flex gap-8 wrap">
+              <Badge tone="blue">Radar de crescimento</Badge>
+              <Badge tone="neutral">{studentCount} aluno(s) ativo(s)</Badge>
+            </div>
+            <h2 className="mt-12">O que preparar antes da próxima fase.</h2>
+            <p>Estes marcos são lembretes internos da PLUMARELI. Número de alunos não cria, por si só, um prazo jurídico ou tributário: quando o assunto for legal, contábil ou trabalhista, o passo é revisar com o profissional adequado.</p>
+          </div>
+        </div>
+
+        {nextGrowthMilestone ? (
+          <div className="notice mb-16">
+            <strong>Próximo marco: {nextGrowthMilestone.label} · {nextGrowthMilestone.title}</strong>
+            <p className="mb-0">Faltam {Math.max(nextGrowthMilestone.threshold - studentCount, 0)} aluno(s) ativo(s) para este lembrete entrar na fase alcançada.</p>
+          </div>
+        ) : (
+          <div className="notice mb-16"><strong>Todos os marcos cadastrados foram alcançados.</strong><p className="mb-0">Hora de criar a próxima etapa do radar.</p></div>
+        )}
+
+        <div className="form-stack">
+          {growthMilestones.map((item) => {
+            const reached = studentCount >= item.threshold;
+            const isNext = nextGrowthMilestone?.threshold === item.threshold;
+            return (
+              <article className="mission-card" key={item.label}>
+                <div className="flex space-between gap-8 wrap">
+                  <div className="flex gap-8 wrap">
+                    <Badge tone={reached ? "green" : isNext ? "yellow" : "neutral"}>{reached ? "Alcançado" : isNext ? "Próximo" : "Depois"}</Badge>
+                    <Badge tone="blue">{item.label}</Badge>
+                  </div>
+                  <Link href={item.href}>{item.action} →</Link>
+                </div>
+                <h3 className="mt-12">{item.title}</h3>
+                <p className="mb-0">{item.description}</p>
+              </article>
+            );
+          })}
+        </div>
       </section>
 
       <section className="panel">
